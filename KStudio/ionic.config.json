@@ -1,0 +1,7 @@
+{
+  "name": "KStudio",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
