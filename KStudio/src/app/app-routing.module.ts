@@ -3,7 +3,6 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   { path: 'home', loadChildren: () => import('./home/home.module').then( m => m.HomePageModule) },
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'login', loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule) },
   { path: 'register', loadChildren: () => import('./register/register.module').then( m => m.RegisterPageModule) },
   { path: 'trainings', loadChildren: () => import('./trainings/trainings.module').then( m => m.TrainingsPageModule) },
@@ -14,7 +13,8 @@ const routes: Routes = [
   { path: 'manage-trainings', loadChildren: () => import('./manage-trainings/manage-trainings.module').then( m => m.ManageTrainingsPageModule) },
   { path: 'manage-enrollments', loadChildren: () => import('./manage-enrollments/manage-enrollments.module').then( m => m.ManageEnrollmentsPageModule) },
   { path: 'send-notifications', loadChildren: () => import('./send-notifications/send-notifications.module').then( m => m.SendNotificationsPageModule) },
-  { path: 'users', loadChildren: () => import('./users/users.module').then( m => m.UsersPageModule) }
+  { path: 'users-panel', loadChildren: () => import('./users/users.module').then( m => m.UsersPageModule) },
+  { path: '**', redirectTo: 'home', pathMatch: 'full' }
 ];
 
 @NgModule({
