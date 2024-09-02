@@ -1,13 +1,35 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>profile</ion-title>
+    <ion-title>Profile</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profile</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-label>Username</ion-label>
+      <ion-input [(ngModel)]="user.username" readonly></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Email</ion-label>
+      <ion-input [(ngModel)]="user.email" readonly></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Password</ion-label>
+      <ion-button expand="full" (click)="changePassword()">Change Password</ion-button>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <ion-list-header>Enrolled Trainings</ion-list-header>
+    <ion-item *ngFor="let training of enrolledTrainings">
+      <ion-label>
+        <h2>{{ training.title }}</h2>
+        <p>{{ training.date }} - {{ training.time }}</p>
+      </ion-label>
+      <ion-button slot="end" color="danger" (click)="cancelEnrollment(training.id)">Cancel</ion-button>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="full" color="primary" (click)="logout()">Logout</ion-button>
 </ion-content>
