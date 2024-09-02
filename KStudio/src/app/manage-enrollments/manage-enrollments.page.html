@@ -1,0 +1,17 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Manage Enrollments</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let enrollment of enrollments">
+      <ion-label>
+        <h2>{{ enrollment.userName }}</h2>
+        <p>{{ enrollment.trainingTitle }} - {{ enrollment.trainingDate }}</p>
+      </ion-label>
+      <ion-button color="danger" (click)="cancelEnrollment(enrollment.id)">Cancel Enrollment</ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

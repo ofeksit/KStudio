@@ -1,0 +1,14 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Send Notifications</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+    <ion-label>Message</ion-label>
+    <ion-textarea [(ngModel)]="notificationMessage"></ion-textarea>
+  </ion-item>
+
+  <ion-button expand="full" (click)="sendNotification()">Send Notification</ion-button>
+</ion-content>

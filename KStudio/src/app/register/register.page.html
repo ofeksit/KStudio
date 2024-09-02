@@ -5,19 +5,24 @@
 </ion-header>
 
 <ion-content>
-  <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+  <ion-list>
     <ion-item>
       <ion-label position="floating">Username</ion-label>
-      <ion-input formControlName="username" type="text"></ion-input>
+      <ion-input [(ngModel)]="username"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="floating">Email</ion-label>
-      <ion-input formControlName="email" type="email"></ion-input>
+      <ion-input type="email" [(ngModel)]="email"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="floating">Password</ion-label>
-      <ion-input formControlName="password" type="password"></ion-input>
+      <ion-input type="password" [(ngModel)]="password"></ion-input>
     </ion-item>
-    <ion-button expand="full" type="submit" [disabled]="!registerForm.valid">Register</ion-button>
-  </form>
+    <ion-item>
+      <ion-label position="floating">Confirm Password</ion-label>
+      <ion-input type="password" [(ngModel)]="confirmPassword"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="full" (click)="register()">Register</ion-button>
 </ion-content>

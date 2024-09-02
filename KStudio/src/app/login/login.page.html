@@ -5,15 +5,16 @@
 </ion-header>
 
 <ion-content>
-  <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+  <ion-list>
     <ion-item>
       <ion-label position="floating">Username</ion-label>
-      <ion-input formControlName="username" type="text"></ion-input>
+      <ion-input [(ngModel)]="username"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="floating">Password</ion-label>
-      <ion-input formControlName="password" type="password"></ion-input>
+      <ion-input type="password" [(ngModel)]="password"></ion-input>
     </ion-item>
-    <ion-button expand="full" type="submit" [disabled]="!loginForm.valid">Login</ion-button>
-  </form>
+  </ion-list>
+
+  <ion-button expand="full" (click)="login()">Login</ion-button>
 </ion-content>

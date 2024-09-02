@@ -7,13 +7,16 @@
 <ion-content>
   <ion-list>
     <ion-item>
-      <ion-button expand="full" (click)="manageTrainings()">Manage Trainings</ion-button>
+      <ion-label>Manage Trainings</ion-label>
+      <ion-button expand="full" (click)="navigateTo('manage-trainings')">Go</ion-button>
     </ion-item>
     <ion-item>
-      <ion-button expand="full" (click)="manageEnrollments()">Manage Enrollments</ion-button>
+      <ion-label>Manage Enrollments</ion-label>
+      <ion-button expand="full" (click)="navigateTo('manage-enrollments')">Go</ion-button>
     </ion-item>
     <ion-item>
-      <ion-button expand="full" (click)="sendNotifications()">Send Notifications</ion-button>
+      <ion-label>Send Notifications</ion-label>
+      <ion-button expand="full" (click)="navigateTo('send-notifications')">Go</ion-button>
     </ion-item>
   </ion-list>
 </ion-content>

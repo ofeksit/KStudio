@@ -1,44 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { NavController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage implements OnInit {
-  loginForm: FormGroup;
+export class LoginPage {
+  username: string = '';
+  password: string = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private navCtrl: NavController
-  ) {
-    this.loginForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required],
-    });
-  }
+  constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit() {}
+  login() {
+    if (!this.username || !this.password) {
+      console.error('Username and password are required');
+      return;
+    }
 
-  onLogin() {
-    console.log('Login form submitted');
-    console.log('Form Valid:', this.loginForm.valid);
-    console.log('Form Value:', this.loginForm.value);
-  
-    if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe(
-        res => {
-          console.log('Login successful', res);
-          this.navCtrl.navigateRoot('/home');
+    this.authService.login(this.username, this.password)
+      .subscribe(
+        response => {
+          if (response.status === 'success') {
+            console.log('Login successful');
+            // You can store the user's session token, ID, etc. in local storage or a service
+            // Redirect to the dashboard or home page
+            this.router.navigate(['/dashboard']); // Replace with your desired route
+          } else {
+            console.error('Login failed', response.message);
+          }
         },
-        err => {
-          console.error('Login failed', err);
+        error => {
+          console.error('Login error', error);
         }
       );
-    }
   }
 }

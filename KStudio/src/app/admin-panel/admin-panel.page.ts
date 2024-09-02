@@ -12,15 +12,7 @@ export class AdminPanelPage implements OnInit {
 
   ngOnInit() {}
 
-  manageTrainings() {
-    this.router.navigate(['/manage-trainings']);
-  }
-
-  manageEnrollments() {
-    this.router.navigate(['/manage-enrollments']);
-  }
-
-  sendNotifications() {
-    // Implement notification sending logic
+  navigateTo(page: string) {
+    this.router.navigate([`/${page}`]);
   }
 }
