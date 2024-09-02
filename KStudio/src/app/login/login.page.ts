@@ -9,24 +9,26 @@ import { NavController } from '@ionic/angular';
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnInit {
-  public loginForm: FormGroup;
+  loginForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private navCtrl: NavController
-  ) { 
-    // Initialize the form here
+  ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
     });
   }
 
-  ngOnInit() { }
+  ngOnInit() {}
 
   onLogin() {
+    console.log('Login form submitted');
+    console.log('Form Valid:', this.loginForm.valid);
+    console.log('Form Value:', this.loginForm.value);
+  
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe(
         res => {

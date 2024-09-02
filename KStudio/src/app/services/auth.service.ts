@@ -7,7 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = 'https://new.k-studio.co.il/management_backend';
+  //private apiUrl = 'https://new.k-studio.co.il/management_backend';
+  private apiUrl = 'localhost:3000/management_backend'
 
   constructor(private http: HttpClient) { }
 

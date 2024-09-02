@@ -1,13 +1,49 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>trainings</ion-title>
+    <ion-title>Trainings</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="notifications-outline"></ion-icon>
+      </ion-button>
+      <ion-button>
+        <ion-icon name="qr-code-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">trainings</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <div class="day-selector">
+    <ion-segment scrollable value="monday">
+      <ion-segment-button value="monday">
+        <ion-label>Mon</ion-label>
+        <ion-note>2.9</ion-note>
+      </ion-segment-button>
+      <ion-segment-button value="tuesday">
+        <ion-label>Tue</ion-label>
+        <ion-note>3.9</ion-note>
+      </ion-segment-button>
+      <!-- Repeat for other days -->
+    </ion-segment>
+  </div>
+
+  <ion-list>
+    <ion-card *ngFor="let training of trainings">
+      <ion-card-header>
+        <ion-card-subtitle>{{ training.date }} | {{ training.time }}</ion-card-subtitle>
+        <ion-card-title>{{ training.title }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="training-info">
+          <div>{{ training.location }}</div>
+          <div class="capacity">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ training.availableSlots }} / {{ training.totalSlots }}
+          </div>
+        </div>
+        <ion-progress-bar value="{{ training.availableSlots / training.totalSlots }}" color="secondary"></ion-progress-bar>
+        <ion-button expand="full" fill="outline" color="primary" class="register-button">Register</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
 </ion-content>

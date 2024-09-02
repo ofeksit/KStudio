@@ -7,9 +7,23 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TrainingsPage implements OnInit {
 
-  constructor() { }
+  trainings = [
+    {
+      title: 'Pilates Machines',
+      date: '02/09',
+      time: '08:30 - 09:25',
+      location: 'Main Studio',
+      availableSlots: 14,
+      totalSlots: 14
+    },
+    // Add more training sessions here
+  ];
 
-  ngOnInit() {
+  constructor() {}
+
+  ngOnInit() {}
+
+  enroll(trainingId: number) {
+    console.log('Enrolling in training:', trainingId);
   }
-
 }
