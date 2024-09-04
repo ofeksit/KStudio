@@ -31,7 +31,7 @@ export class HomePage implements OnInit {
     freeMode: true,      // Allow free scrolling
   };
 
-  constructor(private modalController: ModalController) {}
+  constructor(private modalCtrl: ModalController) {}
 
   ngOnInit() {
     this.loadNextLesson();
@@ -53,16 +53,17 @@ export class HomePage implements OnInit {
     }, 0);
   }
   
-  // Open the notification popup
   async openNotifications() {
-    const modal = await this.modalController.create({
+    const modal = await this.modalCtrl.create({
       component: NotificationPopupComponent,
-      cssClass: 'notification-popup',
-      animated: true,
-      showBackdrop: true,
+      cssClass: 'notification-popup',  // Custom class for styling      
+      presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
+      breakpoints: [0, 0.5, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
+      initialBreakpoint: 0.5,  // Start the modal at 50% of screen height
     });
     return await modal.present();
   }
+  
 
 
   loadNextLesson() {

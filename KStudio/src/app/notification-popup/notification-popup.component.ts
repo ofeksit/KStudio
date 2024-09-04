@@ -1,38 +1,22 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { GestureController, ModalController } from '@ionic/angular';
-
+import { Component } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-notification-popup',
   templateUrl: './notification-popup.component.html',
   styleUrls: ['./notification-popup.component.scss'],
 })
-export class NotificationPopupComponent  implements AfterViewInit  {
+export class NotificationPopupComponent {
 
-  @ViewChild('popup') popup!: ElementRef;
-
-  // Define the notifications array with some sample data
   notifications = [
-    { title: 'הודעה 1', description: 'תיאור הודעה 1' },
-    { title: 'הודעה 2', description: 'תיאור הודעה 2' },
-    { title: 'הודעה 3', description: 'תיאור הודעה 3' }
+    { title: 'Notification 1', description: 'This is the first notification.' },
+    { title: 'Notification 2', description: 'This is the second notification.' },
+    { title: 'Notification 3', description: 'This is the third notification.' }
   ];
 
+  constructor(private modalCtrl: ModalController) {}
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController) {}
-
-  ngAfterViewInit() {
-    const gesture = this.gestureCtrl.create({
-      el: this.popup.nativeElement,
-      gestureName: 'swipe-to-close',
-      onMove: (ev) => {
-        if (ev.deltaY > 100) {
-          this.modalCtrl.dismiss();
-        }
-      },
-    });
-    gesture.enable(true);
+  dismiss() {
+    this.modalCtrl.dismiss();
   }
-
-
 }

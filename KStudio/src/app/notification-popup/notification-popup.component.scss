@@ -1,0 +1,44 @@
+/* Notification popup content */
+.notification-popup-content {
+    background-color: white;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+/* Draggable handle */
+.drag-handle {
+    width: 50px;
+    height: 5px;
+    background-color: #ccc;
+    border-radius: 10px;
+    margin: 10px auto;
+  }
+  
+  /* Custom modal style for half-screen height */
+  .notification-popup .modal-wrapper {
+    height: 50vh;  /* Set to half the viewport height */
+    top: auto;  /* Override Ionic default position */
+    bottom: 0;  /* Align to bottom */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    transition: height 0.3s ease-in-out;
+  }
+  
+  /* Animating the modal from the bottom */
+  .notification-popup {
+    .modal-wrapper {
+      animation: slide-up 0.4s ease-out;
+    }
+  }
+  
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  
