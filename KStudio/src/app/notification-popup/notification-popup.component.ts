@@ -9,9 +9,9 @@ import { ModalController } from '@ionic/angular';
 export class NotificationPopupComponent {
 
   notifications = [
-    { title: 'Notification 1', description: 'This is the first notification.' },
-    { title: 'Notification 2', description: 'This is the second notification.' },
-    { title: 'Notification 3', description: 'This is the third notification.' }
+    { title: 'כותרת הודעה 1', description: 'זה התיאור של הודעה ראשונה.' },
+    { title: 'כותרת הודעה 2', description: 'זה התיאור של הודעה שנייה.' },
+    { title: 'כותרת הודעה 3', description: 'זה התיאור של הודעה שלישית.' }
   ];
 
   constructor(private modalCtrl: ModalController) {}

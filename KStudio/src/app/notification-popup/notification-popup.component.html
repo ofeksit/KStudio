@@ -6,8 +6,8 @@
     <ion-item *ngFor="let notification of notifications">
       <ion-icon name="megaphone-outline" slot="start"></ion-icon>
       <ion-label>
-        <h2>{{ notification.title }}</h2>
-        <p>{{ notification.description }}</p>
+        <h2 class="notification-title">{{ notification.title }}</h2>
+        <p class="notification-desc">{{ notification.description }}</p>
       </ion-label>
     </ion-item>
   </ion-list>
