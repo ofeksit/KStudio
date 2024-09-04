@@ -1,34 +1,65 @@
-<mat-toolbar color="primary">
-  <span>Home</span>
-</mat-toolbar>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Welcome Back, {{userName}}!</ion-title>
+  </ion-toolbar>
+</ion-header>
 
-<div class="content">
-  <mat-card class="mat-elevation-z4">
-    <mat-card-header>
-      <mat-card-title>What's New?</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Dynamic content goes here -->
-    </mat-card-content>
-  </mat-card>
+<ion-content class="ion-padding">
+  <!-- What's New Section -->
+  <ion-card class="news-card">
+    <ion-card-header>
+      <ion-card-title>What's New?</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-label>
+        Stay updated with the latest news and events from the studio!
+      </ion-label>
+      <ion-button expand="block" color="primary">Read More</ion-button>
+    </ion-card-content>
+  </ion-card>
 
-  <mat-card class="mat-elevation-z4">
-    <mat-card-header>
-      <mat-card-title>What's Next?</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Upcoming trainings -->
-    </mat-card-content>
-  </mat-card>
+  <!-- What's Next Section -->
+  <ion-card class="upcoming-lesson-card">
+    <ion-card-header>
+      <ion-card-title>Your Next Lesson</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label>{{ nextLesson.title }}</ion-label>
+        <ion-label>{{ nextLesson.date }}</ion-label>
+      </ion-item>
+      <ion-button expand="block" color="primary">Enroll Now</ion-button>
+    </ion-card-content>
+  </ion-card>
 
-  <mat-card class="mat-elevation-z4">
-    <mat-card-header>
-      <mat-card-title>Point of Interest</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Tips and content -->
-    </mat-card-content>
-  </mat-card>
+  <!-- Sharing Section -->
+  <ion-card class="share-card">
+    <ion-card-header>
+      <ion-card-title>Share the Studio!</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button color="whatsapp" expand="block">WhatsApp</ion-button>
+      <ion-button color="facebook" expand="block">Facebook</ion-button>
+      <ion-button color="instagram" expand="block">Instagram</ion-button>
+    </ion-card-content>
+  </ion-card>
 
-  <button mat-raised-button color="accent" class="full-width-button" onclick="location.href='https://wa.me/your-number'">Customer Service</button>
-</div>
+  <!-- Fitness Tips Section -->
+  <ion-title class="fitness-title">Fitness Tips</ion-title>
+  <ion-slides [options]="slideOpts">
+    <ion-slide *ngFor="let tip of fitnessTips">
+      <ion-card class="fitness-card">
+        <img [src]="tip.image" alt="tip image">
+        <ion-card-header>
+          <ion-card-title>{{ tip.title }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>{{ tip.content }}</ion-card-content>
+      </ion-card>
+    </ion-slide>
+  </ion-slides>
+
+  <!-- Customer Service Section -->
+  <ion-button class="customer-service-button" color="secondary" expand="block" href="https://wa.me/yourNumber">
+    Need Help? Contact Us
+  </ion-button>
+</ion-content>

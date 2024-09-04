@@ -20,7 +20,7 @@ import { HomePage } from './home.page';
     MatListModule,
     MatButtonModule,
     MatToolbarModule,
-    MatCardModule
+    MatCardModule,
   ],
   declarations: [HomePage]
 })

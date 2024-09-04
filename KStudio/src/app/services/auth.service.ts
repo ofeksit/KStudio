@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError} from 'rxjs';
+import { catchError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -83,7 +84,13 @@ export class AuthService {
 
   // Fetch all users
   getUsers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getUsers.php`);
+    return this.http.get(`${this.apiUrl}/getUsers.php`)
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching users:', error);
+          return throwError(error);
+        })
+      );
   }
 
   // Add a new user
