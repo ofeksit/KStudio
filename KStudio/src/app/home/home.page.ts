@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-// Temporarily comment out the Share import until the plugin is correctly installed
-// import { Share } from '@capacitor/share';
+import Swiper from 'swiper';
+import { SwiperOptions } from 'swiper/types';
+import { ModalController } from '@ionic/angular';
+import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 
 @Component({
   selector: 'app-home',
@@ -11,24 +12,59 @@ import { Router } from '@angular/router';
 export class HomePage implements OnInit {
 
   // User data
-  userName: string = 'Ruth Black';  // Placeholder; later, this will be fetched from a user API or login service
-  userMembershipType: string = 'Premium Member';  // Mock data
+  userName: string = 'Ruth Black';
+  userMembershipType: string = 'Premium Member';
 
   // Lesson and Fitness Tips data
   nextLesson: any;
   upcomingLessons: any[] = [];
-  fitnessTips: any[] = [];
+  fitnessTips = [
+    { title: 'Stay Hydrated', content: 'Drink at least 8 glasses of water per day!', image: 'assets/img/hydrate.jpg' },
+    { title: 'Stretch Daily', content: 'Improve flexibility and reduce injury risk with daily stretching.', image: 'assets/img/stretch.jpg' },
+    { title: 'Eat More Protein', content: 'Protein helps muscle recovery and keeps you full longer.', image: 'assets/img/protein.jpg' }
+  ];
 
-  constructor(private router: Router) {}
+  // Swiper config
+  slideOpts: SwiperOptions = {
+    slidesPerView: 1.5,  // Number of slides visible at a time
+    spaceBetween: 10,    // Space between slides
+    freeMode: true,      // Allow free scrolling
+  };
+
+  constructor(private modalController: ModalController) {}
 
   ngOnInit() {
-    // Initializing data, could later fetch from API or local storage
     this.loadNextLesson();
     this.loadUpcomingLessons();
     this.loadFitnessTips();
+  
+    setTimeout(() => {
+      new Swiper('.swiper-container', {
+        slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
+        spaceBetween: 15,  // Space between each slide
+        centeredSlides: false,  // Avoid centering to limit scrolling
+        loop: true,  // Disable looping to prevent continuous scrolling
+        freeMode: false,  // Disable free mode to keep the slides constrained
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+        },
+      });
+    }, 0);
+  }
+  
+  // Open the notification popup
+  async openNotifications() {
+    const modal = await this.modalController.create({
+      component: NotificationPopupComponent,
+      cssClass: 'notification-popup',
+      animated: true,
+      showBackdrop: true,
+    });
+    return await modal.present();
   }
 
-  // Load next lesson data (mockup for now)
+
   loadNextLesson() {
     this.nextLesson = {
       title: 'Yoga Class',
@@ -36,7 +72,6 @@ export class HomePage implements OnInit {
     };
   }
 
-  // Load upcoming lessons (mock data for now)
   loadUpcomingLessons() {
     this.upcomingLessons = [
       {
@@ -60,7 +95,6 @@ export class HomePage implements OnInit {
     ];
   }
 
-  // Load fitness tips (mock data for now)
   loadFitnessTips() {
     this.fitnessTips = [
       {
@@ -80,51 +114,4 @@ export class HomePage implements OnInit {
       },
     ];
   }
-
-  // Function to handle enroll button click (this could be expanded with API logic later)
-  enrollInLesson(lesson: any) {
-    console.log('Enrolled in lesson:', lesson);
-    // This could redirect to a lesson details page or send an API request to enroll
-    this.router.navigate(['/manage-enrollments']);
-  }
-
-  // Slide options for the fitness tips section
-  slideOpts = {
-    initialSlide: 0,
-    speed: 400,
-    slidesPerView: 2, // Adjust for how many slides should show in the view
-  }
-
-  // Function to handle sharing via WhatsApp, Facebook, Instagram
-  // Temporarily comment out the Share functionality to avoid errors
-  /*
-  async shareApp(platform: string) {
-    let shareMessage = {
-      title: 'Join K Studio!',
-      text: 'Check out this awesome fitness studio app!',
-      url: 'https://yourapp.com',
-    };
-
-    switch (platform) {
-      case 'whatsapp':
-        await Share.share({
-          ...shareMessage,
-          dialogTitle: 'Share via WhatsApp',
-        });
-        break;
-      case 'facebook':
-        await Share.share({
-          ...shareMessage,
-          dialogTitle: 'Share via Facebook',
-        });
-        break;
-      case 'instagram':
-        await Share.share({
-          ...shareMessage,
-          dialogTitle: 'Share via Instagram',
-        });
-        break;
-    }
-  }
-  */
 }

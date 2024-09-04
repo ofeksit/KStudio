@@ -9,7 +9,6 @@ const routes: Routes = [
   { path: 'profile', loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule) },
   { path: 'admin-panel', loadChildren: () => import('./admin-panel/admin-panel.module').then( m => m.AdminPanelPageModule) },
   { path: 'payments', loadChildren: () => import('./payments/payments.module').then( m => m.PaymentsPageModule) },
-  { path: 'notifications', loadChildren: () => import('./notifications/notifications.module').then( m => m.NotificationsPageModule) },
   { path: 'manage-trainings', loadChildren: () => import('./manage-trainings/manage-trainings.module').then( m => m.ManageTrainingsPageModule) },
   { path: 'manage-enrollments', loadChildren: () => import('./manage-enrollments/manage-enrollments.module').then( m => m.ManageEnrollmentsPageModule) },
   { path: 'send-notifications', loadChildren: () => import('./send-notifications/send-notifications.module').then( m => m.SendNotificationsPageModule) },

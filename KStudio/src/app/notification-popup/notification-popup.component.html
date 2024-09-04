@@ -1,0 +1,12 @@
+<ion-content class="notification-popup-content" #popup>
+  <div class="drag-handle"></div>
+  <ion-list>
+    <ion-item *ngFor="let notification of notifications">
+      <ion-icon name="megaphone-outline" slot="start"></ion-icon>
+      <ion-label>
+        <h2>{{ notification.title }}</h2>
+        <p>{{ notification.description }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,65 +1,206 @@
-ion-header {
-  --background: linear-gradient(135deg, #1dd1a1, #54a0ff);
-  color: #fff;
-  --color: #fff;
-  text-align: center;
-}
-
-ion-toolbar {
-  --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-ion-content {
-  --background: #f9f9f9;
-  padding: 20px;
-}
-
-.news-card, .upcoming-lesson-card, .share-card, .fitness-card {
-  border-radius: 20px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+.swiper-container {
+  width: 100%;
+  height: auto; /* Let the container height adjust automatically */
   margin-bottom: 20px;
-  transition: transform 0.3s ease-in-out;
 }
 
-.news-card:hover, .upcoming-lesson-card:hover, .share-card:hover, .fitness-card:hover {
-  transform: scale(1.05);
+.swiper-wrapper {
+  display: flex;
 }
 
-ion-button {
-  --background: linear-gradient(135deg, #ff6b6b, #feca57);
-  --box-shadow: 0 5px 10px rgba(255, 107, 107, 0.5);
-  color: white;
-  font-family: 'Montserrat', sans-serif;
-  border-radius: 30px;
-  padding: 12px 20px;
-}
-
-ion-button.whatsapp {
-  --background: #25D366;
-}
-
-ion-button.facebook {
-  --background: #4267B2;
-}
-
-ion-button.instagram {
-  --background: #E1306C;
-}
-
-.fitness-title {
-  margin-top: 15px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.3em;
+.swiper-slide {
+  width: 45%;  /* For larger screens */
+  height: 250px;  /* Reduce height for a more square-like look */
+  max-width: 300px;  /* Ensure that cards don’t grow too large */
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  margin-right: 10px;  /* Add space between slides */
 }
 
 .fitness-card {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.fitness-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 15px 15px 0 0;
+  object-fit: cover;
+}
+
+.fitness-card ion-card-header {
+  padding: 10px;
+  text-align: center;
+}
+
+.fitness-card ion-card-content {
+  padding: 10px;
+  text-align: center;
+}
+
+.fitness-card ion-card-title {
+  font-size: 1.2em;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 768px) {
+  .swiper-slide {
+    width: 90%;  /* On mobile screens, make the cards wider */
+    height: auto;  /* Allow the height to adjust automatically */
+    max-width: 100%;  /* Make sure the cards take up all available space */
+  }
+
+  .fitness-card {
+    height: auto;  /* Make sure the content fits well in the card */
+  }
+
+  .swiper-container {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+ion-text h2 {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: right;
+  font-family: 'Alef';
+}
+
+
+ion-header {
+  --background: linear-gradient(135deg, #feca57, #ff6b6b);
+  --color: #ffffff;
+}
+
+ion-toolbar {
+  --background: transparent;
+  --box-shadow: none;
+}
+
+ion-content {
+  --background: linear-gradient(135deg, rgba(173, 232, 244, 0.8), rgba(255, 255, 255, 0.6)); /* Optional image overlay */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Page title styles */
+.page-title {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: rgb(44, 44, 44);
+  text-align: center;
+  margin: 0;
+  font-family: 'Playwrite CU', sans-serif;
+}
+
+.home {
+  font-family: 'Playwrite CU';
+  font-size: 18px;
+}
+
+.news-card {
   border-radius: 20px;
-  margin-right: 15px;
+  background: linear-gradient(135deg, #1dd1a1, #54a0ff);
+  color: white;
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+/* Header row for bell icon and title */
+.header-row {
+  position: relative;  /* Ensure bell icon is positioned relative to the header */
+  display: flex;
+  justify-content: center;  /* Center the title */
+  align-items: center;
+  width: 100%;
+  padding: 10px 15px;
+}
+
+
+ion-button {
+  --background: linear-gradient(135deg, #ff6b6b, #feca57);
+  --box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  border-radius: 30px;
+  font-family: 'Alef', sans-serif;
+  font-weight: 500;
+}
+
+ion-button[color="secondary"] {
+  --background: #54a0ff;
 }
 
 .customer-service-button {
   margin-top: 30px;
-  --background: linear-gradient(135deg, #1dd1a1, #54a0ff);
+}
+
+
+/* Toolbar styling */
+ion-header {
+  --background: #2e86de; /* Change this color as per your theme */
+  --color: #ffffff;
+}
+
+ion-toolbar {
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+ion-icon {
+  font-size: 24px;
+}
+
+/* Bell icon styles */
+.bell-icon {
+  position: absolute;  /* Use absolute positioning to move the bell to the left */
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);  /* Vertically center the bell */
+  font-size: 24px;
+  color: white;
+}
+
+.app-logo {
+  height: 35px;
+  width: auto;
+  margin: 0 auto;
+}
+
+/* Style adjustments to ensure the welcome message sits well below the toolbar */
+ion-text h2 {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+ion-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* Adds soft shadow for depth */
+  padding: 15px;
+  margin: 20px 0;
 }

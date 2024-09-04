@@ -6,10 +6,12 @@ import { MatButtonModule } from '@angular/material/button';  // Import button mo
 import { MatToolbarModule } from '@angular/material/toolbar';  // Import toolbar module
 import { IonicModule } from '@ionic/angular';
 import { MatCardModule } from '@angular/material/card';
-
 import { HomePageRoutingModule } from './home-routing.module';
-
 import { HomePage } from './home.page';
+import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+
 
 @NgModule({
   imports: [
@@ -22,6 +24,7 @@ import { HomePage } from './home.page';
     MatToolbarModule,
     MatCardModule,
   ],
-  declarations: [HomePage]
+  declarations: [HomePage, NotificationPopupComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

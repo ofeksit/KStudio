@@ -1,65 +1,48 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Welcome Back, {{userName}}!</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="ion-padding">
+  <!-- Container for bell icon and title -->
+  <div class="header-row">
+    <!-- Bell Icon -->
+    <ion-button class="bell-icon" (click)="openNotifications()" fill="clear">
+      <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+    </ion-button>
+
+    <!-- Centered Title -->
+    <ion-text color="dark">
+      <h1 class="page-title home">K Studio</h1> <!-- Your title here -->
+    </ion-text>
+  </div>
+
   <!-- What's New Section -->
   <ion-card class="news-card">
     <ion-card-header>
-      <ion-card-title>What's New?</ion-card-title>
+      <ion-card-title>מה חדש?</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <ion-label>
-        Stay updated with the latest news and events from the studio!
-      </ion-label>
-      <ion-button expand="block" color="primary">Read More</ion-button>
+      הישאר מעודכן עם החדשות האחרונות והאירועים מהסטודיו!
     </ion-card-content>
   </ion-card>
 
-  <!-- What's Next Section -->
-  <ion-card class="upcoming-lesson-card">
-    <ion-card-header>
-      <ion-card-title>Your Next Lesson</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-label>{{ nextLesson.title }}</ion-label>
-        <ion-label>{{ nextLesson.date }}</ion-label>
-      </ion-item>
-      <ion-button expand="block" color="primary">Enroll Now</ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Sharing Section -->
-  <ion-card class="share-card">
-    <ion-card-header>
-      <ion-card-title>Share the Studio!</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-button color="whatsapp" expand="block">WhatsApp</ion-button>
-      <ion-button color="facebook" expand="block">Facebook</ion-button>
-      <ion-button color="instagram" expand="block">Instagram</ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Fitness Tips Section -->
-  <ion-title class="fitness-title">Fitness Tips</ion-title>
-  <ion-slides [options]="slideOpts">
-    <ion-slide *ngFor="let tip of fitnessTips">
-      <ion-card class="fitness-card">
-        <img [src]="tip.image" alt="tip image">
-        <ion-card-header>
-          <ion-card-title>{{ tip.title }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>{{ tip.content }}</ion-card-content>
-      </ion-card>
-    </ion-slide>
-  </ion-slides>
+  <!-- Swiper Section for Fitness Tips -->
+  <div class="swiper-container">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide" *ngFor="let tip of fitnessTips">
+        <ion-card class="fitness-card">
+          <img [src]="tip.image" alt="tip image">
+          <ion-card-header>
+            <ion-card-title>{{ tip.title }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            {{ tip.content }}
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+    <!-- Pagination -->
+    <div class="swiper-pagination"></div>
+  </div>
 
   <!-- Customer Service Section -->
   <ion-button class="customer-service-button" color="secondary" expand="block" href="https://wa.me/yourNumber">
-    Need Help? Contact Us
+    צריך עזרה? דבר איתנו!
   </ion-button>
 </ion-content>
