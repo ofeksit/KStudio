@@ -35,6 +35,7 @@ h2 {
   font-size: 1.5em;
   color: #333;
   text-align: right;
+  line-height: 10px;
 }
 
 p {
@@ -44,11 +45,11 @@ p {
 }
 
 ion-segment {
-  margin-bottom: 20px;
+  margin-bottom: 20px;  
 }
 
 ion-list {
-  padding: 10px;
+  margin-top: -20px;
 }
 
 ion-card {
@@ -89,7 +90,7 @@ ion-card-header {
   justify-self: center;
   position: absolute;
   left: 10px;
-  top: 40%;
+  top: 30%;
 }
 
 .status-icon {
@@ -101,4 +102,23 @@ ion-card-header {
 .arrow-icon {
   font-size: 24px;
   color: #888;
+}
+
+/* Custom active tab indicator */
+ion-segment-button.ion-activated {
+  --background: #3498db;   /* Change background for active state */
+  --color: red;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); /* Soft shadow for the active tab */
+}
+
+/* iOS-specific customization */
+.ios ion-segment-button {
+  font-size: 1.1em;
+  //--background-checked: #007bff;  /* Change this to the blue color for iOS */
+  //--color-checked: white;
+  //--background: #f0f0f0;         /* Slight background color for inactive */
+  //border-radius: 15px;
+  padding: 12px 20px;
+  //--color: #333;                 /* Slightly darker for inactive */
+  border: 1px solid #ddd;        /* Softer border for iOS */
 }
