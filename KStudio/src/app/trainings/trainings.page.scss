@@ -122,7 +122,7 @@ ion-item {
 /* Header Tabs Styling */
 .header-tabs {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   margin-bottom: 10px;
   border: none;
   box-shadow: none;
@@ -190,5 +190,44 @@ ion-select {
   --background: #fff;
   --border-radius: 10px;
   --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+.popup-modal-trainings {
+  height: 80vh; /* 80% of screen height */
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  background: white;
+  padding: 10px;  /* Add padding inside the modal */
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.drag-handle {
+  width: 10px;
+  height: 1px;
+  background-color: transparent;
+  border-radius: 2.5px;
+  margin: 0 auto 10px auto;
+}
+
+.content-container {
+  padding: 15px; /* Additional padding between drag handle and content */
+  justify-content: center;
+}
+
+/* Ensure the popup content is styled properly */
+ion-content {
+  --background: white;
+}
+
+ion-tab-bar {
+  --background: #fff;  /* Customize background */
+  --color-selected: #3498db;  /* Customize selected icon color */
+  --color: #666;  /* Customize default icon color */
+}
+
+ion-tab-button {
+  --color-selected: #3498db;
+  --color: #666;
 }
 

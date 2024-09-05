@@ -3,6 +3,7 @@ import Swiper from 'swiper';
 import { SwiperOptions } from 'swiper/types';
 import { ModalController } from '@ionic/angular';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
+import { TrainingsPage } from '../trainings/trainings.page';
 
 @Component({
   selector: 'app-home',
@@ -31,7 +32,7 @@ export class HomePage implements OnInit {
     freeMode: true,      // Allow free scrolling
   };
 
-  constructor(private modalCtrl: ModalController) {}
+  constructor(private modalCtrl: ModalController, private modalCtrl1: ModalController) {}
 
   ngOnInit() {
     this.loadNextLesson();
@@ -54,14 +55,36 @@ export class HomePage implements OnInit {
   }
   
   async openNotifications() {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalCtrl1.create({
       component: NotificationPopupComponent,
       cssClass: 'notification-popup',  // Custom class for styling      
-      presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
+      presentingElement: await this.modalCtrl1.getTop(),  // Ensure it's treated as a sheet
       breakpoints: [0, 0.5, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
       initialBreakpoint: 0.5,  // Start the modal at 50% of screen height
     });
     return await modal.present();
+  }
+
+  async openTrainings() {
+    const modal = await this.modalCtrl.create({
+      component: TrainingsPage,
+      cssClass: 'trainings-popup',  // Custom class for styling      
+      presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
+      breakpoints: [0, 0.70, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
+      initialBreakpoint: 0.70,  // Start the modal at 50% of screen height
+    });
+    return await modal.present();
+  }
+
+  // Function to navigate to the Home Page
+  goHome() {
+    // If you want to refresh or go back to the home page, this can remain empty
+    // or you can implement navigation logic here if needed
+  }
+
+  // Function to open the Profile modal (if needed)
+  async openProfile() {
+    // You can set up a Profile modal or routing here
   }
   
 

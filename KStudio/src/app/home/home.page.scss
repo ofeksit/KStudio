@@ -65,7 +65,8 @@
   }
 
   .fitness-card {
-    height: auto;  /* Make sure the content fits well in the card */
+    height: 20vh;  /* Make sure the content fits well in the card */
+    width: 30vh;
   }
 
   .swiper-container {
@@ -203,4 +204,58 @@ ion-card {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* Adds soft shadow for depth */
   padding: 15px;
   margin: 20px 0;
+}
+
+/* Custom Bottom Navigation Bar Styling */
+.custom-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #fff;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Adds subtle shadow for depth */
+  z-index: 1000; /* Ensures it stays on top of other content */
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666; /* Default icon and label color */
+  font-size: 12px; /* Adjust label size */
+}
+
+.nav-item ion-icon {
+  font-size: 24px; /* Icon size */
+  margin-bottom: 5px;
+  --color: #666; /* Icon color */
+}
+
+.nav-item ion-label {
+  font-size: 12px; /* Label size */
+  color: #666;
+}
+
+/* Active/Selected state */
+.nav-item-active ion-icon,
+.nav-item-active ion-label {
+  color: #3498db; /* Change the color for the active state (light blue) */
+}
+
+/* Hover or active state */
+.nav-item:hover ion-icon,
+.nav-item:hover ion-label {
+  color: #3498db; /* Change the color on hover */
+}
+
+.nav-item:active ion-icon,
+.nav-item:active ion-label {
+  color: #2980b9; /* Slightly darker blue on active state */
 }

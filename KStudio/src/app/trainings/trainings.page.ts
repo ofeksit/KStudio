@@ -1,11 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { GestureController, ModalController } from '@ionic/angular';
+
 
 @Component({
   selector: 'app-trainings',
   templateUrl: './trainings.page.html',
   styleUrls: ['./trainings.page.scss'],
 })
-export class TrainingsPage implements OnInit {
+export class TrainingsPage implements AfterViewInit {
+  @ViewChild('popup') popup!: ElementRef;
+
+  
   selectedFilter: string = 'all';  // Default to "All" tab
   selectedDay: string = '31/08/2024';  // Default selected day
   selectedType: string = '';  // Default: no type filter
@@ -30,11 +35,28 @@ export class TrainingsPage implements OnInit {
     { title: 'אימון כוח', type: 'אימון כוח', trainer: 'יואב לב', date: '31/08/2024', time: '12:00 PM', location: 'אולם ספורט', available: 20, capacity: 25, favorite: false }
   ];
 
-  constructor() {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController) {}
 
   ngOnInit() {
     this.selectedDay = this.days[0].date;  // Ensure first tab is selected by default
     this.extractAvailableTypes();  // Extract available training types on page load
+  }
+
+  closePopup() {
+    this.modalCtrl.dismiss();
+  }
+
+  ngAfterViewInit() {
+    const gesture = this.gestureCtrl.create({
+      el: this.popup.nativeElement,
+      gestureName: 'swipe-to-close',
+      onMove: (ev) => {
+        if (ev.deltaY > 300) {
+          this.modalCtrl.dismiss();
+        }
+      },
+    });
+    gesture.enable(true);
   }
 
   // Extract unique training types from the training list
