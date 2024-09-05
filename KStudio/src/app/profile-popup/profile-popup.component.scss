@@ -72,7 +72,10 @@ ion-card-header {
 
 .training-details {
   text-align: right;  /* Move text to the right edge */
-  padding-left: 50px; /* Add a little padding to move the content slightly from the edge */
+  padding-left: 30%; /* Add a little padding to move the content slightly from the edge */
+  margin: 0 auto; /* This centers the inner div horizontally */
+
+
 }
 
 .training-details h2 {

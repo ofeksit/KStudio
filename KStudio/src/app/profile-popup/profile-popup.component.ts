@@ -25,8 +25,8 @@ export class ProfilePopupComponent implements AfterViewInit {
   ];
 
   userPurchases = [
-    { item: 'Gym Membership', date: '01/08/2024' },
-    { item: 'Protein Shake', date: '05/08/2024' },
+    { orderNumber: 'ORD123', products: [{ name: 'Product A' }, { name: 'Product B' }], date: new Date() },
+    { orderNumber: 'ORD124', products: [{ name: 'Product C' }], date: new Date() }
   ];
 
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController) {}

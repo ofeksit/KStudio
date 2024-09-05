@@ -46,21 +46,23 @@
     </ion-list>
   </div>
 
-  <!-- Single List of Purchases -->
-  <div *ngIf="selectedTab === 'purchases'">
-    <ion-list>
-      <ion-card *ngFor="let purchase of userPurchases">
-        <ion-card-header>
+ <!-- Purchases List Styled Similar to Trainings List -->
+ <div *ngIf="selectedTab === 'purchases'">
+  <ion-list>
+    <ion-card *ngFor="let purchase of userPurchases">
+      <ion-card-header>
+        <div class="icon-container">
           <!-- Arrow icon aligned in left-center -->
           <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+        </div>
 
-          <!-- Purchase item details -->
-          <ion-label class="training-details">
-            <h2>{{ purchase.item }}</h2>
-            <p>{{ purchase.date | date: 'shortDate' }}</p>
-          </ion-label>
-        </ion-card-header>
-      </ion-card>
-    </ion-list>
-  </div>
+        <!-- Purchase item details (Order Number as Title and First Product as Description) -->
+        <ion-label class="training-details">
+          <h2>{{ purchase.orderNumber }}</h2>
+          <p>{{ purchase.products[0].name }}</p>
+        </ion-label>
+      </ion-card-header>
+    </ion-card>
+  </ion-list>
+</div>
 </ion-content>
