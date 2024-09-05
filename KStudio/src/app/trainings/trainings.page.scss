@@ -85,18 +85,20 @@ ion-segment-button {
   --color: #666;
   //padding: 10px;
   padding-bottom: 10px;
-  //--indicator-color: transparent; /* Remove the default active indicator */
-  //--indicator-width: 60%;
+  --indicator-color: transparent; /* Remove the default active indicator */
 }
 
 ion-segment-button ion-label {
-  font-size: 0.9em;
+  font-size: 1em;
   font-weight: bold;
+  font-family: 'Alef';
 }
 
 ion-segment-button ion-note {
-  font-size: 0.8em;
+  font-size: 1em;
   color: #666;
+  font-weight: bold;
+  font-family: 'Alef';
 }
 
 ion-item {
@@ -128,7 +130,7 @@ ion-segment-button {
 }
 
 
-/* Only show custom indicator on active tab */
+/* Only show custom indicator on active tab
 ion-segment-button.ion-activated::after {
   content: '';
   position: absolute;
@@ -140,14 +142,20 @@ ion-segment-button.ion-activated::after {
   background-color: #3498db; // Change this to your desired active color 
   border-radius: 2px;
   transition: all 0.3s ease;
-}
+} */
 
+/*
 .segment-button-checked {
   color: #fff !important; // it works properly 
   // Tried all of that but nothing work
-  background-color: #2D303A !important; 
-  background: #2D303A !important; 
-  --background: #2D303A !important; 
-  --background-color: #2D303A !important; 
-  --background-checked: #2D303A !important; 
+  background-color: #fa086d !important; 
+  background: #ff6600 !important; 
+  --background: #57b400 !important; 
+  --background-color: rgb(0, 60, 255) !important; 
+  --background-checked: rgb(221, 221, 221) !important; 
+}*/
+
+.segment-button-checked {
+  transition: all 0.3s ease;
+  border-bottom: #3498DB solid 4px;
 }
