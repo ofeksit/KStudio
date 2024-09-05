@@ -1,66 +1,153 @@
-.day-selector {
-    padding: 0 16px;
-    margin-bottom: 16px;
-    background-color: #f5f5f5;
-  }
-  
-  ion-segment {
-    --indicator-color: transparent;
-    ion-segment-button {
-      padding: 8px 0;
-      ion-note {
-        display: block;
-        font-size: 12px;
-        color: #a3a3a3;
-      }
-      ion-label {
-        font-weight: bold;
-        color: #333;
-      }
-    }
-  }
-  
-  .training-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .capacity {
-    display: flex;
-    align-items: center;
-    ion-icon {
-      margin-right: 4px;
-    }
-  }
-  
-  ion-card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 12px;
-  }
-  
-  ion-card-header {
-    background-color: #fafafa;
-    border-radius: 12px 12px 0 0;
-  }
-  
-  ion-card-title {
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .register-button {
-    margin-top: 12px;
-    --border-radius: 20px;
-  }
-  
-  ion-progress-bar {
-    margin-top: 12px;
-    --progress-background: #e0e0e0;
-    --progress-color: #673ab7;
-    --height: 8px;
-  }
-  
+/* Page title styling */
+.page-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Full-width card styling */
+.training-card {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.favorite-icon {
+  font-size: 24px;
+  color: #5A5A5A;
+}
+
+.training-header h2 {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.training-header p {
+  font-size: 0.9em;
+  color: #666;
+  margin: 0;
+}
+
+/* Progress bar styling */
+.progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+ion-progress-bar {
+  --progress-background: #E0E0E0;
+  --background: #9B59B6; /* Purple color to match your image */
+  border-radius: 10px;
+  height: 10px;
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+ion-label {
+  font-size: 0.9em;
+  color: #333;
+}
+
+ion-button {
+ //margin-top: 10px;
+  font-weight: bold;
+  --background: #3498DB;  /* Light blue color for button */
+  --border-radius: 25px;
+}
+
+/* Customize Ionic's default indicator */
+ion-segment {
+  --indicator-color: #3498db; /* Set the indicator color */
+  --indicator-height: 4px;    /* Adjust the height */
+  --indicator-width: 60%;     /* Make it narrower */
+  --indicator-box-shadow: none; /* Remove any shadow if applied */
+}
+
+ion-segment-button {
+  font-size: 1em;
+  --color-checked: #333;
+  --color: #666;
+  //padding: 10px;
+  padding-bottom: 10px;
+  //--indicator-color: transparent; /* Remove the default active indicator */
+  //--indicator-width: 60%;
+}
+
+ion-segment-button ion-label {
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+ion-segment-button ion-note {
+  font-size: 0.8em;
+  color: #666;
+}
+
+ion-item {
+  --inner-padding-end: 0;
+  --inner-padding-start: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  padding: 0;  /* Remove padding for the item */
+}
+
+/* Header Tabs Styling */
+.header-tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  border: none;
+  box-shadow: none;
+  padding: none;
+}
+
+/* Tab styling */
+ion-segment-button {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  //padding: 10px 20px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative; /* Make sure the indicator stays within the button */
+}
+
+
+/* Only show custom indicator on active tab */
+ion-segment-button.ion-activated::after {
+  content: '';
+  position: absolute;
+  bottom: 2px; // Position the indicator inside the tab
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%; // Adjust width as needed
+  height: 4px;
+  background-color: #3498db; // Change this to your desired active color 
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.segment-button-checked {
+  color: #fff !important; // it works properly 
+  // Tried all of that but nothing work
+  background-color: #2D303A !important; 
+  background: #2D303A !important; 
+  --background: #2D303A !important; 
+  --background-color: #2D303A !important; 
+  --background-checked: #2D303A !important; 
+}
