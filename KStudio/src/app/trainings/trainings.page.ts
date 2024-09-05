@@ -51,7 +51,7 @@ export class TrainingsPage implements AfterViewInit {
       el: this.popup.nativeElement,
       gestureName: 'swipe-to-close',
       onMove: (ev) => {
-        if (ev.deltaY > 300) {
+        if (ev.deltaY > 100) {
           this.modalCtrl.dismiss();
         }
       },

@@ -6,7 +6,6 @@ const routes: Routes = [
   { path: 'login', loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule) },
   { path: 'register', loadChildren: () => import('./register/register.module').then( m => m.RegisterPageModule) },
   { path: 'trainings', loadChildren: () => import('./trainings/trainings.module').then( m => m.TrainingsPageModule) },
-  { path: 'profile', loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule) },
   { path: 'admin-panel', loadChildren: () => import('./admin-panel/admin-panel.module').then( m => m.AdminPanelPageModule) },
   { path: 'payments', loadChildren: () => import('./payments/payments.module').then( m => m.PaymentsPageModule) },
   { path: 'manage-trainings', loadChildren: () => import('./manage-trainings/manage-trainings.module').then( m => m.ManageTrainingsPageModule) },

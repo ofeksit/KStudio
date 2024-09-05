@@ -10,6 +10,7 @@ import { HomePageRoutingModule } from './home-routing.module';
 import { HomePage } from './home.page';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
 
 
 
@@ -24,7 +25,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
     MatToolbarModule,
     MatCardModule,
   ],
-  declarations: [HomePage, NotificationPopupComponent],
+  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

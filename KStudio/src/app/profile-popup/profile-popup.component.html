@@ -1,0 +1,66 @@
+<ion-content class="popup-modal" #popup>
+  <!-- Drag handle -->
+  <div class="drag-handle"></div>
+
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <img class="avatar" [src]="userPhoto" alt="User Avatar">
+    <h2>{{ userName }}</h2>
+    <p>{{ userRole }}</p>
+  </div>
+
+  <!-- Tabs for Trainings and Purchases -->
+  <ion-segment [(ngModel)]="selectedTab">
+    <ion-segment-button value="trainings">
+      <ion-label>אימונים</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="purchases">
+      <ion-label>רכישות</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Single List of Trainings Sorted by Date -->
+  <div *ngIf="selectedTab === 'trainings'">
+    <ion-list>
+      <ion-card *ngFor="let training of sortedTrainings()" (click)="showActions(training)">
+        <ion-card-header>
+          <!-- Arrow and Status icon -->
+          <div class="icon-container">
+            <!-- Status icon directly to the right of arrow -->
+            <ion-icon 
+              class="status-icon"
+              [name]="getStatusIcon(training.status)" 
+              [color]="getStatusColor(training.status)">
+            </ion-icon>
+            <!-- Arrow icon aligned in left-center -->
+            <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+          </div>
+
+          <!-- Training title and date -->
+          <ion-label class="training-details">
+            <h2>{{ training.title }}</h2>
+            <p>{{ training.date | date: 'shortDate' }} | {{ training.time }}</p>
+          </ion-label>
+        </ion-card-header>
+      </ion-card>
+    </ion-list>
+  </div>
+
+  <!-- Single List of Purchases -->
+  <div *ngIf="selectedTab === 'purchases'">
+    <ion-list>
+      <ion-card *ngFor="let purchase of userPurchases">
+        <ion-card-header>
+          <!-- Arrow icon aligned in left-center -->
+          <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+
+          <!-- Purchase item details -->
+          <ion-label class="training-details">
+            <h2>{{ purchase.item }}</h2>
+            <p>{{ purchase.date | date: 'shortDate' }}</p>
+          </ion-label>
+        </ion-card-header>
+      </ion-card>
+    </ion-list>
+  </div>
+</ion-content>
