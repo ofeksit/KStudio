@@ -1,10 +1,17 @@
-/* Page title styling */
-.page-title {
-  font-size: 2em;
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  margin-bottom: 20px;
+
+/* Sticky Header Styling */
+.sticky-header {
+  position: sticky;
+  top: 0; /* Sticks the header to the top of the page */
+  z-index: 100; /* Ensures the header stays on top of other elements */
+  background-color: white; /* Ensure background is white for clarity */
+
+}
+
+/* Scrollable List Styling */
+.scrollable-list {
+  height: calc(100vh - 130px); /* Adjust height based on your header height */
+  overflow-y: auto; /* Allow only the list to scroll */
 }
 
 /* Full-width card styling */
@@ -18,28 +25,34 @@
   box-sizing: border-box;
 }
 
+// Header of each card
 .training-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
+//Favorite Icon
 .favorite-icon {
   font-size: 24px;
   color: #5A5A5A;
 }
 
+//Training Title in card
 .training-header h2 {
   font-size: 1.4em;
   font-weight: bold;
-  margin: 0;
+  margin-top: -30px;
   color: #333;
+  font-family: 'Alef';
 }
 
+//Training Timing in card
 .training-header p {
   font-size: 0.9em;
   color: #666;
-  margin: 0;
+  margin-top: -20px;
+  font-family: 'Alef';
 }
 
 /* Progress bar styling */
@@ -60,32 +73,29 @@ ion-progress-bar {
 }
 
 ion-label {
-  font-size: 0.9em;
+  font-size: 2em;
   color: #333;
 }
 
+//Enroll Button
 ion-button {
  //margin-top: 10px;
-  font-weight: bold;
-  --background: #3498DB;  /* Light blue color for button */
+  font-weight: bold;  
   --border-radius: 25px;
 }
 
-/* Customize Ionic's default indicator */
-ion-segment {
-  --indicator-color: #3498db; /* Set the indicator color */
-  --indicator-height: 4px;    /* Adjust the height */
-  --indicator-width: 60%;     /* Make it narrower */
-  --indicator-box-shadow: none; /* Remove any shadow if applied */
+//Each ion Segment
+.segment-tab .days-tabs {
+  overflow-x: hidden;
+  --background: #fff;
+  --indicator-color: #3498db;
+  --border-radius: 10px;
+  margin-top: 10px;
 }
 
-ion-segment-button {
-  font-size: 1em;
-  --color-checked: #333;
-  --color: #666;
-  //padding: 10px;
-  padding-bottom: 10px;
-  --indicator-color: transparent; /* Remove the default active indicator */
+//Each ion Segment
+.filter-segment {
+  color: red;
 }
 
 ion-segment-button ion-label {
@@ -113,49 +123,72 @@ ion-item {
 .header-tabs {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   border: none;
   box-shadow: none;
   padding: none;
 }
 
 /* Tab styling */
-ion-segment-button {
+.custom-tabs {
   border: 1px solid #ccc;
   border-radius: 10px;
   //padding: 10px 20px;
   background-color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   position: relative; /* Make sure the indicator stays within the button */
+  --background-activated: transparent; /* Remove grey background when clicked */
+  --background-focused: transparent; /* Remove grey background when focused */
+  --background: transparent; /* Ensure the default background is transparent */
+  font-size: 1em;
+  --color-checked: #333;
+  --color: #666;
+  //padding: 10px;
+  padding-bottom: 10px;
+  width: 90%;
+  margin-left: 10px;
+  --indicator-color: transparent; /* Remove the default active indicator */
 }
-
-
-/* Only show custom indicator on active tab
-ion-segment-button.ion-activated::after {
-  content: '';
-  position: absolute;
-  bottom: 2px; // Position the indicator inside the tab
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%; // Adjust width as needed
-  height: 4px;
-  background-color: #3498db; // Change this to your desired active color 
-  border-radius: 2px;
-  transition: all 0.3s ease;
-} */
-
-/*
-.segment-button-checked {
-  color: #fff !important; // it works properly 
-  // Tried all of that but nothing work
-  background-color: #fa086d !important; 
-  background: #ff6600 !important; 
-  --background: #57b400 !important; 
-  --background-color: rgb(0, 60, 255) !important; 
-  --background-checked: rgb(221, 221, 221) !important; 
-}*/
 
 .segment-button-checked {
   transition: all 0.3s ease;
   border-bottom: #3498DB solid 4px;
 }
+
+
+.filter-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.filter-icon {
+  --color: #000;
+}
+
+.clear-filter-icon {
+  font-size: 24px;
+  color: #e74c3c;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.filter-dropdown {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 100%;
+}
+
+ion-select {
+  --placeholder-color: #999;
+  --color: #333;
+  --background: #fff;
+  --border-radius: 10px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
