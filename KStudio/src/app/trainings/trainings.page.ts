@@ -38,17 +38,19 @@ export class TrainingsPage implements AfterViewInit {
 
   ngOnInit() {
     this.selectedDay = this.days[0].date;  // Ensure first tab is selected by default
-    this.extractAvailableTypes();  // Extract available training types on page load
+    ///this.extractAvailableTypes();  // Extract available training types on page load
     this.loadAppointments();
   }
 
   loadAppointments() {
-    // Fetch all appointments
     this.ameliaApiService.getAllAppointments().subscribe(appointments => {
       this.appointments = appointments;
+      this.trainings = appointments;  // Now 'trainings' is correctly assigned
       this.groupAppointmentsByDay();
+      //this.extractAvailableTypes();  // Call after the data is fetched
     });
   }
+  
 
   groupAppointmentsByDay() {
     this.groupedAppointments = this.appointments.reduce((group: { [key: string]: any[] }, appointment: any) => {
@@ -62,14 +64,18 @@ export class TrainingsPage implements AfterViewInit {
   }
   
 
-    // Function to enroll in a training
   enrollInTraining(appointmentId: string) {
-    const userId = 'CURRENT_USER_ID';  // Replace with actual logged-in user's ID
+    const userId = this.getCurrentUserId();
     this.ameliaApiService.enrollInTraining(appointmentId, userId).subscribe(response => {
       alert('Successfully enrolled in training');
     }, error => {
       alert('Enrollment failed. Please try again.');
     });
+  }
+
+  getCurrentUserId() {
+    // Replace with actual logic to get the user's ID
+    return '386'; 
   }
 
   closePopup() {
@@ -89,11 +95,11 @@ export class TrainingsPage implements AfterViewInit {
     gesture.enable(true);
   }
 
-  // Extract unique training types from the training list
+  /* Extract unique training types from the training list
   extractAvailableTypes() {
     const typesSet = new Set(this.trainings.map(training => training.type));
     this.availableTypes = Array.from(typesSet);  // Convert Set to Array for the dropdown
-  }
+  }*/
 
   // Toggle favorite status
   toggleFavorite(training: any) {
@@ -110,16 +116,16 @@ export class TrainingsPage implements AfterViewInit {
     this.selectedType = '';
   }
 
-  // Filter trainings based on the selected filter (All/Favorites), training type, and availability
+  /*
   filteredTrainings() {
-    return this.trainings.filter(training => {
+    return this.appointments.filter(training => {
       const matchesFavorites = this.selectedFilter === 'favorites' ? training.favorite : true;
       const matchesType = this.selectedType ? training.type === this.selectedType : true;
       const matchesAvailability = this.availabilityFilter === 'available' ? training.available > 0 : true;
-
+      
       return matchesFavorites && matchesType && matchesAvailability;
     });
-  }
+  }*/
 
   // Function to handle enrollment
   enroll(training: any) {
