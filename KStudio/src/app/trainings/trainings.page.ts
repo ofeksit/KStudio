@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GestureController, ModalController } from '@ionic/angular';
-import { AmeliaApiService } from '../services/amelia-api.service';
+import { AmeliaService } from '../services/amelia-api.service';
 import { Appointment } from '../Models/appointment';
 
 @Component({
@@ -32,67 +32,74 @@ export class TrainingsPage implements AfterViewInit {
     { day: 'שבת', date: '7.9' },
   ];
 
-  trainings = this.ameliaApiService.getAllAppointments;
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private ameliaApiService: AmeliaApiService) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private AmeliaService: AmeliaService) {}
 
   ngOnInit() {
     this.selectedDay = this.days[0].date;  // Ensure first tab is selected by default
     ///this.extractAvailableTypes();  // Extract available training types on page load
-    this.loadAppointments();
+    console.log(this.AmeliaService.getData());
   }
 
-  loadAppointments() {
-    this.ameliaApiService.getAllAppointments().subscribe(appointments => {
-      this.appointments = appointments;
-      this.trainings = appointments;  // Now 'trainings' is correctly assigned
-      this.groupAppointmentsByDay();
-      //this.extractAvailableTypes();  // Call after the data is fetched
+
+  /*loadAppointments() {
+    // Get all appointments
+    this.AmeliaService.getData().subscribe(appointments => {
+      console.log(appointments);
+    }, error => {
+      console.error('Failed to load appointments', error);
     });
-  }
+  }*/
   
 
+  // Group appointments by day (e.g., 2024-09-07)
   groupAppointmentsByDay() {
     this.groupedAppointments = this.appointments.reduce((group: { [key: string]: any[] }, appointment: any) => {
-      const date = new Date(appointment.start_time).toDateString();
-      if (!group[date]) {
-        group[date] = [];
+      const appointmentDate = new Date(appointment.start_time).toLocaleDateString();  // Format to readable date
+      if (!group[appointmentDate]) {
+        group[appointmentDate] = [];
       }
-      group[date].push(appointment);
+      group[appointmentDate].push(appointment);
       return group;
     }, {});
   }
+
+    // Create the list of days based on the appointments
+    setupDays() {
+      const uniqueDays = Object.keys(this.groupedAppointments);
+      this.days = uniqueDays.map(date => ({
+        day: new Date(date).toLocaleString('he-IL', { weekday: 'long' }),  // Convert to day of week in Hebrew
+        date: date,
+      }));
   
+      if (this.days.length > 0) {
+        this.selectedDay = this.days[0].date;  // Default to the first day
+      }
+    }
 
-  enrollInTraining(appointmentId: string) {
-    const userId = this.getCurrentUserId();
-    this.ameliaApiService.enrollInTraining(appointmentId, userId).subscribe(response => {
-      alert('Successfully enrolled in training');
-    }, error => {
-      alert('Enrollment failed. Please try again.');
-    });
+      // Filtered list of appointments for the selected day
+  getAppointmentsForSelectedDay() {
+    return this.groupedAppointments[this.selectedDay] || [];
   }
 
-  getCurrentUserId() {
-    // Replace with actual logic to get the user's ID
-    return '386'; 
-  }
 
   closePopup() {
     this.modalCtrl.dismiss();
   }
 
   ngAfterViewInit() {
-    const gesture = this.gestureCtrl.create({
-      el: this.popup.nativeElement,
-      gestureName: 'swipe-to-close',
-      onMove: (ev) => {
-        if (ev.deltaY > 100) {
-          this.modalCtrl.dismiss();
-        }
-      },
+    setTimeout(() => {
+      const gesture = this.gestureCtrl.create({
+        el: this.popup.nativeElement,
+        gestureName: 'swipe-to-close',
+        onMove: (ev) => {
+          if (ev.deltaY > 100) {
+            this.modalCtrl.dismiss();
+          }
+        },
+      });
+      gesture.enable(true); 
     });
-    gesture.enable(true);
   }
 
   /* Extract unique training types from the training list
@@ -116,6 +123,7 @@ export class TrainingsPage implements AfterViewInit {
     this.selectedType = '';
   }
 
+
   /*
   filteredTrainings() {
     return this.appointments.filter(training => {
@@ -127,12 +135,4 @@ export class TrainingsPage implements AfterViewInit {
     });
   }*/
 
-  // Function to handle enrollment
-  enroll(training: any) {
-    if (training.available > 0) {
-      console.log('Enrolled in training:', training);
-    } else {
-      console.log('Added to standby list:', training);
-    }
-  }
 }

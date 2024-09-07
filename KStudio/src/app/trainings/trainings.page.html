@@ -15,13 +15,13 @@
         </ion-segment>
       </div>
 
-      <!-- Scrolling Tabs for Days -->
-      <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
-        <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
-          <ion-label>{{ day.day }}</ion-label>
-          <ion-note>{{ day.date }}</ion-note>
-        </ion-segment-button>
-      </ion-segment>
+    <!-- Scrolling Tabs for Days -->
+    <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
+      <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
+        <ion-label>{{ day.day }}</ion-label>
+        <ion-note>{{ day.date }}</ion-note>
+      </ion-segment-button>
+    </ion-segment>
 
       <!-- Single Filter Button with clear "X" button -->
       <div class="filter-header">
@@ -52,39 +52,29 @@
       </ion-list>
     </div>
     
+    <!-- List of Trainings for Selected Day -->
     <div class="scrollable-list">
-      <!-- List of Trainings -->
       <ion-list>
-        <ion-item *ngFor="let appointment of filteredTrainings()" lines="none">
+        <ion-item *ngFor="let appointment of getAppointmentsForSelectedDay()" lines="none">
           <ion-card class="training-card">
             <ion-card-header>
               <div class="training-header">
                 <ion-label>
-                  <h2>{{ appointment.training_name }}</h2>
-                  <p>{{ appointment.start_time }} - {{ appointment.end_time }}</p>
+                  <h2>{{ appointment.service.name }}</h2>
+                  <p>{{ appointment.start_time | date: 'shortTime' }} - {{ appointment.end_time | date: 'shortTime' }}</p>
                 </ion-label>
-                <ion-icon 
-                  [name]="appointment.favorite ? 'heart' : 'heart-outline'" 
-                  [color]="appointment.favorite ? 'danger' : 'medium'"
-                  slot="end"
-                  class="favorite-icon"
-                  (click)="toggleFavorite(appointment)">
-                </ion-icon>
               </div>
             </ion-card-header>
 
             <ion-card-content>
               <div class="progress-container">
-                <ion-icon name="people-outline" color="medium" size="large" style="margin-left: 4px;"></ion-icon>  
-                <ion-label style="margin-left: 6px;">{{ training.capacity - training.available }}/{{ training.capacity }}</ion-label>
-                <ion-progress-bar value="{{ training.available / training.capacity }}"></ion-progress-bar>
+                <ion-icon name="people-outline" color="medium" size="large" style="margin-left: 4px;"></ion-icon>
+                <ion-label style="margin-left: 6px;">
+                  {{ appointment.booked }}/{{ appointment.capacity }}
+                </ion-label>
+                <ion-progress-bar value="{{ appointment.booked / appointment.capacity }}"></ion-progress-bar>
               </div>
             </ion-card-content>
-
-            <!-- Conditional Button for Enrollment or Standby -->
-            <ion-button expand="block" color="primary">
-              {{ appointment.isFull > 0 ? 'הרשמה' : 'הצטרפות לרשימת המתנה' }}
-            </ion-button>
           </ion-card>
         </ion-item>
       </ion-list>

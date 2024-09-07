@@ -4,7 +4,7 @@
 
   <!-- Profile Section -->
   <div class="profile-section">
-    <img class="avatar" [src]="userPhoto" alt="תמונת פרופיל">
+    <img class="avatar" [src]="userPhoto" alt="User Avatar">
     <h2>{{ userName }}</h2>
     <p>{{ userRole }}</p>
   </div>
@@ -19,95 +19,50 @@
     </ion-segment-button>
   </ion-segment>
 
-  <!-- Filtered Trainings List Sorted by Date -->
+  <!-- Single List of Trainings Sorted by Date -->
   <div *ngIf="selectedTab === 'trainings'">
-      <!-- Single Filter Button with clear "X" button -->
-  <div class="filter-header">
-    <ion-button expand="block" (click)="toggleDropdown()" class="custom-button">סינון</ion-button>
-    <ion-icon name="close-circle-outline" class="clear-filter-icon" *ngIf="isFilterActive()" (click)="clearTypeFilter()"></ion-icon>
-  </div>
-
-    <!-- Modern Dropdown for Filters -->
-    <ion-list *ngIf="showDropdown" class="filter-dropdown">
-      <ion-list>
-        <ion-item *ngFor="let type of availableTypes">
-          <ion-label>{{ type }}</ion-label>
-          <ion-checkbox slot="end" [(ngModel)]="selectedTypes[type]"></ion-checkbox>
-        </ion-item>
-      </ion-list>
-      
-  
-      <ion-item>
-        <ion-label>תצוגה</ion-label>
-        <ion-segment [(ngModel)]="availabilityFilter">
-          <ion-segment-button value="all">
-            <ion-label>הכל</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="upcoming">
-            <ion-label>עתידי</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-item>
-    </ion-list>
     <ion-list>
-      <ion-card *ngFor="let training of filteredTrainings()" (click)="showActions(training)">
+      <ion-card *ngFor="let training of sortedTrainings()" (click)="showActions(training)">
         <ion-card-header>
+          <!-- Arrow and Status icon -->
           <div class="icon-container">
+            <!-- Status icon directly to the right of arrow -->
             <ion-icon 
               class="status-icon"
               [name]="getStatusIcon(training.status)" 
               [color]="getStatusColor(training.status)">
             </ion-icon>
+            <!-- Arrow icon aligned in left-center -->
             <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
           </div>
+
+          <!-- Training title and date -->
           <ion-label class="training-details">
             <h2>{{ training.title }}</h2>
-            <p>{{ training.time}}</p>
+            <p>{{ training.date | date: 'shortDate' }} | {{ training.time }}</p>
           </ion-label>
         </ion-card-header>
       </ion-card>
     </ion-list>
   </div>
 
+ <!-- Purchases List Styled Similar to Trainings List -->
+ <div *ngIf="selectedTab === 'purchases'">
+  <ion-list>
+    <ion-card *ngFor="let purchase of userPurchases">
+      <ion-card-header>
+        <div class="icon-container">
+          <!-- Arrow icon aligned in left-center -->
+          <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+        </div>
 
-  <ion-alert
-  [isOpen]="showCancelAlert()"
-  header="בטל הזמנה"
-  message="האם אתה בטוח שברצונך לבטל את האימון?"
-  buttons="[
-    {
-      text: 'לא',
-      role: 'cancel',
-      handler: () => {
-        showCancelAlert = false;
-      }
-    },
-    {
-      text: 'כן',
-      handler: () => {
-        cancelTraining(selectedTraining);
-        showCancelAlert = false;
-      }
-    }
-  ]"
-  ></ion-alert>
-
-
-
-  <!-- Purchases List Styled Similar to Trainings List -->
-  <div *ngIf="selectedTab === 'purchases'">
-    <ion-list>
-      <ion-card *ngFor="let purchase of userPurchases">
-        <ion-card-header>
-          <div class="icon-container">
-            <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
-          </div>
-          <ion-label class="training-details">
-            <h2>{{ purchase.orderNumber }}</h2>
-            <p>{{ purchase.products[0].name }}</p>
-          </ion-label>
-        </ion-card-header>
-      </ion-card>
-    </ion-list>
-  </div>
+        <!-- Purchase item details (Order Number as Title and First Product as Description) -->
+        <ion-label class="training-details">
+          <h2>{{ purchase.orderNumber }}</h2>
+          <p>{{ purchase.products[0].name }}</p>
+        </ion-label>
+      </ion-card-header>
+    </ion-card>
+  </ion-list>
+</div>
 </ion-content>
