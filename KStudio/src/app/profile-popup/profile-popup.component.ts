@@ -1,9 +1,6 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
 import { Training } from '../Models/training';
-import { HttpClient } from '@angular/common/http';
-import { AlertController } from '@ionic/angular';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile-popup',
@@ -56,7 +53,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     { orderNumber: 'ORD124', products: [{ name: 'מוצר ג' }], date: new Date() }
   ];
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController, private http: HttpClient, private alertCtrl: AlertController, private router: Router) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController) {}
 
   ngAfterViewInit() {
     const gesture = this.gestureCtrl.create({
@@ -131,7 +128,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     return this.trainings.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
   }
 
-  async showActions(training: any) {
+  showActions(training: any) {
     this.selectedTraining = training;
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'פעולות',
@@ -160,45 +157,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     });
     await actionSheet.present();
   }
-
-  canReschedule(trainingTime: string): boolean {
-    const currentTime = new Date().getTime();
-    const trainingDateTime = new Date(trainingTime).getTime();
-    const hoursDifference = (trainingDateTime - currentTime) / (1000 * 60 * 60); // Milliseconds to hours
-    return hoursDifference > 8;
-  }
-  
-  navigateToReschedule(training: any) {
-    if (!this.canReschedule(training.time)) {
-      // Show error alert
-      const alert = this.alertCtrl.create({
-        header: 'לא ניתן לשנות את האימון',
-        message: 'לא ניתן לשנות את מועד האימון פחות מ-8 שעות לפני תחילתו',
-        buttons: ['אישור']
-      });
-      alert.then(alertEl => alertEl.present());
-    } else {
-      // Navigate to the trainings list to reschedule
-      this.router.navigate(['/trainings'], { state: { trainingToReschedule: training } });
-    }
-  }
-  
-  rescheduleTraining(oldTraining: any, newTraining: any) {
-    const url = `your_amellia_api_endpoint/bookings/${oldTraining.id}/reschedule`;
-    const payload = {
-      newTrainingId: newTraining.id
-    };
-    this.http.post(url, payload).subscribe(
-      (response) => {
-        console.log('Booking rescheduled:', response);
-        // Refresh the list or notify user
-      },
-      (error) => {
-        console.error('Error rescheduling booking:', error);
-      }
-    );
-  }
-  
 
   // Get the correct status icon based on training status
   getStatusIcon(status: string): string {
