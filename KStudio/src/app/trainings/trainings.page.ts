@@ -38,7 +38,7 @@ export class TrainingsPage implements AfterViewInit {
   ngOnInit() {
     this.selectedDay = this.days[0].date;  // Ensure first tab is selected by default
     ///this.extractAvailableTypes();  // Extract available training types on page load
-    console.log(this.AmeliaService.getData());
+    console.log(this.AmeliaService.getMonthlyAppointments());
   }
 
 
