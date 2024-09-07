@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GestureController, ModalController } from '@ionic/angular';
-
+import { AmeliaApiService } from '../services/amelia-api.service';
+import { Appointment } from '../Models/appointment';
 
 @Component({
   selector: 'app-trainings',
@@ -10,6 +11,8 @@ import { GestureController, ModalController } from '@ionic/angular';
 export class TrainingsPage implements AfterViewInit {
   @ViewChild('popup') popup!: ElementRef;
 
+  appointments: Appointment[] = [];
+  groupedAppointments: any = {};
   
   selectedFilter: string = 'all';  // Default to "All" tab
   selectedDay: string = '31/08/2024';  // Default selected day
@@ -29,17 +32,44 @@ export class TrainingsPage implements AfterViewInit {
     { day: 'שבת', date: '7.9' },
   ];
 
-  trainings = [
-    { title: 'פלאטיס', type: 'פילאטיס', trainer: 'אורפד שקד', date: '31/08/2024', time: '10:00 AM', location: 'סטודיו 1', available: 0, capacity: 70, favorite: false },
-    { title: 'יוגה', type: 'יוגה', trainer: 'מיכל כהן', date: '31/08/2024', time: '11:00 AM', location: 'סטודיו 2', available: 14, capacity: 30, favorite: true },
-    { title: 'אימון כוח', type: 'אימון כוח', trainer: 'יואב לב', date: '31/08/2024', time: '12:00 PM', location: 'אולם ספורט', available: 20, capacity: 25, favorite: false }
-  ];
+  trainings = this.ameliaApiService.getAllAppointments;
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private ameliaApiService: AmeliaApiService) {}
 
   ngOnInit() {
     this.selectedDay = this.days[0].date;  // Ensure first tab is selected by default
     this.extractAvailableTypes();  // Extract available training types on page load
+    this.loadAppointments();
+  }
+
+  loadAppointments() {
+    // Fetch all appointments
+    this.ameliaApiService.getAllAppointments().subscribe(appointments => {
+      this.appointments = appointments;
+      this.groupAppointmentsByDay();
+    });
+  }
+
+  groupAppointmentsByDay() {
+    this.groupedAppointments = this.appointments.reduce((group: { [key: string]: any[] }, appointment: any) => {
+      const date = new Date(appointment.start_time).toDateString();
+      if (!group[date]) {
+        group[date] = [];
+      }
+      group[date].push(appointment);
+      return group;
+    }, {});
+  }
+  
+
+    // Function to enroll in a training
+  enrollInTraining(appointmentId: string) {
+    const userId = 'CURRENT_USER_ID';  // Replace with actual logged-in user's ID
+    this.ameliaApiService.enrollInTraining(appointmentId, userId).subscribe(response => {
+      alert('Successfully enrolled in training');
+    }, error => {
+      alert('Enrollment failed. Please try again.');
+    });
   }
 
   closePopup() {

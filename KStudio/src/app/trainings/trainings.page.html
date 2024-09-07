@@ -1,93 +1,93 @@
 <ion-content #popup class="popup-modal-trainings">
-
   <div class="drag-handle"></div>
-<div class="content-container">
-  <div class="sticky-header">
-  <!-- Header Tabs for "All" and "Favorites" -->
-  <div class="header-tabs">
-    <ion-segment mode="md" [(ngModel)]="selectedFilter" class="segment-tab">
-      <ion-segment-button value="all" class="custom-tabs">
-        <ion-label>הכל</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="favorites" class="custom-tabs">
-        <ion-label>מועדפים</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
+  
+  <div class="content-container">
+    <div class="sticky-header">
+      <!-- Header Tabs for "All" and "Favorites" -->
+      <div class="header-tabs">
+        <ion-segment mode="md" [(ngModel)]="selectedFilter" class="segment-tab">
+          <ion-segment-button value="all" class="custom-tabs">
+            <ion-label>הכל</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="favorites" class="custom-tabs">
+            <ion-label>מועדפים</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
 
-  <!-- Scrolling Tabs for Days -->
-  <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
-    <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
-      <ion-label>{{ day.day }}</ion-label>
-      <ion-note>{{ day.date }}</ion-note>
-    </ion-segment-button>
-  </ion-segment>
-
-  <!-- Single Filter Button with clear "X" button -->
-  <div class="filter-header">
-    <ion-icon name="filter-circle-outline" class="filter-icon" (click)="toggleDropdown()" size="large"></ion-icon>
-    <ion-icon name="close-circle-outline" class="clear-filter-icon" *ngIf="selectedType" (click)="clearTypeFilter()"></ion-icon>
-  </div>
-
-  <!-- Modern Dropdown for Filters -->
-  <ion-list *ngIf="showDropdown" class="filter-dropdown">
-    <ion-item>
-      <ion-label>סוג אימון</ion-label>
-      <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
-        <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <ion-item>
-      <ion-label>זמינות</ion-label>
-      <ion-segment [(ngModel)]="availabilityFilter">
-        <ion-segment-button value="all">
-          <ion-label>הכל</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="available">
-          <ion-label>זמין בלבד</ion-label>
+      <!-- Scrolling Tabs for Days -->
+      <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
+        <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
+          <ion-label>{{ day.day }}</ion-label>
+          <ion-note>{{ day.date }}</ion-note>
         </ion-segment-button>
       </ion-segment>
-    </ion-item>
-  </ion-list>
-</div>
-<div class="scrollable-list">
-  <!-- List of Trainings -->
-  <ion-list>
-    <ion-item *ngFor="let training of filteredTrainings()" lines="none">
-      <ion-card class="training-card">
-        <ion-card-header>
-          <div class="training-header">
-            <ion-label>
-              <h2>{{ training.title }}</h2>
-              <p>{{ training.time }}</p>
-            </ion-label>
-            <ion-icon 
-            [name]="training.favorite ? 'heart' : 'heart-outline'" 
-            [color]="training.favorite ? 'danger' : 'medium'"
-            slot="end"
-            class="favorite-icon"
-            (click)="toggleFavorite(training)">
-            </ion-icon>
-          </div>
-        </ion-card-header>
 
-        <ion-card-content>
-          <div class="progress-container">
-            <ion-icon name="people-outline" color="medium" size="large" style="margin-left: 4px;"></ion-icon>  
-            <ion-label style="margin-left: 6px;">{{ training.capacity - training.available }}/{{ training.capacity }}</ion-label>
-            <ion-progress-bar value="{{ training.available / training.capacity }}"></ion-progress-bar>
-          </div>
-        </ion-card-content>
+      <!-- Single Filter Button with clear "X" button -->
+      <div class="filter-header">
+        <ion-icon name="filter-circle-outline" class="filter-icon" (click)="toggleDropdown()" size="large"></ion-icon>
+        <ion-icon name="close-circle-outline" class="clear-filter-icon" *ngIf="selectedType" (click)="clearTypeFilter()"></ion-icon>
+      </div>
 
-        <!-- Conditional Button for Enrollment or Standby -->
-        <ion-button expand="block" color="primary" (click)="enroll(training)">
-          {{ training.available > 0 ? 'הרשמה' : 'הצטרפות לרשימת המתנה' }}
-        </ion-button>
-      </ion-card>
-    </ion-item>
-  </ion-list>
-</div>
-</div>
+      <!-- Modern Dropdown for Filters -->
+      <ion-list *ngIf="showDropdown" class="filter-dropdown">
+        <ion-item>
+          <ion-label>סוג אימון</ion-label>
+          <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
+            <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>זמינות</ion-label>
+          <ion-segment [(ngModel)]="availabilityFilter">
+            <ion-segment-button value="all">
+              <ion-label>הכל</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="available">
+              <ion-label>זמין בלבד</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </ion-item>
+      </ion-list>
+    </div>
+    
+    <div class="scrollable-list">
+      <!-- List of Trainings -->
+      <ion-list>
+        <ion-item *ngFor="let appointment of filteredTrainings()" lines="none">
+          <ion-card class="training-card">
+            <ion-card-header>
+              <div class="training-header">
+                <ion-label>
+                  <h2>{{ appointment.training_name }}</h2>
+                  <p>{{ appointment.start_time }} - {{ appointment.end_time }}</p>
+                </ion-label>
+                <ion-icon 
+                  [name]="appointment.favorite ? 'heart' : 'heart-outline'" 
+                  [color]="appointment.favorite ? 'danger' : 'medium'"
+                  slot="end"
+                  class="favorite-icon"
+                  (click)="toggleFavorite(appointment)">
+                </ion-icon>
+              </div>
+            </ion-card-header>
+
+            <ion-card-content>
+              <div class="progress-container">
+                <ion-icon name="people-outline" color="medium" size="large" style="margin-left: 4px;"></ion-icon>  
+                <ion-label style="margin-left: 6px;">{{ training.capacity - training.available }}/{{ training.capacity }}</ion-label>
+                <ion-progress-bar value="{{ training.available / training.capacity }}"></ion-progress-bar>
+              </div>
+            </ion-card-content>
+
+            <!-- Conditional Button for Enrollment or Standby -->
+            <ion-button expand="block" color="primary" (click)="enroll(training)">
+              {{ appointment.isFull > 0 ? 'הרשמה' : 'הצטרפות לרשימת המתנה' }}
+            </ion-button>
+          </ion-card>
+        </ion-item>
+      </ion-list>
+    </div>
+  </div>
 </ion-content>
-
