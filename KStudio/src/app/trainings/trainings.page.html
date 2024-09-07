@@ -55,25 +55,32 @@
     <!-- List of Trainings for Selected Day -->
     <div class="scrollable-list">
       <ion-list>
-        <ion-item *ngFor="let appointment of getAppointmentsForSelectedDay()" lines="none">
+        <ion-item *ngFor="let item of getAppointmentsForSelectedDay()" lines="none">
           <ion-card class="training-card">
             <ion-card-header>
               <div class="training-header">
                 <ion-label>
-                  <h2>{{ appointment.service.name }}</h2>
-                  <p>{{ appointment.start_time | date: 'shortTime' }} - {{ appointment.end_time | date: 'shortTime' }}</p>
+                  <h2 *ngIf="item.type === 'appointment'">{{ item.service.name }}</h2>
+                  <h2 *ngIf="item.type === 'timeslot'">Available Timeslot</h2>
+                  <p>{{ item.start_time | date: 'shortTime' }} - {{ item.end_time | date: 'shortTime' }}</p>
                 </ion-label>
               </div>
             </ion-card-header>
 
-            <ion-card-content>
+            <ion-card-content *ngIf="item.type === 'appointment'">
               <div class="progress-container">
-                <ion-icon name="people-outline" color="medium" size="large" style="margin-left: 4px;"></ion-icon>
-                <ion-label style="margin-left: 6px;">
-                  {{ appointment.booked }}/{{ appointment.capacity }}
+                <ion-icon name="people-outline" color="medium" size="large"></ion-icon>
+                <ion-label>
+                  {{ item.booked }}/{{ item.capacity }}
                 </ion-label>
-                <ion-progress-bar value="{{ appointment.booked / appointment.capacity }}"></ion-progress-bar>
+                <ion-progress-bar value="{{ item.booked / item.capacity }}"></ion-progress-bar>
               </div>
+            </ion-card-content>
+
+            <ion-card-content *ngIf="item.type === 'timeslot'">
+              <ion-label>
+                Available Slot - Book Now!
+              </ion-label>
             </ion-card-content>
           </ion-card>
         </ion-item>

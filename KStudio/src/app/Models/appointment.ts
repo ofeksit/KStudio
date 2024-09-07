@@ -1,12 +1,8 @@
 export interface Appointment {
-    training_name: string;
-    bookings: string[];
-    start_time: string;  
-    end_time: string;
-    isFull: boolean;  // Available slots for the training
-    capacity: number;   // Maximum capacity of the training
-    favorite: boolean;  // Whether it's a favorite training
-  }
-  
-  
-  
+  type: 'appointment' | 'timeslot';
+  service?: { name: string }; // Only for appointments
+  start_time: string;  // Common for both timeslots and appointments
+  end_time: string;    // Common for both
+  booked?: number;     // Only for appointments
+  capacity?: number;   // Only for appointments
+}
