@@ -49,7 +49,11 @@ ion-segment {
 }
 
 ion-list {
-  margin-top: -20px;
+  
+}
+
+.custom-button {
+  --color: #fff;
 }
 
 ion-card {
@@ -76,6 +80,34 @@ ion-card-header {
   margin: 0 auto; /* This centers the inner div horizontally */
 
 
+}
+
+.filter-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.filter-icon {
+  --color: #000;
+}
+
+.clear-filter-icon {
+  font-size: 24px;
+  color: #e74c3c;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.filter-dropdown {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 100%;
 }
 
 .training-details h2 {

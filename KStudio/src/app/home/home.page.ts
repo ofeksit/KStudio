@@ -83,8 +83,8 @@ export class HomePage implements OnInit {
       component: ProfilePopupComponent,
       cssClass: 'profile-popup',  // Custom class for styling      
       presentingElement: await this.modalCtrl2.getTop(),  // Ensure it's treated as a sheet
-      breakpoints: [0, 0.70, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
-      initialBreakpoint: 0.70,  // Start the modal at 50% of screen height
+      breakpoints: [0, 0.9, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
+      initialBreakpoint: 0.90,  // Start the modal at 50% of screen height
     });
     return await modal.present();
   }

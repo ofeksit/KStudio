@@ -10,23 +10,47 @@ import { Training } from '../Models/training';
 export class ProfilePopupComponent implements AfterViewInit {
   @ViewChild('popup') popup!: ElementRef;
 
-  userName: string = 'John Doe';  // Placeholder for user display name
+  userName: string = 'יוחנן דו';  // Placeholder for user display name
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
-  userRole: string = 'Premium Member';  // Placeholder for user role
+  userRole: string = 'חבר פרימיום';  // Placeholder for user role
   selectedTab: string = 'trainings';  // Default selected tab
+  
+  
+  selectedFilter: string = 'all';  // Default to "All" tab
+  selectedDay: string = '31/08/2024';  // Default selected day
+  selectedTypes: { [key: string]: boolean } = {};
+  availabilityFilter: string = 'all';  // Default: show all
+  showDropdown: boolean = false;  // Controls the visibility of the filter dropdown
+  availableTypes: string[] = [];  // Array of available training types
+  
+  showCancelAlert = false;
+  selectedTraining: any;
+  
+  cancelTraining(training: any) {
+    // Call the Amelia REST API to cancel the booking
+    const url = `your_amellia_api_endpoint/bookings/${training.id}/cancel`;
+    this.http.post(url, {}).subscribe(
+      (response) => {
+        console.log('Booking canceled:', response);
+        // Optionally refresh the trainings list
+      },
+      (error) => {
+        console.error('Error canceling booking:', error);
+      }
+    );
+  }
 
 
-  // Array of trainings with type `Training`
   trainings: Training[] = [
-    { title: 'יוגה', date: '2024-09-10', time: '10:00 AM', available: 10, capacity: 20, favorite: true, status: 'approved' },
-    { title: 'פילאטיס', date: '2024-09-01', time: '08:00 AM', available: 5, capacity: 10, favorite: false, status: 'pending' },
-    { title: 'אימון כוח', date: '2024-08-25', time: '06:00 PM', available: 0, capacity: 25, favorite: false, status: 'cancelled' },
-    { title: 'אימון ידיים', date: '2024-08-30', time: '05:00 PM', available: 20, capacity: 25, favorite: true, status: 'approved' }
+    { title: 'פלאטיס', time: '10:00 | 31/08/2024', available: 0, capacity: 70, favorite: false, status: "approved" },
+    { title: 'יוגה', time: '11:00 | 02/09/2024 ', available: 14, capacity: 30, favorite: true, status: "approved" },
+    { title: 'אימון כוח', time: '12:00 | 03/09/2024',available: 20, capacity: 25, favorite: false, status: "approved" },
+    { title: 'אימון כוח', time: '12:00 | 09/09/2024',available: 20, capacity: 25, favorite: false, status: "approved" }
   ];
 
   userPurchases = [
-    { orderNumber: 'ORD123', products: [{ name: 'Product A' }, { name: 'Product B' }], date: new Date() },
-    { orderNumber: 'ORD124', products: [{ name: 'Product C' }], date: new Date() }
+    { orderNumber: 'ORD123', products: [{ name: 'מוצר א' }, { name: 'מוצר ב' }], date: new Date() },
+    { orderNumber: 'ORD124', products: [{ name: 'מוצר ג' }], date: new Date() }
   ];
 
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController) {}
@@ -44,25 +68,68 @@ export class ProfilePopupComponent implements AfterViewInit {
     gesture.enable(true);
   }
 
+  ngOnInit() {
+    this.extractAvailableTypes();  // Extract available training types on page load
+  }
+
   closePopup() {
     this.modalCtrl.dismiss();
   }
 
-  // Mock Google Profile Fetch (This would be replaced with OAuth2 logic)
-  loadGoogleProfile() {
-    // For now, we're using placeholders
-    this.userName = 'Deryl Banks';
-    this.userPhoto = 'assets/img/avatar.png';  // Replace with Google profile picture URL
-    this.userRole = 'Member';  // Set the role dynamically based on user data
+  // Extract unique training types from the training list
+  extractAvailableTypes() {
+    const typesSet = new Set(this.trainings.map(training => training.title));
+    this.availableTypes = Array.from(typesSet);  // Convert Set to Array for the dropdown
   }
 
-    // Sort trainings by date
+  // Toggle dropdown visibility
+  toggleDropdown() {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  // Clear the type filter
+  clearTypeFilter() {
+    this.selectedTypes = {};
+  }
+
+  // Determine if any filter is active
+  isFilterActive() {
+    return Object.values(this.selectedTypes).some(isSelected => isSelected);
+  }
+
+  // Filtered trainings based on selected types and other filters
+  filteredTrainings() {
+    const hasSelectedTypes = this.isFilterActive();
+
+    return this.trainings.filter(training => {
+      const matchesFavorites = this.selectedFilter === 'favorites' ? training.favorite : true;
+      const matchesType = hasSelectedTypes ? Object.keys(this.selectedTypes).some(type => this.selectedTypes[type] && training.title === type) : true;
+      const matchesAvailability = this.availabilityFilter === 'upcoming' ? this.isUpcoming(training.time) : true;
+
+      return matchesFavorites && matchesType && matchesAvailability;
+    });
+  }
+  
+  // Helper function to extract the date and check if the training is upcoming
+  isUpcoming(timeString: string): boolean {
+    const [time, date] = timeString.split(' | ');
+    const [day, month, year] = date.split('/').map(Number); // Extract day, month, and year from the date
+    const trainingDate = new Date(year, month - 1, day); // Create a Date object (month is zero-based in JS)
+    
+    const today = new Date(); // Get today's date
+  
+    // Compare the training date with today's date
+    return trainingDate >= today;
+  }
+
+
+  // Sort trainings by date
   sortedTrainings() {
-    return this.trainings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return this.trainings.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
   }
 
-   // Show Action Sheet on clicking a training
-   async showActions(training: any) {
+  showActions(training: any) {
+    this.selectedTraining = training;
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'פעולות',
       buttons: [
@@ -71,14 +138,14 @@ export class ProfilePopupComponent implements AfterViewInit {
           role: 'destructive',
           icon: 'close-circle-outline',
           handler: () => {
-            console.log('Cancel training:', training);
+            this.showCancelAlert = true; // Trigger the alert
           }
         },
         {
           text: 'שנה זמן',
           icon: 'time-outline',
           handler: () => {
-            console.log('Reschedule training:', training);
+            this.navigateToReschedule(training); // Redirect to reschedule functionality
           }
         },
         {
@@ -91,7 +158,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     await actionSheet.present();
   }
 
-    // Get the correct status icon based on training status
+  // Get the correct status icon based on training status
   getStatusIcon(status: string): string {
     switch (status) {
       case 'approved':
@@ -105,7 +172,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     }
   }
 
-    // Get the color based on status
+  // Get the color based on status
   getStatusColor(status: string): string {
     switch (status) {
       case 'approved':
@@ -118,5 +185,5 @@ export class ProfilePopupComponent implements AfterViewInit {
         return 'medium';  // Fallback color
     }
   }
-
 }
+
