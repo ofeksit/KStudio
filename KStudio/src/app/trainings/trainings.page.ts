@@ -267,7 +267,11 @@ extractAvailableDays() {
   }
 
   calculateProgress(appointment: any): number {
-    return (appointment.current_participants / appointment.total_participants) * 100;
+    if (!appointment.current_participants || !appointment.total_participants) {
+      return 0;
+    }
+    const progress = (appointment.current_participants.length / appointment.total_participants) * 100;
+    return progress > 100 ? 100 : progress; // Ensure the progress doesn't exceed 100%
   }
   
   isFull(appointment: any): boolean {
