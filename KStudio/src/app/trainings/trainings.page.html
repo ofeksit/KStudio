@@ -15,13 +15,13 @@
         </ion-segment>
       </div>
 
-    <!-- Scrolling Tabs for Days -->
-    <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
-      <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
-        <ion-label>{{ day.day }}</ion-label>
-        <ion-note>{{ day.date }}</ion-note>
-      </ion-segment-button>
-    </ion-segment>
+      <!-- Scrolling Tabs for Days -->
+      <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
+        <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
+          <ion-label>{{ day.day }}</ion-label>
+          <ion-note>{{ day.formattedDate }}</ion-note>
+        </ion-segment-button>
+      </ion-segment>
 
       <!-- Single Filter Button with clear "X" button -->
       <div class="filter-header">
@@ -75,7 +75,6 @@
     
               <!-- Wikipedia-like popup for participant names -->
               <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
-                <h4>משתתפים</h4>
                 <ul>
                   <li *ngFor="let participant of appointment.current_participants">
                     {{ participant }}

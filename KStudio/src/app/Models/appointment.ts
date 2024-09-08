@@ -8,4 +8,5 @@ export interface Appointment {
   favorite?: boolean;
   current_participants?: string[]; // Optional for timeslots
   total_participants?: number;     // Optional for timeslots
+  googleCalendarEventId?: string; // Add Google Calendar ID
 }

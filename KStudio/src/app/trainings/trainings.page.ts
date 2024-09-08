@@ -25,7 +25,9 @@ export class TrainingsPage implements AfterViewInit {
   availableTimeslots: Appointment[] = [];
   bookedAppointments: Appointment[] = [];
   combinedList: Appointment[] = [];
-  days: { date: string; day: string }[] = [];
+  days: {
+formattedDate: any; date: string; day: string 
+}[] = [];
   selectedDay: string | undefined;  // Default selected day
 
   // Add new variables for modal
@@ -34,17 +36,28 @@ export class TrainingsPage implements AfterViewInit {
   isPopupVisible = false;
   activeAppointment: Appointment | null = null; // Track the active appointment for popup
 
+    // Array of known training types
+  knownTrainingTypes: string[] = [
+    'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', ''
+    // Add more known training types as needed
+  ];
+
+  /* Update the Hebrew days of the week
+  hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];*/
+
+
+  private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // Replace with your actual API Key
+  private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Replace with your public calendar ID
 
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient) {}
 
   ngOnInit() {
-    this.fetchAvailableTimeslots();
-    this.fetchBookedAppointments();
+    // Ensure both fetch functions resolve before combining the data
+    Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
+      this.combineTimeslotsAndAppointments();
+    });
   }
-
-
-
-      // Method to show the popup
+  // Method to show the popup
   showPopup(appointment: Appointment) {
     this.activeAppointment = appointment;
     this.isPopupVisible = true;
@@ -56,99 +69,157 @@ export class TrainingsPage implements AfterViewInit {
     this.isPopupVisible = false;
   }
 
-
-  fetchAvailableTimeslots() {
-    const url = '/api/slots&serviceId=12&page=booking&startDateTime=2024-09-08'; // Update the URL accordingly
-    this.http.get<{ data: { slots: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe((response) => {
-      const timeslotsData = response.data.slots;
-  
-      this.availableTimeslots = Object.keys(timeslotsData).flatMap(date => 
-        Object.keys(timeslotsData[date]).map(time => ({
-          start_time: new Date(`${date}T${time}`).toISOString(),
-          end_time: new Date(`${date}T${time}`).toISOString(), // Adjust the end time if necessary
-          type: 'timeslot',
-          service: { name: 'אימון קבוצתי' }, // Set the default name to "אימון קבוצתי"
-          favorite: false, // Default favorite value for timeslots
-          current_participants: [], // Timeslots don't have participants yet
-          total_participants: 8, // Default value for timeslots
-          booked: 0, // Default booked status for timeslots
-        }))
+  fetchAvailableTimeslots(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const url = '/api/slots&serviceId=12&page=booking&startDateTime=2024-09-08'; // Adjust as needed
+      this.http.get<{ data: { slots: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
+        (response) => {
+          const timeslotsData = response.data.slots;
+          this.availableTimeslots = Object.keys(timeslotsData).flatMap(date =>
+            Object.keys(timeslotsData[date]).map(time => ({
+              start_time: new Date(`${date}T${time}`).toISOString(),
+              end_time: new Date(`${date}T${time}`).toISOString(),
+              type: 'timeslot',
+              service: { name: 'אימון קבוצתי' }, 
+              favorite: false,
+              current_participants: [],
+              total_participants: 8,
+              booked: 0,
+            }))
+          );
+          resolve(); // Resolve when data is ready
+        },
+        (error) => reject(error) // Reject on error
       );
     });
   }
-  
-    
-  fetchBookedAppointments() {
-    const url = '/api/appointments&dates=2024-09-08,2024-09-10&page=1&skipServices=1&skipProviders=1'; // Update the URL accordingly
-    this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe((response) => {
-      const appointmentData = response.data.appointments;
-  
-      const now = new Date();
-      this.bookedAppointments = Object.values(appointmentData).flatMap((appointment: any) => 
-        appointment.appointments.filter((app: any) => 
-          app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now
-        ).map((app: any) => ({
-          start_time: app.bookingStart,
-          end_time: app.bookingEnd,
-          type: 'appointment',
-          service: { name: app.service?.name || 'אימון קבוצתי' }, // Use "אימון קבוצתי" if name is not available
-          favorite: false, // Set default favorite status
-          current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-            .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`), // Store only participant names as strings
-          total_participants: 8, // Set the total number of participants (fixed at 8)
-          booked: app.bookings.filter((booking: any) => booking.status === 'approved').length, // Calculate the number of approved bookings
-        }))
-      );
-  
-      this.combineTimeslotsAndAppointments();
-    });
-  }
 
-  
-  // Merge timeslots and appointments
-  combineTimeslotsAndAppointments() {
-    this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-
-    // Log and filter invalid dates
-    this.combinedList = this.combinedList.filter(item => {
-      const startDate = new Date(item.start_time);
-      const endDate = new Date(item.end_time);
+  fetchBookedAppointments(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const url = '/api/appointments&dates=2024-09-08,2024-09-10&page=1&skipServices=1&skipProviders=1'; 
+      this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
+        async (response) => {
+          const appointmentData = response.data.appointments;
+          const now = new Date();
+          const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
+            appointment.appointments.filter((app: any) =>
+              app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now
+            ).map(async (app: any) => {
+              const googleCalendarTitle = app.googleCalendarEventId
+                ? await this.fetchGoogleCalendarEventTitle(app.googleCalendarEventId)
+                : 'אימון קבוצתי'; // Fallback to default if no Google Calendar ID
       
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.warn('Invalid date detected', item);
-        return false; // Exclude items with invalid dates
-      }
-      return true;
-    });
+              return {
+                start_time: app.bookingStart,
+                end_time: app.bookingEnd,
+                type: 'appointment',
+                service: { name: googleCalendarTitle }, // Set the Google Calendar title
+                favorite: false,
+                current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
+                  .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
+                total_participants: 8,
+                booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+              };
+            })
+          );
   
-    // Extract available days after merging
-    this.extractAvailableDays();
-  
-    // Sort the combined list by start time, ensuring valid dates
-    this.combinedList.sort((a, b) => {
-      const dateA = new Date(a.start_time);
-      const dateB = new Date(b.start_time);
-      return dateA.getTime() - dateB.getTime();
+          this.bookedAppointments = await Promise.all(appointmentsPromises);
+          resolve(); // Resolve when data is ready
+        },
+        (error) => reject(error) // Reject on error
+      );
     });
   }
 
-  // Extract available days from appointments
-  extractAvailableDays() {
-    const allDates = this.combinedList
-      .filter(item => {
-        const date = new Date(item.start_time);
-        return !isNaN(date.getTime()); // Ensure the date is valid
-      })
-      .map(item => new Date(item.start_time).toISOString().split('T')[0]);
+
+
+fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
+
+    this.http.get<any>(calendarApiUrl).subscribe(
+      (response) => {
+        if (response && response.summary) {
+          const fullTitle = response.summary.trim();
+
+          // Find the first known training type in the title
+          const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
+
+          if (trainingType) {
+            resolve(trainingType); // Return the found training type as the title
+          } else {
+            resolve('כללי'); // Fallback if no known type is found
+          }
+        } else {
+          resolve('כללי'); // Fallback if no title is found
+        }
+      },
+      (error) => {
+        console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
+        resolve('כללי'); // Fallback to default if error occurs
+      }
+    );
+  });
+}
+
   
-    // Translate days to Hebrew
-    this.days = Array.from(new Set(allDates)).map(date => ({
+  
+  
+  
+
+combineTimeslotsAndAppointments() {
+  this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+
+  // Ensure valid dates
+  this.combinedList = this.combinedList.filter(item => {
+    const startDate = new Date(item.start_time);
+    const endDate = new Date(item.end_time);
+    return !isNaN(startDate.getTime()) && !isNaN(endDate.getTime());
+  });
+
+  this.extractAvailableDays();
+
+  this.combinedList.sort((a, b) => {
+    const dateA = new Date(a.start_time).getTime();
+    const dateB = new Date(b.start_time).getTime();
+    return dateA - dateB;
+  });
+}
+
+
+extractAvailableDays() {
+  const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
+  const allDates = this.combinedList
+    .filter(item => {
+      const date = new Date(item.start_time);
+      return !isNaN(date.getTime());
+    })
+    .map(item => new Date(item.start_time).toISOString().split('T')[0]);
+
+  // Remove duplicates and sort dates
+  this.days = Array.from(new Set(allDates)).map(date => {
+    const parsedDate = new Date(date);
+    const dayOfWeek = hebrewDays[parsedDate.getDay()];
+    const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
+
+    return {
       date,
-      day: new Date(date).toLocaleDateString('he-IL', { weekday: 'long' }) // Hebrew day translation
-    }));
-  
-    this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day
-  }
+      day: dayOfWeek,
+      formattedDate,
+    };
+  });
+
+  // Sort so that today is at the start
+  this.days.sort((a, b) => {
+    if (a.date === today) return -1;
+    if (b.date === today) return 1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime(); // Sort chronologically
+  });
+
+  this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day (today)
+}
 
   // Filter the combined list by selected day
   getAppointmentsForSelectedDay() {
