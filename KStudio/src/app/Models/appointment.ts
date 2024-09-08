@@ -1,8 +1,11 @@
 export interface Appointment {
-  type: 'appointment' | 'timeslot';
-  service?: { name: string }; // Only for appointments
-  start_time: string;  // Common for both timeslots and appointments
-  end_time: string;    // Common for both
-  booked?: number;     // Only for appointments
-  capacity?: number;   // Only for appointments
+  type: string;
+  service: { name: string }; // Optional for timeslots
+  start_time: string;
+  end_time: string;
+  booked?: number;
+  capacity?: number;
+  favorite?: boolean;
+  current_participants?: string[]; // Optional for timeslots
+  total_participants?: number;     // Optional for timeslots
 }

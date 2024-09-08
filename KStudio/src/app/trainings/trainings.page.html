@@ -52,39 +52,47 @@
       </ion-list>
     </div>
     
-    <!-- List of Trainings for Selected Day -->
-    <div class="scrollable-list">
-      <ion-list>
-        <ion-item *ngFor="let item of getAppointmentsForSelectedDay()" lines="none">
-          <ion-card class="training-card">
-            <ion-card-header>
-              <div class="training-header">
-                <ion-label>
-                  <h2 *ngIf="item.type === 'appointment'">{{ item.service.name }}</h2>
-                  <h2 *ngIf="item.type === 'timeslot'">Available Timeslot</h2>
-                  <p>{{ item.start_time | date: 'shortTime' }} - {{ item.end_time | date: 'shortTime' }}</p>
-                </ion-label>
+    <div *ngFor="let appointment of getAppointmentsForSelectedDay()" class="card">
+      <div class="card-header">
+        <h3>{{ appointment.service.name }}</h3>
+        <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
+      </div>
+      
+      <div class="card-content">
+        <div class="time-date">
+          {{ appointment.start_time | date: 'HH:mm' }} | {{ appointment.start_time | date: 'dd/MM/yyyy' : 'he-IL' }}
+        </div>
+    
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress" [style.width]="calculateProgress(appointment) + '%'"></div>
+          </div>
+          
+          <div class="participants-container">
+            <div class="participants" (mouseenter)="showPopup(appointment)" (mouseleave)="hidePopup()">
+              {{ appointment.booked }}/{{ appointment.total_participants }}
+              <ion-icon name="people-outline"></ion-icon>
+    
+              <!-- Wikipedia-like popup for participant names -->
+              <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
+                <h4>משתתפים</h4>
+                <ul>
+                  <li *ngFor="let participant of appointment.current_participants">
+                    {{ participant }}
+                  </li>
+                </ul>
               </div>
-            </ion-card-header>
-
-            <ion-card-content *ngIf="item.type === 'appointment'">
-              <div class="progress-container">
-                <ion-icon name="people-outline" color="medium" size="large"></ion-icon>
-                <ion-label>
-                  {{ item.booked }}/{{ item.capacity }}
-                </ion-label>
-                <ion-progress-bar value="{{ item.booked / item.capacity }}"></ion-progress-bar>
-              </div>
-            </ion-card-content>
-
-            <ion-card-content *ngIf="item.type === 'timeslot'">
-              <ion-label>
-                Available Slot - Book Now!
-              </ion-label>
-            </ion-card-content>
-          </ion-card>
-        </ion-item>
-      </ion-list>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="card-footer">
+        <button class="action-button" [ngClass]="{ 'full': isFull(appointment) }">
+          {{ isFull(appointment) ? 'הצטרפות לרשימת המתנה' : 'הרשמה' }}
+        </button>
+      </div>
     </div>
+    
   </div>
 </ion-content>
