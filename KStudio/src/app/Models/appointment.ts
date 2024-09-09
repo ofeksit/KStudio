@@ -1,12 +1,15 @@
 export interface Appointment {
+  id?: number;
   type: string;
-  service: { name: string }; // Optional for timeslots
+  title: { name: string }; // Optional for timeslots
+  serviceID?: number;
   start_time: string;
   end_time: string;
-  booked?: number;
+  booked: number;
   capacity?: number;
   favorite?: boolean;
   current_participants?: string[]; // Optional for timeslots
-  total_participants?: number;     // Optional for timeslots
+  total_participants: number;     // Optional for timeslots
   googleCalendarEventId?: string; // Add Google Calendar ID
+  isFull?: boolean;
 }

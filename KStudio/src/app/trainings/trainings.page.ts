@@ -3,7 +3,6 @@ import { GestureController, ModalController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
-import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-trainings',
@@ -11,43 +10,63 @@ import { formatDate } from '@angular/common';
   styleUrls: ['./trainings.page.scss'],
 })
 export class TrainingsPage implements AfterViewInit {
-  @ViewChild('popup') popup!: ElementRef;
-
-  appointments: Appointment[] = [];
-  groupedAppointments: any = {};
   
+  //#region Variables
+  @ViewChild('popup') popup!: ElementRef;
+  appointments: Appointment[] = [];
   selectedFilter: string = 'all';  // Default to "All" tab
   selectedType: string = '';  // Default: no type filter
   availabilityFilter: string = 'all';  // Default: show all
   showDropdown: boolean = false;  // Controls the visibility of the filter dropdown
   availableTypes: string[] = [];  // Array of available training types
-
-  availableTimeslots: Appointment[] = [];
-  bookedAppointments: Appointment[] = [];
-  combinedList: Appointment[] = [];
-  days: {
-formattedDate: any; date: string; day: string 
-}[] = [];
+  availableTimeslots: Appointment[] = []; //Timeslots list
+  bookedAppointments: Appointment[] = []; //Appointments List
+  combinedList: Appointment[] = []; //Final list of timeslots and appointments
+  days: { formattedDate: any; date: string; day: string }[] = [];
   selectedDay: string | undefined;  // Default selected day
-
-  // Add new variables for modal
-  showingParticipants = false;
-  selectedParticipants: string[] | undefined;
-  isPopupVisible = false;
+  showingParticipants = false; //Popup to show participants
+  isPopupVisible = false; // Participants Popup
   activeAppointment: Appointment | null = null; // Track the active appointment for popup
+  knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
+  userId: number = 123; //Define active user ID
+  userEmail: string = "example@example.com"; //Define active user email
+//#endregion
+  //#region Google Calendar
+  private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
+  private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
 
-    // Array of known training types
-  knownTrainingTypes: string[] = [
-    'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', ''
-    // Add more known training types as needed
-  ];
+  
+fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
 
-  /* Update the Hebrew days of the week
-  hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];*/
+    this.http.get<any>(calendarApiUrl).subscribe(
+      (response) => {
+        if (response && response.summary) {
+          const fullTitle = response.summary.trim();
 
+          // Find the first known training type in the title
+          const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
 
-  private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // Replace with your actual API Key
-  private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Replace with your public calendar ID
+          if (trainingType) {
+            resolve(trainingType); // Return the found training type as the title
+          } else {
+            resolve('כללי'); // Fallback if no known type is found
+          }
+        } else {
+          resolve('כללי'); // Fallback if no title is found
+        }
+      },
+      (error) => {
+        console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
+        resolve('כללי'); // Fallback to default if error occurs
+      }
+    );
+  });
+}
+
+  //#endregion
+
 
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient) {}
 
@@ -57,6 +76,7 @@ formattedDate: any; date: string; day: string
       this.combineTimeslotsAndAppointments();
     });
   }
+
   // Method to show the popup
   showPopup(appointment: Appointment) {
     this.activeAppointment = appointment;
@@ -80,7 +100,7 @@ formattedDate: any; date: string; day: string
               start_time: new Date(`${date}T${time}`).toISOString(),
               end_time: new Date(`${date}T${time}`).toISOString(),
               type: 'timeslot',
-              service: { name: 'אימון קבוצתי' }, 
+              title: { name: 'אימון קבוצתי' }, 
               favorite: false,
               current_participants: [],
               total_participants: 8,
@@ -110,10 +130,12 @@ formattedDate: any; date: string; day: string
                 : 'אימון קבוצתי'; // Fallback to default if no Google Calendar ID
       
               return {
+                id: app.id,
                 start_time: app.bookingStart,
                 end_time: app.bookingEnd,
                 type: 'appointment',
-                service: { name: googleCalendarTitle }, // Set the Google Calendar title
+                title: { name: googleCalendarTitle }, // Set the Google Calendar title
+                serviceID: app.serviceId,
                 favorite: false,
                 current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
                   .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
@@ -122,45 +144,38 @@ formattedDate: any; date: string; day: string
               };
             })
           );
-  
+          
           this.bookedAppointments = await Promise.all(appointmentsPromises);
           resolve(); // Resolve when data is ready
+          console.log("Booked: ",this.bookedAppointments);
         },
         (error) => reject(error) // Reject on error
       );
     });
   }
 
+// Method to enroll the user in a training session
+enrollUser(appointment: Appointment) {
+  let serviceID= appointment.serviceID;
+  let bookingStart = appointment.start_time;
 
+  console.log("serviceID", serviceID);
+  console.log("booking Start", bookingStart);
+  /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
 
-fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
+  const data = {
+    appointment_id: appointment.id,
+    customer_id: this.userId,
+    email: this.userEmail
+  };
 
-    this.http.get<any>(calendarApiUrl).subscribe(
-      (response) => {
-        if (response && response.summary) {
-          const fullTitle = response.summary.trim();
-
-          // Find the first known training type in the title
-          const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
-
-          if (trainingType) {
-            resolve(trainingType); // Return the found training type as the title
-          } else {
-            resolve('כללי'); // Fallback if no known type is found
-          }
-        } else {
-          resolve('כללי'); // Fallback if no title is found
-        }
-      },
-      (error) => {
-        console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
-        resolve('כללי'); // Fallback to default if error occurs
-      }
-    );
-  });
+  this.http.post(url, data).subscribe(response => {
+    console.log('User enrolled in appointment', response);
+  }, error => {
+    console.error('Error enrolling user', error);
+  });*/
 }
+
 
   
   
@@ -277,4 +292,23 @@ extractAvailableDays() {
   isFull(appointment: any): boolean {
     return appointment.current_participants >= appointment.total_participants;
   }
+
+  // Function to add user to standby list
+  addToStandbyList(appointmentId: number, customerId: number, email: string) {
+    const url = 'https://k-studio.co.il/wp-json/standby-list/v1/add';
+
+    const data = {
+      appointment_id: appointmentId,
+      customer_id: customerId,
+      email: email
+    };
+
+    this.http.post(url, data).subscribe(response => {
+      console.log('User added to standby list', response);
+    }, error => {
+      console.error('Error adding user to standby list', error);
+    });
+  }
+
+  
 }

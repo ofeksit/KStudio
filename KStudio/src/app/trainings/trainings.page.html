@@ -54,7 +54,7 @@
     
     <div *ngFor="let appointment of getAppointmentsForSelectedDay()" class="card">
       <div class="card-header">
-        <h3>{{ appointment.service.name }}</h3>
+        <h3>{{ appointment.title.name }}</h3>
         <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
       </div>
       
@@ -87,10 +87,16 @@
       </div>
     
       <div class="card-footer">
-        <button class="action-button" [ngClass]="{ 'full': isFull(appointment) }">
-          {{ isFull(appointment) ? 'הצטרפות לרשימת המתנה' : 'הרשמה' }}
-        </button>
-      </div>
+      <!-- Check if slots are available -->
+      <button *ngIf="appointment.booked < appointment.total_participants" (click)="enrollUser(appointment)" class="action-button">
+        הרשמה
+      </button>
+
+      <!-- Check if appointment is full and show standby button -->
+      <button *ngIf="appointment.booked == appointment.total_participants" (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)" class="action-button">
+        הרשמה להמתנה
+      </button>
+    </div>
     </div>
     
   </div>
