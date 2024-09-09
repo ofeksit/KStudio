@@ -4,6 +4,7 @@ import { Router } from '@angular/router';  // For navigation after login
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, switchMap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-login',
@@ -17,12 +18,24 @@ export class LoginPage {
   showToast: boolean = false;
   toastMessage: string = '';
   toastColor: string = 'success';
+  showProgressBar: boolean = false;
 
-  constructor(private authService: AuthService, private router: Router, private http: HttpClient) {}
+  constructor(private authService: AuthService, private router: Router, private http: HttpClient, private toastController: ToastController) {}
+
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      color: color,
+      position: 'top'
+    });
+    toast.present();
+  }
 
   login() {
     if (!this.username || !this.password) {
       this.errorMessage = 'Please enter both username and password';
+      this.presentToast(this.errorMessage, 'danger');  // Show error toast
       return;
     }
 
@@ -49,6 +62,7 @@ export class LoginPage {
         // Handle errors during either login or user details fetching
         this.errorMessage = 'Login failed or unable to retrieve user details';
         console.error('Error:', error);
+        this.presentToast(this.errorMessage, 'danger');  // Show error toast
         return throwError(error);  // Throw error to stop execution
       })
     ).subscribe(
@@ -58,12 +72,23 @@ export class LoginPage {
         this.authService.storeUserRole(userDetails.slug);
         this.authService.storeUserFullName(userDetails.name);
         this.authService.storeUserGamiPts(userDetails.meta._gamipress_pts_points);
-        // Navigate to a different page (e.g., home) after successful login
-        this.router.navigate(['/home']);
+
+        // Show success toast and progress bar
+        this.toastMessage = 'Login successful!';
+        this.toastColor = 'success';
+        this.showProgressBar = true;
+        this.presentToast(this.toastMessage, this.toastColor);
+
+        // Redirect to homepage after a small delay
+        setTimeout(() => {
+          this.router.navigate(['/home']);
+          this.showProgressBar = false;
+        }, 3000);  // 3 seconds delay
       },
       (error) => {
         this.errorMessage = 'Unable to fetch user details';
         console.error('Error fetching user details:', error);
+        this.presentToast(this.errorMessage, 'danger');  // Show error toast
       }
     );
   }
@@ -72,5 +97,4 @@ export class LoginPage {
     // Logic for forgot password functionality
     console.log('Forgot password clicked');
   }
-  
 }
