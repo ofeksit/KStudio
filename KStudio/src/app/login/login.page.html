@@ -24,7 +24,8 @@
           label="שם משתמש" 
           label-placement="floating" 
           fill="outline" 
-          placeholder="הקלד את שם המשתמש">
+          placeholder="הקלד את שם המשתמש"
+          (focus)="scrollToInput($event)">
         </ion-input>        
       </div>
       
@@ -38,7 +39,8 @@
           label="סיסמה" 
           label-placement="floating" 
           fill="outline" 
-          placeholder="הכנס סיסמה">
+          placeholder="הכנס סיסמה"
+          (focus)="scrollToInput($event)">
         </ion-input>
         <!-- Eye Icon for Toggling Visibility -->
         <ion-icon 

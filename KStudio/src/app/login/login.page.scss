@@ -79,6 +79,16 @@ ion-input {
     border-radius: 25px;
 }
 
+ion-content {
+    --keyboard-offset: 0px; /* Adjust based on the offset you need */
+    height: 100vh;
+  }
+
+  .keyboard-open ion-content {
+    height: calc(100vh - 50px); /* Adjust as needed */
+    overflow-y: auto;
+  }
+
 .login-btn {
     --background: rgba(225,114,0);
     --border-radius: 25px;

@@ -5,6 +5,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, switchMap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ToastController } from '@ionic/angular';
+import { Keyboard } from '@capacitor/keyboard';
+
 
 @Component({
   selector: 'app-login',
@@ -24,7 +26,19 @@ export class LoginPage {
   passwordType: string = 'password';  // default password type
   passwordIcon: string = 'eye-off';   // default icon
 
-  constructor(private authService: AuthService, private router: Router, private http: HttpClient, private toastController: ToastController) {}
+  constructor(private authService: AuthService, private router: Router, private http: HttpClient, private toastController: ToastController) {
+        // Listen for the keyboard to open
+        Keyboard.addListener('keyboardWillShow', () => {
+          console.log('Keyboard is opening');
+          document.body.classList.add('keyboard-open'); // Add a class to handle keyboard behavior
+        });
+    
+        // Listen for the keyboard to close
+        Keyboard.addListener('keyboardWillHide', () => {
+          console.log('Keyboard is closing');
+          document.body.classList.remove('keyboard-open');
+        });
+  }
 
   async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
@@ -91,5 +105,12 @@ export class LoginPage {
 
   forgotPassword() {
     console.log('Forgot password clicked');
+  }
+
+  scrollToInput(event: any) {
+    const element = event.target;
+    setTimeout(() => {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 300); // Adjust the timeout if needed
   }
 }
