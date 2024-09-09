@@ -1,20 +1,61 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Login</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content>
-  <ion-list>
-    <ion-item>
-      <ion-label position="floating">Username</ion-label>
-      <ion-input [(ngModel)]="username"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="floating">Password</ion-label>
-      <ion-input type="password" [(ngModel)]="password"></ion-input>
-    </ion-item>
-  </ion-list>
+  <!-- Background Image Section -->
+  <div class="background-container">
+    <div class="background-image"></div>
+    <div class="overlay"></div>
+    <div class="logo-container">
+      <!-- Add your logo -->
+      <img src="https://k-studio.co.il/wp-content/uploads/2024/03/new-logo-orange.png" alt="Logo">
+    </div>
+  </div>
 
-  <ion-button expand="full" (click)="login()">Login</ion-button>
+  <!-- Form Container -->
+  <div class="form-container">
+    <form (submit)="login()" class="login-form">
+      <h2 class="welcome-message" style="direction: rtl; text-align: center;">ברוך הבא!</h2>
+
+    <!-- Email Field -->
+    <div class="email-container">
+      <ion-input 
+        [(ngModel)]="username" 
+        type="email" 
+        name="email" 
+        required 
+        label="שם משתמש" 
+        label-placement="floating" 
+        fill="outline" 
+        placeholder="הכנס כתובת אימייל">
+      </ion-input>        
+    </div>
+    
+    <!-- Password Field -->
+    <div class="password-container">
+      <ion-input 
+        [(ngModel)]="password" 
+        type="password" 
+        name="password" 
+        required 
+        label="סיסמה" 
+        label-placement="floating" 
+        fill="outline" 
+        placeholder="הכנס סיסמה">
+      </ion-input>
+    </div>
+      <!-- Login Button -->
+      <ion-button expand="block" type="submit" class="login-btn">התחבר</ion-button>
+    </form>
+
+      <!-- Floating Toast Notification -->
+      <ion-toast
+      *ngIf="showToast"
+      [message]="toastMessage"
+      [color]="toastColor"
+      [duration]="toastDuration">
+    </ion-toast>
+
+    <!-- Progress bar for redirection -->
+    <ion-progress-bar *ngIf="showProgressBar" type="indeterminate" color="success"></ion-progress-bar>
+
+
+  </div>
 </ion-content>

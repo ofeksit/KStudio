@@ -1,110 +1,81 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, throwError} from 'rxjs';
-import { catchError } from 'rxjs';
+import { HttpClient, HttpHeaders  } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private apiUrl = 'https://k-studio.co.il/wp-json/jwt-auth/v1/token';
+  private apiUrlExtended = 'https://k-studio.co.il/wp-json/wp/v2/users/me'
 
-  private apiUrl = 'https://new.k-studio.co.il';  // Base URL for your backend
+  constructor(private http: HttpClient) {}
 
-  constructor(private http: HttpClient) { }
-
-  // User Authentication
   login(username: string, password: string): Observable<any> {
-    const payload = { username, password };
-    return this.http.post(`${this.apiUrl}/login.php`, payload);
+    return this.http.post(this.apiUrl, {
+      username,
+      password
+    });
   }
 
-  // Fetch User Profile
-  getUserProfile(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getUserProfile.php`);
+  storeToken(token: string): void {
+    localStorage.setItem('auth_token', token);
   }
 
-  // Fetch User's Enrolled Trainings
-  getEnrolledTrainings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/getEnrolledTrainings.php`);
+  storeUserID(userID: string): void {
+    localStorage.setItem('user_id', userID);
   }
 
-  // Logout User
+  storeUserEmail(userEmail: string): void {
+    localStorage.setItem('user_email', userEmail);
+  }
+
+  storeUserRole (userRole: string) {
+    localStorage.setItem('user_role', userRole);
+  }
+
+  storeUserFullName (userFullname: string) {
+    localStorage.setItem('user_fullname', userFullname);
+  }
+
+  storeUserGamiPts(userGamiPts: string){
+    localStorage.setItem('user_gami', userGamiPts);
+  }
+
+
+  getToken(): string | null {
+    return localStorage.getItem('auth_token');
+  }
+
+  getUserID(): string | null {
+    return localStorage.getItem('user_id');
+  }
+
+  getUserEmail(): string | null {
+    return localStorage.getItem('user_email');
+  }
+
+  getUserRole(): string | null{
+    return localStorage.getItem('user_role');
+  }
+
+  getUserFullName(): string | null {
+    return '';
+  }
+
+  getUserGamiPts(): number | null {
+    return 0;
+  }
+
   logout(): void {
-    this.http.get(`${this.apiUrl}/logout.php`)
-      .subscribe(() => {
-        console.log('User logged out successfully');
-        // Optionally, navigate the user to the login page or clear local storage
-      }, error => {
-        console.error('Logout failed', error);
-      });
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_id');
   }
 
-  // Fetch All Trainings (for Admin)
-  getTrainings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/getTrainings.php`);
+  isLoggedIn(): boolean {
+    const token = this.getToken();
+    return !!token;  // Check if token exists and return true/false
   }
+  
 
-  // Add New Training (for Admin)
-  addTraining(trainingData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/addTraining.php`, trainingData);
-  }
-
-  // Edit Existing Training (for Admin)
-  editTraining(trainingId: number, trainingData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/editTraining.php`, { trainingId, ...trainingData });
-  }
-
-  // Delete Training (for Admin)
-  deleteTraining(trainingId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/deleteTraining.php`, { trainingId });
-  }
-
-  // Fetch All Enrollments (for Admin)
-  getEnrollments(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/getEnrollments.php`);
-  }
-
-  // Cancel User Enrollment (for Admin)
-  cancelEnrollment(enrollmentId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cancelEnrollment.php`, { enrollmentId });
-  }
-
-  // Send Notifications (for Admin)
-  sendNotification(message: string): Observable<any> {
-    const payload = { message };
-    return this.http.post(`${this.apiUrl}/sendNotification.php`, payload);
-  }
-
-
-  // Register a new user
-  register(username: string, email: string, password: string): Observable<any> {
-    const payload = { username, email, password };
-    return this.http.post(`${this.apiUrl}/register.php`, payload);
-  }
-
-  // Fetch all users
-  getUsers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getUsers.php`)
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching users:', error);
-          return throwError(error);
-        })
-      );
-  }
-
-  // Add a new user
-  addUser(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/addUser.php`, userData);
-  }
-
-  // Edit an existing user
-  editUser(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/editUser.php`, userData);
-  }
-
-  // Delete a user
-  deleteUser(userId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/deleteUser.php`, { userId });
-  }
 }

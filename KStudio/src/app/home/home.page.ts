@@ -5,6 +5,7 @@ import { ModalController } from '@ionic/angular';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 import { TrainingsPage } from '../trainings/trainings.page';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
+import { AuthService } from '../services/auth.service';
 
 
 @Component({
@@ -34,7 +35,7 @@ export class HomePage implements OnInit {
     freeMode: true,      // Allow free scrolling
   };
 
-  constructor(private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController) {}
+  constructor(private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadNextLesson();
@@ -79,14 +80,19 @@ export class HomePage implements OnInit {
   }
 
   async openProfile() {
-    const modal = await this.modalCtrl2.create({
-      component: ProfilePopupComponent,
-      cssClass: 'profile-popup',  // Custom class for styling      
-      presentingElement: await this.modalCtrl2.getTop(),  // Ensure it's treated as a sheet
-      breakpoints: [0, 0.70, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
-      initialBreakpoint: 0.70,  // Start the modal at 50% of screen height
-    });
-    return await modal.present();
+    if (this.authService.isLoggedIn()){
+      const modal = await this.modalCtrl2.create({
+        component: ProfilePopupComponent,
+        cssClass: 'profile-popup',  // Custom class for styling      
+        presentingElement: await this.modalCtrl2.getTop(),  // Ensure it's treated as a sheet
+        breakpoints: [0, 0.70, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
+        initialBreakpoint: 0.70,  // Start the modal at 50% of screen height
+      });
+      return await modal.present();
+    }
+    else {
+      console.log("User Not Logged In!");
+    }
   }
   
 

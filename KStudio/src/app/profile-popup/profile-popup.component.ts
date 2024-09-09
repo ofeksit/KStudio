@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
 import { Training } from '../Models/training';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-profile-popup',
@@ -29,7 +30,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     { orderNumber: 'ORD124', products: [{ name: 'Product C' }], date: new Date() }
   ];
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController, private authService: AuthService) {}
 
   ngAfterViewInit() {
     const gesture = this.gestureCtrl.create({
@@ -116,6 +117,13 @@ export class ProfilePopupComponent implements AfterViewInit {
         return 'warning';  // Yellow for pending
       default:
         return 'medium';  // Fallback color
+    }
+  }
+
+  checkLoginStatus() {
+    if (!this.authService.isLoggedIn()) {
+      this.modalCtrl.dismiss();  // Close the modal if not logged in
+      console.log('User is not logged in');
     }
   }
 

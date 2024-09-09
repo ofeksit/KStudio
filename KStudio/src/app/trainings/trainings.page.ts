@@ -3,6 +3,7 @@ import { GestureController, ModalController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-trainings',
@@ -68,7 +69,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   //#endregion
 
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
     // Ensure both fetch functions resolve before combining the data
@@ -158,6 +159,8 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 enrollUser(appointment: Appointment) {
   let serviceID= appointment.serviceID;
   let bookingStart = appointment.start_time;
+  let userID = this.authService.getUserID;
+  let userEmail = this.authService.getUserEmail;
 
   console.log("serviceID", serviceID);
   console.log("booking Start", bookingStart);
