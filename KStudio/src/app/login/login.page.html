@@ -24,15 +24,15 @@
           label="שם משתמש" 
           label-placement="floating" 
           fill="outline" 
-          placeholder="הכנס כתובת אימייל">
+          placeholder="הקלד את שם המשתמש">
         </ion-input>        
       </div>
       
-      <!-- Password Field -->
-      <div class="password-container">
+      <!-- Password Field with Eye Icon -->
+      <div class="password-container" style="position: relative;">
         <ion-input 
           [(ngModel)]="password" 
-          type="password" 
+          [type]="passwordType" 
           name="password" 
           required 
           label="סיסמה" 
@@ -40,6 +40,13 @@
           fill="outline" 
           placeholder="הכנס סיסמה">
         </ion-input>
+        <!-- Eye Icon for Toggling Visibility -->
+        <ion-icon 
+          [name]="passwordIcon" 
+          class="password-toggle-icon" 
+          (click)="togglePasswordVisibility()" 
+          style="position: absolute; right: 15px; top: 25px; font-size: 20px;">
+        </ion-icon>
       </div>
       
       <!-- Login Button -->

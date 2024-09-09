@@ -31,6 +31,7 @@ export class TrainingsPage implements AfterViewInit {
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   userId: number = 123; //Define active user ID
   userEmail: string = "example@example.com"; //Define active user email
+  isLoading: boolean = true; // Set loading to true initially
 //#endregion
   //#region Google Calendar
   private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
@@ -72,11 +73,19 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
-    // Ensure both fetch functions resolve before combining the data
+    // Set loading to true when API call starts
+    this.isLoading = true;
+
     Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
       this.combineTimeslotsAndAppointments();
+
+      // Set loading to false when data is ready
+      this.isLoading = false;
+    }).catch(() => {
+      this.isLoading = false; // Ensure loading is disabled even in case of errors
     });
   }
+
 
   // Method to show the popup
   showPopup(appointment: Appointment) {

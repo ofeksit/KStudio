@@ -15,89 +15,114 @@
         </ion-segment>
       </div>
 
-      <!-- Scrolling Tabs for Days -->
-      <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
-        <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
-          <ion-label>{{ day.day }}</ion-label>
-          <ion-note>{{ day.formattedDate }}</ion-note>
-        </ion-segment-button>
-      </ion-segment>
 
-      <!-- Single Filter Button with clear "X" button -->
-      <div class="filter-header">
-        <ion-icon name="filter-circle-outline" class="filter-icon" (click)="toggleDropdown()" size="large"></ion-icon>
-        <ion-icon name="close-circle-outline" class="clear-filter-icon" *ngIf="selectedType" (click)="clearTypeFilter()"></ion-icon>
-      </div>
-
-      <!-- Modern Dropdown for Filters -->
-      <ion-list *ngIf="showDropdown" class="filter-dropdown">
-        <ion-item>
-          <ion-label>סוג אימון</ion-label>
-          <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
-            <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>זמינות</ion-label>
-          <ion-segment [(ngModel)]="availabilityFilter">
-            <ion-segment-button value="all">
-              <ion-label>הכל</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="available">
-              <ion-label>זמין בלבד</ion-label>
-            </ion-segment-button>
-          </ion-segment>
+      <ion-list *ngIf="isLoading">
+        <ion-list-header>
+          <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+        </ion-list-header>
+        <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
+          <ion-thumbnail slot="start">
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </ion-thumbnail>
+          <ion-label>
+            <h3>
+              <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+            </h3>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+            </p>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+            </p>
+          </ion-label>
         </ion-item>
       </ion-list>
-    </div>
-    
-    <div *ngFor="let appointment of getAppointmentsForSelectedDay()" class="card">
-      <div class="card-header">
-        <h3>{{ appointment.title.name }}</h3>
-        <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
+
+
+      <div *ngIf="!isLoading">
+        <!-- Scrolling Tabs for Days -->
+        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
+          <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
+            <ion-label>{{ day.day }}</ion-label>
+            <ion-note>{{ day.formattedDate }}</ion-note>
+          </ion-segment-button>
+        </ion-segment>
+
+        <!-- Single Filter Button with clear "X" button -->
+        <div class="filter-header">
+          <ion-icon name="filter-circle-outline" class="filter-icon" (click)="toggleDropdown()" size="large"></ion-icon>
+          <ion-icon name="close-circle-outline" class="clear-filter-icon" *ngIf="selectedType" (click)="clearTypeFilter()"></ion-icon>
+        </div>
+
+        <!-- Modern Dropdown for Filters -->
+        <ion-list *ngIf="showDropdown" class="filter-dropdown">
+          <ion-item>
+            <ion-label>סוג אימון</ion-label>
+            <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
+              <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>זמינות</ion-label>
+            <ion-segment [(ngModel)]="availabilityFilter">
+              <ion-segment-button value="all">
+                <ion-label>הכל</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="available">
+                <ion-label>זמין בלבד</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </ion-item>
+        </ion-list>
       </div>
       
-      <div class="card-content">
-        <div class="time-date">
-          {{ appointment.start_time | date: 'HH:mm' }} | {{ appointment.start_time | date: 'dd/MM/yyyy' : 'he-IL' }}
+      <div *ngFor="let appointment of getAppointmentsForSelectedDay()" class="card">
+        <div class="card-header">
+          <h3>{{ appointment.title.name }}</h3>
+          <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
         </div>
-    
-        <div class="progress-bar-container">
-          <div class="progress-bar">
-            <div class="progress" [style.width]="calculateProgress(appointment) + '%'"></div>
+        
+        <div class="card-content">
+          <div class="time-date">
+            {{ appointment.start_time | date: 'HH:mm' }} | {{ appointment.start_time | date: 'dd/MM/yyyy' : 'he-IL' }}
           </div>
-          
-          <div class="participants-container">
-            <div class="participants" (mouseenter)="showPopup(appointment)" (mouseleave)="hidePopup()">
-              {{ appointment.booked }}/{{ appointment.total_participants }}
-              <ion-icon name="people-outline"></ion-icon>
-    
-              <!-- Wikipedia-like popup for participant names -->
-              <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
-                <ul>
-                  <li *ngFor="let participant of appointment.current_participants">
-                    {{ participant }}
-                  </li>
-                </ul>
+      
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress" [style.width]="calculateProgress(appointment) + '%'"></div>
+            </div>
+            
+            <div class="participants-container">
+              <div class="participants" (mouseenter)="showPopup(appointment)" (mouseleave)="hidePopup()">
+                {{ appointment.booked }}/{{ appointment.total_participants }}
+                <ion-icon name="people-outline"></ion-icon>
+      
+                <!-- Wikipedia-like popup for participant names -->
+                <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
+                  <ul>
+                    <li *ngFor="let participant of appointment.current_participants">
+                      {{ participant }}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    
-      <div class="card-footer">
-      <!-- Check if slots are available -->
-      <button *ngIf="appointment.booked < appointment.total_participants" (click)="enrollUser(appointment)" class="action-button">
-        הרשמה
-      </button>
 
-      <!-- Check if appointment is full and show standby button -->
-      <button *ngIf="appointment.booked == appointment.total_participants" (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)" class="action-button">
-        הרשמה להמתנה
-      </button>
+        <div class="card-footer">
+          <!-- Check if slots are available -->
+          <button *ngIf="appointment.booked < appointment.total_participants" (click)="enrollUser(appointment)" class="action-button">
+            הרשמה
+          </button>
+
+          <!-- Check if appointment is full and show standby button -->
+          <button *ngIf="appointment.booked == appointment.total_participants" (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)" class="action-button">
+            הרשמה להמתנה
+          </button>
+        </div>
+      </div>
     </div>
-    </div>
-    
   </div>
 </ion-content>
