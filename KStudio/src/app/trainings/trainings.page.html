@@ -5,7 +5,7 @@
     <div class="sticky-header">
       <!-- Header Tabs for "All" and "Favorites" -->
       <div class="header-tabs">
-        <ion-segment mode="md" [(ngModel)]="selectedFilter" class="segment-tab">
+        <ion-segment mode="md" [(ngModel)]="selectedFilter" class="segment-tab" (ionChange)="onTabChange($event)">
           <ion-segment-button value="all" class="custom-tabs">
             <ion-label>הכל</ion-label>
           </ion-segment-button>

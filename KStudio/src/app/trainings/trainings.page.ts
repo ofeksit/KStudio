@@ -32,6 +32,10 @@ export class TrainingsPage implements AfterViewInit {
   userId: number = 123; //Define active user ID
   userEmail: string = "example@example.com"; //Define active user email
   isLoading: boolean = true; // Set loading to true initially
+  filteredAppointments: Appointment[] = [];
+
+
+
 //#endregion
   //#region Google Calendar
   private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
@@ -69,16 +73,25 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 
   //#endregion
 
-
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
     // Set loading to true when API call starts
     this.isLoading = true;
-
+  
     Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
       this.combineTimeslotsAndAppointments();
-
+  
+      // Load favorite trainings from localStorage
+      const favoriteTrainingIds = this.getFavoriteTrainings();
+      this.combinedList.forEach(training => {
+        if (training.id && favoriteTrainingIds.includes(training.id)) {
+          training.favorite = true;
+        }
+      });
+  
+      this.showAll();  // Ensure all appointments are displayed initially
+  
       // Set loading to false when data is ready
       this.isLoading = false;
     }).catch(() => {
@@ -86,6 +99,52 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
   }
 
+  ngAfterViewInit() {
+    setTimeout(() => {
+      const gesture = this.gestureCtrl.create({
+        el: this.popup.nativeElement,
+        gestureName: 'swipe-to-close',
+        onMove: (ev) => {
+          if (ev.deltaY > 100) {
+            this.modalCtrl.dismiss();
+          }
+        },
+      });
+      gesture.enable(true); 
+    });
+  }
+
+  // Remove past favorites
+  removePastFavorites() {
+    const now = new Date();
+    const currentFavorites = this.getFavoriteTrainings();
+    
+    const validFavorites = currentFavorites.filter(favoriteId => {
+      const training = this.combinedList.find(t => t.id === favoriteId);
+      return training && new Date(training.start_time) > now;
+    });
+
+    this.saveFavoriteTrainings(validFavorites); // Update localStorage with only valid favorites
+  }
+
+  // Method to handle tab change and update displayed trainings
+  onTabChange(event: any) {
+    const filter = event.detail.value;
+    console.log("event", event.detail.value);
+    if (filter === 'favorites') {
+      this.showFavorites();
+    } else {
+      this.showAll();
+    }
+  }
+
+  showAll() {
+    this.filteredAppointments = this.combinedList;  // Show all trainings
+  }
+  
+  showFavorites() {
+    this.filteredAppointments = this.combinedList.filter(appointment => appointment.favorite);  // Show only favorite appointments
+  }
 
   // Method to show the popup
   showPopup(appointment: Appointment) {
@@ -100,8 +159,19 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   }
 
   fetchAvailableTimeslots(): Promise<void> {
+    const today = new Date();
+    const next30Days = new Date(today);
+    next30Days.setDate(today.getDate() + 30);
+
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    
     return new Promise((resolve, reject) => {
-      const url = '/api/slots&serviceId=12&page=booking&startDateTime=2024-09-08'; // Adjust as needed
+      const url = '/api/slots&serviceId=12&page=booking&startDateTime='+formatDate(today); // Adjust as needed
       this.http.get<{ data: { slots: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
         (response) => {
           const timeslotsData = response.data.slots;
@@ -125,8 +195,20 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   }
 
   fetchBookedAppointments(): Promise<void> {
+    const today = new Date();
+    const next30Days = new Date(today);
+    next30Days.setDate(today.getDate() + 30);
+
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    
+
     return new Promise((resolve, reject) => {
-      const url = '/api/appointments&dates=2024-09-08,2024-09-10&page=1&skipServices=1&skipProviders=1'; 
+      const url = '/api/appointments&dates='+formatDate(today)+','+formatDate(next30Days)+'&page=1&skipServices=1&skipProviders=1'; 
       this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
         async (response) => {
           const appointmentData = response.data.appointments;
@@ -164,93 +246,86 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
   }
 
-// Method to enroll the user in a training session
-enrollUser(appointment: Appointment) {
-  let serviceID= appointment.serviceID;
-  let bookingStart = appointment.start_time;
-  let userID = this.authService.getUserID;
-  let userEmail = this.authService.getUserEmail;
+  // Method to enroll the user in a training session
+  enrollUser(appointment: Appointment) {
+    let serviceID= appointment.serviceID;
+    let bookingStart = appointment.start_time;
+    let userID = this.authService.getUserID;
+    let userEmail = this.authService.getUserEmail;
 
-  console.log("serviceID", serviceID);
-  console.log("booking Start", bookingStart);
-  /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
+    console.log("serviceID", serviceID);
+    console.log("booking Start", bookingStart);
+    /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
 
-  const data = {
-    appointment_id: appointment.id,
-    customer_id: this.userId,
-    email: this.userEmail
-  };
-
-  this.http.post(url, data).subscribe(response => {
-    console.log('User enrolled in appointment', response);
-  }, error => {
-    console.error('Error enrolling user', error);
-  });*/
-}
-
-
-  
-  
-  
-  
-
-combineTimeslotsAndAppointments() {
-  this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-
-  // Ensure valid dates
-  this.combinedList = this.combinedList.filter(item => {
-    const startDate = new Date(item.start_time);
-    const endDate = new Date(item.end_time);
-    return !isNaN(startDate.getTime()) && !isNaN(endDate.getTime());
-  });
-
-  this.extractAvailableDays();
-
-  this.combinedList.sort((a, b) => {
-    const dateA = new Date(a.start_time).getTime();
-    const dateB = new Date(b.start_time).getTime();
-    return dateA - dateB;
-  });
-}
-
-
-extractAvailableDays() {
-  const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-  const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-
-  const allDates = this.combinedList
-    .filter(item => {
-      const date = new Date(item.start_time);
-      return !isNaN(date.getTime());
-    })
-    .map(item => new Date(item.start_time).toISOString().split('T')[0]);
-
-  // Remove duplicates and sort dates
-  this.days = Array.from(new Set(allDates)).map(date => {
-    const parsedDate = new Date(date);
-    const dayOfWeek = hebrewDays[parsedDate.getDay()];
-    const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
-
-    return {
-      date,
-      day: dayOfWeek,
-      formattedDate,
+    const data = {
+      appointment_id: appointment.id,
+      customer_id: this.userId,
+      email: this.userEmail
     };
-  });
 
-  // Sort so that today is at the start
-  this.days.sort((a, b) => {
-    if (a.date === today) return -1;
-    if (b.date === today) return 1;
-    return new Date(a.date).getTime() - new Date(b.date).getTime(); // Sort chronologically
-  });
+    this.http.post(url, data).subscribe(response => {
+      console.log('User enrolled in appointment', response);
+    }, error => {
+      console.error('Error enrolling user', error);
+    });*/
+  }
 
-  this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day (today)
-}
+  combineTimeslotsAndAppointments() {
+    this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+
+    // Ensure valid dates
+    this.combinedList = this.combinedList.filter(item => {
+      const startDate = new Date(item.start_time);
+      const endDate = new Date(item.end_time);
+      return !isNaN(startDate.getTime()) && !isNaN(endDate.getTime());
+    });
+
+    this.extractAvailableDays();
+
+    this.combinedList.sort((a, b) => {
+      const dateA = new Date(a.start_time).getTime();
+      const dateB = new Date(b.start_time).getTime();
+      return dateA - dateB;
+    });
+  }
+
+  extractAvailableDays() {
+    const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
+    const allDates = this.combinedList
+      .filter(item => {
+        const date = new Date(item.start_time);
+        return !isNaN(date.getTime());
+      })
+      .map(item => new Date(item.start_time).toISOString().split('T')[0]);
+
+    // Remove duplicates and sort dates
+    this.days = Array.from(new Set(allDates)).map(date => {
+      const parsedDate = new Date(date);
+      const dayOfWeek = hebrewDays[parsedDate.getDay()];
+      const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
+
+      return {
+        date,
+        day: dayOfWeek,
+        formattedDate,
+      };
+    });
+
+    // Sort so that today is at the start
+    this.days.sort((a, b) => {
+      if (a.date === today) return -1;
+      if (b.date === today) return 1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime(); // Sort chronologically
+    });
+
+    this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day (today)
+  }
 
   // Filter the combined list by selected day
   getAppointmentsForSelectedDay() {
-    return this.combinedList.filter(item => {
+    return this.filteredAppointments.filter(item => {
       const date = moment(item.start_time);
       return (
         date.isValid() && // Ensure valid date
@@ -263,24 +338,34 @@ extractAvailableDays() {
     this.modalCtrl.dismiss();
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      const gesture = this.gestureCtrl.create({
-        el: this.popup.nativeElement,
-        gestureName: 'swipe-to-close',
-        onMove: (ev) => {
-          if (ev.deltaY > 100) {
-            this.modalCtrl.dismiss();
-          }
-        },
-      });
-      gesture.enable(true); 
-    });
-  }
-
-  // Toggle favorite status
+  // Toggle favorite status and save to localStorage
   toggleFavorite(training: any) {
     training.favorite = !training.favorite;
+    
+    // Save favorites to localStorage
+    const currentFavorites = this.getFavoriteTrainings();
+    
+    if (training.favorite) {
+      currentFavorites.push(training.id); // Add the favorite training ID
+    } else {
+      const index = currentFavorites.indexOf(training.id);
+      if (index > -1) {
+        currentFavorites.splice(index, 1); // Remove from favorites
+      }
+    }
+    
+    this.saveFavoriteTrainings(currentFavorites); // Save updated favorites
+  }
+
+  // Get favorites from localStorage
+  getFavoriteTrainings(): number[] {
+    const favorites = localStorage.getItem('favoriteTrainings');
+    return favorites ? JSON.parse(favorites) : [];
+  }
+
+  // Save updated favorites to localStorage
+  saveFavoriteTrainings(favorites: number[]) {
+    localStorage.setItem('favoriteTrainings', JSON.stringify(favorites));
   }
 
   // Toggle dropdown visibility
@@ -320,7 +405,5 @@ extractAvailableDays() {
     }, error => {
       console.error('Error adding user to standby list', error);
     });
-  }
-
-  
+  } 
 }
