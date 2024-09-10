@@ -130,6 +130,7 @@ ion-item {
   padding: none;
 }
 
+
 /* Tab styling */
 .custom-tabs {
   border: 1px solid #ccc;
@@ -156,17 +157,27 @@ ion-item {
   border-bottom: #3498DB solid 4px;
 }
 
-
-.filter-header {
+.filter-button {
+  --border-radius: 30px;  /* Rounded button */
+  --padding-start: 15px;  /* Padding inside button */
+  --padding-end: 15px;
+  --background: #fff;
+  --box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  --color: #000;          /* Black text color */
+  --icon-size: 20px;      /* Adjust the icon size */
+  --border-color: #E5E5E5;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  width: 150px;
+  margin: auto;
+  margin-top: 20px;
 }
 
-.filter-icon {
-  --color: #000;
+.filter-button:hover {
+  --background: #f5f5f5;  /* Slight color change on hover */
 }
+
 
 .clear-filter-icon {
   font-size: 24px;
@@ -250,7 +261,6 @@ ion-tab-button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .card-header h3 {
@@ -328,7 +338,10 @@ ion-tab-button {
 
 
 .participants-container {
+  background-color: #80808063;
   position: relative;
+  width: 50px;
+  border-radius: 25px;
 }
 
 .participant-popup {
@@ -339,8 +352,9 @@ ion-tab-button {
   border: 1px solid #ddd;
   padding: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 200px;
+  width: 150px;
   z-index: 10;
+  border-radius: 25px;
 }
 
 .participant-popup h4 {
@@ -362,6 +376,7 @@ ion-tab-button {
 .participants {
   cursor: pointer;
   position: relative;
+  justify-content: center;
 }
 
 .participants:hover {
