@@ -6,10 +6,10 @@
       <!-- Header Tabs for "All" and "Favorites" -->
       <div class="header-tabs">
         <ion-segment mode="md" [(ngModel)]="selectedFilter" class="segment-tab" (ionChange)="onTabChange($event)">
-          <ion-segment-button value="all" class="custom-tabs">
+          <ion-segment-button value="all" class="header-tab">
             <ion-label>הכל</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="favorites" class="custom-tabs">
+          <ion-segment-button value="favorites" class="header-tab">
             <ion-label>מועדפים</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -41,7 +41,7 @@
 
       <div *ngIf="!isLoading">
         <!-- Scrolling Tabs for Days -->
-        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs">
+        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" (ionChange)="onDayChange()">
           <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
             <ion-label>{{ day.day }}</ion-label>
             <ion-note>{{ day.formattedDate }}</ion-note>
@@ -60,13 +60,18 @@
           <ion-item>
             <ion-label>סוג אימון</ion-label>
             <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
-              <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
+              <ion-select-option *ngFor="let type of availableTypes" [value]="type" (ionChange)="onTypeChange()">{{ type }}</ion-select-option>
             </ion-select>
+
+            <!-- Red "x" button to reset filter, visible only if a type is selected -->
+            <ion-button *ngIf="selectedType" color="danger" fill="clear" (click)="resetTypeFilter()">
+              <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
           </ion-item>
 
           <ion-item>
             <ion-label>זמינות</ion-label>
-            <ion-segment [(ngModel)]="availabilityFilter">
+            <ion-segment [(ngModel)]="availabilityFilter" >
               <ion-segment-button value="all">
                 <ion-label>הכל</ion-label>
               </ion-segment-button>

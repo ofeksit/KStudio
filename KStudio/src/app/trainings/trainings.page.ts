@@ -81,7 +81,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   
     Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
       this.combineTimeslotsAndAppointments();
-  
+      
       // Load favorite trainings from localStorage
       const favoriteTrainingIds = this.getFavoriteTrainings();
       this.combinedList.forEach(training => {
@@ -91,12 +91,42 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       });
   
       this.showAll();  // Ensure all appointments are displayed initially
-  
+      this.setAvailableTypesForDay();  // Set available types for the default selected day
       // Set loading to false when data is ready
       this.isLoading = false;
     }).catch(() => {
       this.isLoading = false; // Ensure loading is disabled even in case of errors
     });
+  }
+
+  // Method to handle day change and update available types
+  onDayChange() {
+    this.setAvailableTypesForDay();  // Update available types based on selected day
+  }
+
+  // Method to get available training types for the selected day
+  setAvailableTypesForDay() {
+    const appointmentsForDay = this.getAppointmentsForSelectedDay();
+    console.log("appointments for selecteday", appointmentsForDay);
+    this.availableTypes = [...new Set(appointmentsForDay.map(appointment => appointment.title.name))];  // Extract and update unique training types for the selected day
+  }
+
+  // Method to get filtered appointments based on type, availability, and selected day
+  getFilteredAppointments() {
+    // Filter appointments by the selected day
+    let filtered = this.getAppointmentsForSelectedDay();
+
+    // Filter by selected training type, if any
+    if (this.selectedType) {
+      filtered = filtered.filter(appointment => appointment.title.name === this.selectedType);
+    }
+
+    // Filter by availability
+    if (this.availabilityFilter === 'available') {
+      filtered = filtered.filter(appointment => appointment.booked < appointment.total_participants);
+    }
+
+    return filtered;
   }
 
   ngAfterViewInit() {
@@ -113,6 +143,22 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       gesture.enable(true); 
     });
   }
+
+  resetTypeFilter() {
+    this.selectedType = '';  // Clear the type filter
+    this.updateFilteredAppointments();  // Refresh the appointments list
+  }
+
+  // Method to handle type selection and trigger filtering
+  onTypeChange() {
+    this.filteredAppointments = this.getFilteredAppointments();  // Apply filtering when the type changes
+  }
+
+    // Method to update filtered appointments list when filters change
+    updateFilteredAppointments() {
+      this.filteredAppointments = this.getFilteredAppointments();
+      //this.extractAvailableTypes();  // Refresh types based on filtered appointments
+    }
 
   // Remove past favorites
   removePastFavorites() {
@@ -389,6 +435,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   isFull(appointment: any): boolean {
     return appointment.current_participants >= appointment.total_participants;
   }
+
 
   // Function to add user to standby list
   addToStandbyList(appointmentId: number, customerId: number, email: string) {

@@ -150,8 +150,10 @@ ion-button[color="secondary"] {
   --background: #54a0ff;
 }
 
-.customer-service-button {
-  margin-top: 30px;
+ion-button .customer-service-button {
+  --background: #25D366; /* WhatsApp green background */
+  --color: white; /* Text color */
+  margin-top: 30px; /* Your custom margin */
 }
 
 
