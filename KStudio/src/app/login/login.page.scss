@@ -77,6 +77,11 @@ ion-input {
     background-color: rgb(219, 219, 219);
     text-indent: 20px;
     border-radius: 25px;
+    border: none !important;
+}
+
+ion-input:active {
+    --background-color: transparent;
 }
 
 ion-content {

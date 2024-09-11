@@ -92,6 +92,7 @@ ion-button {
   --indicator-color: #3498db;
   --border-radius: 10px;
   margin-top: 10px;
+  padding: 0 !important;
 }
 
 //Each ion Segment
@@ -121,15 +122,29 @@ ion-item {
 }
 
 /* Header Tabs Styling */
+.header-tab {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Ensures vertical alignment */
+  margin-bottom: 10px;
+  width: 100%; /* Ensures full width for centering */
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  --indicator-color: transparent; /* Remove the default active indicator */
+}
+
+/* Header Tabs Styling */
 .header-tabs {
   display: flex;
   justify-content: center;
+  align-items: center; /* Ensures vertical alignment */
   margin-bottom: 10px;
+  width: 100%; /* Ensures full width for centering */
+  padding: 0;
   border: none;
   box-shadow: none;
-  padding: none;
 }
-
 
 /* Tab styling */
 .custom-tabs {
@@ -153,9 +168,30 @@ ion-item {
 }
 
 .segment-button-checked {
+  position: relative;
   transition: all 0.3s ease;
-  border-bottom: #3498DB solid 4px;
+  border-radius: 12px; /* Set this to match your button's border-radius */
+  --indicator-color: transparent;
+  color: black;
 }
+
+.segment-button-checked::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%); /* Adjust the position to center the element */
+  width: 80%;
+  height: 4px; /* This is the border height */
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  border-radius: 12px; /* Set this to match your button's border-radius */
+  transition: all 0.3s ease;
+}
+
+.segment-button:not(.segment-button-checked)::after {
+  height: 0;
+}
+
 
 .filter-button {
   --border-radius: 30px;  /* Rounded button */
@@ -283,7 +319,6 @@ ion-tab-button {
 .time-date {
   font-size: 14px;
   color: gray;
-  margin-bottom: 10px;
 }
 
 .progress-bar-container {
@@ -297,13 +332,12 @@ ion-tab-button {
   background-color: #E0E0E0;
   border-radius: 8px;
   height: 6px;
-  margin-right: 10px;
 }
 
 .progress-bar .progress {
   height: 6px;
   border-radius: 8px;
-  background-color: #A68EEB;
+  background-color: #ff8366;
 }
 
 .participants {
@@ -322,7 +356,7 @@ ion-tab-button {
 
 .action-button {
   width: 100%;
-  background-color: #1976D2;
+  background-color: #222222;
   color: white;
   border: none;
   padding: 10px;
@@ -338,7 +372,7 @@ ion-tab-button {
 
 
 .participants-container {
-  background-color: #80808063;
+  background-color: #c5c5c563;
   position: relative;
   width: 50px;
   border-radius: 25px;
@@ -354,7 +388,7 @@ ion-tab-button {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 150px;
   z-index: 10;
-  border-radius: 25px;
+  border-radius: 15px;
 }
 
 .participant-popup h4 {

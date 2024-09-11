@@ -33,7 +33,7 @@ export class TrainingsPage implements AfterViewInit {
   userEmail: string = "example@example.com"; //Define active user email
   isLoading: boolean = true; // Set loading to true initially
   filteredAppointments: Appointment[] = [];
-
+  todayAppointments: Appointment[] = [];
 
 
 //#endregion
@@ -78,7 +78,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   ngOnInit() {
     // Set loading to true when API call starts
     this.isLoading = true;
-  
+    
     Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
       this.combineTimeslotsAndAppointments();
   
@@ -125,6 +125,37 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
 
     this.saveFavoriteTrainings(validFavorites); // Update localStorage with only valid favorites
+  }
+
+  // Extract available training types from the filtered appointments list
+  extractAvailableTypes() {
+    console.log("today", this.todayAppointments);
+    const types = this.todayAppointments.map(appointment => appointment.title.name);
+    
+    this.availableTypes = Array.from(new Set(types));  // Remove duplicates
+    console.log("types", types)
+  }
+
+  // Method to get filtered appointments based on type and availability
+  getFilteredAppointments() {
+    // Filter by selected training type
+    let filtered = this.combinedList;
+    if (this.selectedType) {
+      filtered = filtered.filter(appointment => appointment.title.name === this.selectedType);
+    }
+
+    // Filter by availability
+    if (this.availabilityFilter === 'available') {
+      filtered = filtered.filter(appointment => appointment.booked < appointment.total_participants);
+    }
+
+    return filtered;
+  }
+
+  // Method to update filtered appointments list when filters change
+  updateFilteredAppointments() {
+    this.filteredAppointments = this.getFilteredAppointments();
+    //this.extractAvailableTypes();  // Refresh types based on filtered appointments
   }
 
   // Method to handle tab change and update displayed trainings
@@ -323,15 +354,30 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day (today)
   }
 
+  // Method to reset the selected type filter
+  resetTypeFilter() {
+    this.selectedType = '';  // Clear the type filter
+    this.updateFilteredAppointments();  // Refresh the appointments list
+  }
+
   // Filter the combined list by selected day
   getAppointmentsForSelectedDay() {
-    return this.filteredAppointments.filter(item => {
+    // Extract available types for the selected day, but do not modify after that
+    if (!this.availableTypes || this.availableTypes.length === 0) {
+      const types = this.todayAppointments.map(appointment => appointment.title.name);
+      this.availableTypes = Array.from(new Set(types)); // Store the unique types for the selected day
+    }
+  
+    // Filter today's appointments
+    this.todayAppointments = this.filteredAppointments.filter(item => {
       const date = moment(item.start_time);
       return (
-        date.isValid() && // Ensure valid date
+        date.isValid() &&
         date.format('YYYY-MM-DD') === this.selectedDay
       );
     });
+  
+    return this.todayAppointments;
   }
 
   closePopup() {
