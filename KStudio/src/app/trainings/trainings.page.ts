@@ -150,15 +150,16 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   }
 
   // Method to handle type selection and trigger filtering
-  onTypeChange() {
+  onTypeChange(event: any) {
+    console.log("event", event.detail.value);
     this.filteredAppointments = this.getFilteredAppointments();  // Apply filtering when the type changes
   }
 
     // Method to update filtered appointments list when filters change
-    updateFilteredAppointments() {
+  updateFilteredAppointments() {
       this.filteredAppointments = this.getFilteredAppointments();
       //this.extractAvailableTypes();  // Refresh types based on filtered appointments
-    }
+  }
 
   // Remove past favorites
   removePastFavorites() {
@@ -422,6 +423,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   // Clear the type filter
   clearTypeFilter() {
     this.selectedType = '';
+    this.updateFilteredAppointments();  // Refresh the appointments list
   }
 
   calculateProgress(appointment: any): number {

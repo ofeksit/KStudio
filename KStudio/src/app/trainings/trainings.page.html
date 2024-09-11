@@ -59,8 +59,8 @@
         <ion-list *ngIf="showDropdown" class="filter-dropdown">
           <ion-item>
             <ion-label>סוג אימון</ion-label>
-            <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון">
-              <ion-select-option *ngFor="let type of availableTypes" [value]="type" (ionChange)="onTypeChange()">{{ type }}</ion-select-option>
+            <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון" (ionChange)="onTypeChange($event)">
+              <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
             </ion-select>
 
             <!-- Red "x" button to reset filter, visible only if a type is selected -->
