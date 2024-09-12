@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   getUserFullName(): string | null {
-    return '';
+    return localStorage.getItem('user_fullname');
   }
 
   getUserGamiPts(): number | null {

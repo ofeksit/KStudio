@@ -1,7 +1,10 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
-import { Training } from '../Models/training';
+import { ProfileService } from '../services/profile.service';
 import { AuthService } from '../services/auth.service';
+import { Appointment } from '../Models/appointment';
+import { Training } from '../Models/training';
+import { Booking } from '../Models/booking';
 
 @Component({
   selector: 'app-profile-popup',
@@ -11,26 +14,63 @@ import { AuthService } from '../services/auth.service';
 export class ProfilePopupComponent implements AfterViewInit {
   @ViewChild('popup') popup!: ElementRef;
 
-  userName: string = 'John Doe';  // Placeholder for user display name
+  userName: string | null;  // Fetched dynamically
+  userRole: string | null = '';  // Fetched dynamically
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
-  userRole: string = 'Premium Member';  // Placeholder for user role
+  userID: string | null = '';
+
+  nextRenewalDate?: string;  // Subscription specific
+  slotsLeft?: number;  // Amelia package specific
   selectedTab: string = 'trainings';  // Default selected tab
 
+  userAppointments: Booking[] = [];
+  userPurchases: any[] = [];
+  
+  constructor(
+    private gestureCtrl: GestureController,
+    private modalCtrl: ModalController,
+    private actionSheetCtrl: ActionSheetController,
+    private profileService: ProfileService,
+    private authService: AuthService
+  ) {
+    this.userName = this.authService.getUserFullName();    
+    this.userRole = this.fetchUserRole(this.authService.getUserRole());
+    this.userID = this.authService.getUserID();
+  }
+  ngOnInit() {
+    this.loadUserAppointmentsLast60Days();
+    console.log("username", this.userName)
+    console.log("userrole", this.userRole)
+  }
 
-  // Array of trainings with type `Training`
-  trainings: Training[] = [
-    { title: 'יוגה', date: '2024-09-10', time: '10:00 AM', available: 10, capacity: 20, favorite: true, status: 'approved' },
-    { title: 'פילאטיס', date: '2024-09-01', time: '08:00 AM', available: 5, capacity: 10, favorite: false, status: 'pending' },
-    { title: 'אימון כוח', date: '2024-08-25', time: '06:00 PM', available: 0, capacity: 25, favorite: false, status: 'cancelled' },
-    { title: 'אימון ידיים', date: '2024-08-30', time: '05:00 PM', available: 20, capacity: 25, favorite: true, status: 'approved' }
-  ];
+  // Load appointments for the logged-in user from the last 60 days
+  loadUserAppointmentsLast60Days() {
+    this.profileService.getLast60DaysAppointmentsForUser().subscribe((appointments: any[]) => {
+      this.userAppointments = appointments;
+      console.log('User Appointments (Last 60 Days):', this.userAppointments);
+    });
+  }
 
-  userPurchases = [
-    { orderNumber: 'ORD123', products: [{ name: 'Product A' }, { name: 'Product B' }], date: new Date() },
-    { orderNumber: 'ORD124', products: [{ name: 'Product C' }], date: new Date() }
-  ];
-
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private actionSheetCtrl: ActionSheetController, private authService: AuthService) {}
+  //Fetch user role to hebrew description
+  fetchUserRole (role: string | null): string {
+    if (role === 'author')
+      return 'מתאמנת';
+    else if (role === 'administrator')
+      return 'מנהל';
+    else if (role === 'activesubscription')
+      return 'מנוי פעיל';
+    else if (role === 'trainer')
+      return 'מאמן';
+    else if (role === 'team')
+      return 'צוות';
+    else if (role === 'trial-users')
+      return 'מתאמנת ניסיון';
+    else if (role === 'inactive')
+      return 'לא פעילה';
+    else if (role === 'personal')
+      return 'מתאמנת אישית';
+    return '';
+  }
 
   ngAfterViewInit() {
     const gesture = this.gestureCtrl.create({
@@ -43,88 +83,72 @@ export class ProfilePopupComponent implements AfterViewInit {
       },
     });
     gesture.enable(true);
+
   }
 
   closePopup() {
     this.modalCtrl.dismiss();
   }
 
-  // Mock Google Profile Fetch (This would be replaced with OAuth2 logic)
-  loadGoogleProfile() {
-    // For now, we're using placeholders
-    this.userName = 'Deryl Banks';
-    this.userPhoto = 'assets/img/avatar.png';  // Replace with Google profile picture URL
-    this.userRole = 'Member';  // Set the role dynamically based on user data
-  }
-
-    // Sort trainings by date
-  sortedTrainings() {
-    return this.trainings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }
-
-   // Show Action Sheet on clicking a training
-   async showActions(training: any) {
+  async showActions(training: any) {
     const actionSheet = await this.actionSheetCtrl.create({
-      header: 'פעולות',
+      header: 'Actions',
       buttons: [
         {
-          text: 'בטל אימון',
+          text: 'Cancel Training',
           role: 'destructive',
           icon: 'close-circle-outline',
           handler: () => {
             console.log('Cancel training:', training);
-          }
+          },
         },
         {
-          text: 'שנה זמן',
+          text: 'Reschedule',
           icon: 'time-outline',
           handler: () => {
             console.log('Reschedule training:', training);
-          }
+          },
         },
         {
-          text: 'סגור',
+          text: 'Close',
           icon: 'close',
           role: 'cancel',
-        }
-      ]
+        },
+      ],
     });
     await actionSheet.present();
   }
 
-    // Get the correct status icon based on training status
+  // Download purchase invoice
+  downloadInvoice(order: any) {
+    console.log('Downloading invoice for order:', order.orderNumber);
+    // Add logic to download the invoice
+  }
+
+  // Get status icons for trainings
   getStatusIcon(status: string): string {
     switch (status) {
       case 'approved':
-        return 'checkmark-circle-outline';  // Approved
+        return 'checkmark-circle-outline';
       case 'cancelled':
-        return 'close-circle-outline';  // Cancelled
+        return 'close-circle-outline';
       case 'pending':
-        return 'time-outline';  // Pending
+        return 'time-outline';
       default:
-        return 'alert-circle-outline';  // Fallback in case of unknown status
+        return 'alert-circle-outline';
     }
   }
 
-    // Get the color based on status
   getStatusColor(status: string): string {
     switch (status) {
       case 'approved':
-        return 'success';  // Green for approved
+        return 'success';
       case 'cancelled':
-        return 'danger';  // Red for cancelled
+        return 'danger';
       case 'pending':
-        return 'warning';  // Yellow for pending
+        return 'warning';
       default:
-        return 'medium';  // Fallback color
+        return 'medium';
     }
   }
-
-  checkLoginStatus() {
-    if (!this.authService.isLoggedIn()) {
-      this.modalCtrl.dismiss();  // Close the modal if not logged in
-      console.log('User is not logged in');
-    }
-  }
-
 }

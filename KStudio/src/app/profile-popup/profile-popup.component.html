@@ -9,6 +9,12 @@
     <p>{{ userRole }}</p>
   </div>
 
+  <!-- Show subscription details if available -->
+  <div *ngIf="nextRenewalDate">
+    <p>Next Renewal: {{ nextRenewalDate }}</p>
+    <p>Slots Left: {{ slotsLeft }}</p>
+  </div>
+
   <!-- Tabs for Trainings and Purchases -->
   <ion-segment [(ngModel)]="selectedTab">
     <ion-segment-button value="trainings">
@@ -19,29 +25,26 @@
     </ion-segment-button>
   </ion-segment>
 
-  <!-- Single List of Trainings Sorted by Date -->
+  <!-- List of User's Appointments -->
   <div *ngIf="selectedTab === 'trainings'">
     <ion-list>
-      <ion-card *ngFor="let training of sortedTrainings()" (click)="showActions(training)">
+      <ion-card *ngFor="let booking of userAppointments">
         <ion-card-header>
-          <!-- Arrow and Status icon -->
-          <div class="icon-container">
-            <!-- Status icon directly to the right of arrow -->
-            <ion-icon 
-              class="status-icon"
-              [name]="getStatusIcon(training.status)" 
-              [color]="getStatusColor(training.status)">
-            </ion-icon>
-            <!-- Arrow icon aligned in left-center -->
-            <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
-          </div>
-
-          <!-- Training title and date -->
+          <!-- Title and Date/Time -->
           <ion-label class="training-details">
-            <h2>{{ training.title }}</h2>
-            <p>{{ training.date | date: 'shortDate' }} | {{ training.time }}</p>
+            <h2>{{ booking.title || 'Training' }}</h2>
+            <p>{{ booking.bookingStart | date: 'shortDate' }} | {{ booking.bookingStart | date: 'shortTime' }}</p>
           </ion-label>
         </ion-card-header>
+
+        <ion-card-content>
+          <!-- Status of the Booking 
+          <p>Status: 
+            <ion-badge [color]="getStatusColor(appointment.bookings[0].status)">-->
+              <!--{{ appointment.bookings[0].status | translateStatus }}  Assuming you have a translation pipe
+            </ion-badge>
+          </p> -->
+        </ion-card-content>
       </ion-card>
     </ion-list>
   </div>
