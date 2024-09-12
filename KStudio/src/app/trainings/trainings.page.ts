@@ -35,7 +35,7 @@ export class TrainingsPage implements AfterViewInit {
   isLoading: boolean = true; // Set loading to true initially
   filteredAppointments: Appointment[] = [];
   unfilteredList: Appointment[] = [];
-
+  private apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
 
 //#endregion
   //#region Google Calendar
@@ -114,43 +114,73 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       gesture.enable(true); 
     });
   }
+  
+  //Get Services ID by loggedin role user
+  getServicesByRole() {
+    // Get user role from localStorage
+    const userRole = localStorage.getItem('user_role');
+    console.log("userRole", userRole);
+    // If no role is found, default to 'guest'
+    const role = userRole ? userRole : 'guest';
 
+    // Call the WordPress API with the role in the URL
+    return this.http.get<number[]>(`${this.apiUrl}${role}`);
+  }
+
+  // Gets all the available timeslots
   fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
     next30Days.setDate(today.getDate() + 30);
 
     const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     };
-    
+
     return new Promise((resolve, reject) => {
-      const url = '/api/slots&serviceId=12&page=booking&startDateTime='+formatDate(today); // Adjust as needed
-      this.http.get<{ data: { slots: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
-        (response) => {
-          const timeslotsData = response.data.slots;
-          this.availableTimeslots = Object.keys(timeslotsData).flatMap(date =>
-            Object.keys(timeslotsData[date]).map(time => ({
-              start_time: new Date(`${date}T${time}`).toISOString(),
-              end_time: new Date(`${date}T${time}`).toISOString(),
-              type: 'timeslot',
-              title: { name: 'אימון קבוצתי' }, 
-              favorite: false,
-              current_participants: [],
-              total_participants: 8,
-              booked: 0,
-            }))
-          );
-          resolve(); // Resolve when data is ready
-        },
-        (error) => reject(error) // Reject on error
-      );
+      // Fetch the serviceIDs from the role
+      this.getServicesByRole().subscribe((serviceIDs: number[]) => {
+        if (serviceIDs.length === 0) {
+          return reject('No service IDs found');
+        }
+
+        // Create a promise for each serviceID request
+        const timeslotRequests = serviceIDs.map(serviceID => {
+          const url = `/api/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}`;
+          return this.http.get<{ data: { slots: any } }>(url, {
+            headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' }
+          }).toPromise();
+        });
+
+        // Wait for all requests to finish
+        Promise.all(timeslotRequests).then((responses) => {
+          // Combine all timeslots from the responses
+          this.availableTimeslots = responses.flatMap((response: any) => {
+            const timeslotsData = response.data.slots;
+
+            return Object.keys(timeslotsData).flatMap(date =>
+              Object.keys(timeslotsData[date]).map(time => ({
+                start_time: new Date(`${date}T${time}`).toISOString(),
+                end_time: new Date(`${date}T${time}`).toISOString(),
+                type: 'timeslot',
+                title: { name: 'אימון קבוצתי' }, // Default title
+                favorite: false,
+                current_participants: [],
+                total_participants: 8,
+                booked: 0,
+              }))
+            );
+          });
+          resolve(); // Resolve when all data is ready
+        }).catch(error => reject(error)); // Handle any error in the requests
+      }, error => reject(error)); // Error handling for service IDs
     });
   }
 
+  //Gets all the appointments
   fetchBookedAppointments(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
@@ -162,9 +192,13 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
-    
+
+    // Assume serviceID contains the required service IDs
+    //let serviceID: number[] = this.getServicesByRole(); // This is a placeholder, adjust as needed for async handling
 
     return new Promise((resolve, reject) => {
+      this.getServicesByRole().subscribe((serviceIDs: number[]) => {
+        console.log("serviceIDS", serviceIDs);
       const url = '/api/appointments&dates='+formatDate(today)+','+formatDate(next30Days)+'&page=1&skipServices=1&skipProviders=1'; 
       this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
         async (response) => {
@@ -172,7 +206,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
           const now = new Date();
           const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
             appointment.appointments.filter((app: any) =>
-              app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now
+              app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
             ).map(async (app: any) => {
               const googleCalendarTitle = app.googleCalendarEventId
                 ? await this.fetchGoogleCalendarEventTitle(app.googleCalendarEventId)
@@ -199,9 +233,11 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
         },
         (error) => reject(error) // Reject on error
       );
-    });
+    }, (error) => reject(error)); // Error handling for service IDs
+  });
   }
 
+  //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
     this.unfilteredList = [...this.combinedList];  
@@ -222,6 +258,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
   }
 
+  //Extract 
   extractAvailableDays() {
     const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
     const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
@@ -289,6 +326,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.updateFilteredAppointments(); // Reapply the filter
   }
 
+  //Updates list according the conditions
   updateFilteredAppointments() {
     let tempAppointments = [...this.unfilteredList];
   
@@ -353,30 +391,6 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.saveFavoriteTrainings(validFavorites); // Update localStorage with only valid favorites
   }
 
-  // Method to enroll the user in a training session
-  enrollUser(appointment: Appointment) {
-    let serviceID= appointment.serviceID;
-    let bookingStart = appointment.start_time;
-    let userID = this.authService.getUserID;
-    let userEmail = this.authService.getUserEmail;
-
-    console.log("serviceID", serviceID);
-    console.log("booking Start", bookingStart);
-    /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
-
-    const data = {
-      appointment_id: appointment.id,
-      customer_id: this.userId,
-      email: this.userEmail
-    };
-
-    this.http.post(url, data).subscribe(response => {
-      console.log('User enrolled in appointment', response);
-    }, error => {
-      console.error('Error enrolling user', error);
-    });*/
-  }
-
   //Function to dismiss the modal
   closeModal() {
     this.modalCtrl.dismiss();
@@ -431,6 +445,20 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     return appointment.current_participants >= appointment.total_participants;
   }
 
+
+
+  // Method to show the popup
+  showParticipantsPopup(appointment: Appointment) {
+    this.activeAppointment = appointment;
+    this.isPopupVisible = true;
+  }
+
+  // Method to hide the popup
+  hideParticipantsPopup() {
+    this.activeAppointment = null;
+    this.isPopupVisible = false;
+  }
+
   // Function to add user to standby list
   addToStandbyList(appointmentId: number, customerId: number, email: string) {
     const url = 'https://k-studio.co.il/wp-json/standby-list/v1/add';
@@ -448,16 +476,28 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
   } 
 
-  // Method to show the popup
-  showParticipantsPopup(appointment: Appointment) {
-    this.activeAppointment = appointment;
-    this.isPopupVisible = true;
-  }
+  // Method to enroll the user in a training session
+  enrollUser(appointment: Appointment) {
+    let serviceID= appointment.serviceID;
+    let bookingStart = appointment.start_time;
+    let userID = this.authService.getUserID;
+    let userEmail = this.authService.getUserEmail;
 
-  // Method to hide the popup
-  hideParticipantsPopup() {
-    this.activeAppointment = null;
-    this.isPopupVisible = false;
+    console.log("serviceID", serviceID);
+    console.log("booking Start", bookingStart);
+    /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
+
+    const data = {
+      appointment_id: appointment.id,
+      customer_id: this.userId,
+      email: this.userEmail
+    };
+
+    this.http.post(url, data).subscribe(response => {
+      console.log('User enrolled in appointment', response);
+    }, error => {
+      console.error('Error enrolling user', error);
+    });*/
   }
 
 }

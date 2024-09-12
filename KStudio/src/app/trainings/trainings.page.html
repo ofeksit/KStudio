@@ -58,7 +58,7 @@
         <!-- Modern Dropdown for Filters -->
         <ion-list *ngIf="showDropdown" class="filter-dropdown">
           <ion-item>
-            <ion-label>סוג אימון</ion-label>
+            <ion-label style="text-indent: 8px;">סוג אימון</ion-label>
             <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון" (ionChange)="onTypeChange()">
               <ion-select-option *ngFor="let type of availableTypes" [value]="type">{{ type }}</ion-select-option>
             </ion-select>
@@ -70,7 +70,7 @@
           </ion-item>
 
           <ion-item>
-            <ion-label>זמינות</ion-label>
+            <ion-label style="text-indent: 8px;">זמינות</ion-label>
             <ion-segment [(ngModel)]="availabilityFilter" (ionChange)="onFilterChange()">
               <ion-segment-button value="all">
                 <ion-label>הכל</ion-label>

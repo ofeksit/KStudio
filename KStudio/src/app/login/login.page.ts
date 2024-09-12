@@ -7,7 +7,6 @@ import { throwError } from 'rxjs';
 import { ToastController } from '@ionic/angular';
 import { Keyboard } from '@capacitor/keyboard';
 
-
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -59,6 +58,7 @@ export class LoginPage {
 
     this.authService.login(this.username, this.password).pipe(
       switchMap((response: any) => {
+        // Store token, ID, and email in local storage
         this.authService.storeToken(response.data.token);
         this.authService.storeUserID(response.data.id);
         this.authService.storeUserEmail(response.data.email);
@@ -67,7 +67,20 @@ export class LoginPage {
           'Authorization': `Bearer ${response.data.token}`
         });
 
+        // First request: Get user details
         return this.http.get(`https://k-studio.co.il/wp-json/wp/v2/users/me`, { headers });
+      }),
+      switchMap((userDetails: any) => {
+        // Store user details in local storage
+        this.authService.storeUserFullName(userDetails.name);
+        this.authService.storeUserGamiPts(userDetails.meta._gamipress_pts_points);
+
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${this.authService.getToken()}` // Get token from local storage
+        });
+
+        // Second request: Get user role
+        return this.http.get(`https://k-studio.co.il/wp-json/custom-api/v1/user-role/${userDetails.id}`, { headers });
       }),
       catchError(error => {
         this.errorMessage = 'ההתחברות נכשלה';
@@ -75,16 +88,16 @@ export class LoginPage {
         return throwError(error);
       })
     ).subscribe(
-      (userDetails: any) => {
-        this.authService.storeUserRole(userDetails.slug);
-        this.authService.storeUserFullName(userDetails.name);
-        this.authService.storeUserGamiPts(userDetails.meta._gamipress_pts_points);
+      (userRoleData: any) => {
+        // Store user role in local storage
+        this.authService.storeUserRole(userRoleData.roles[0]);
 
         this.toastMessage = 'התחברת בהצלחה! הנך מועבר לדף הראשי';
         this.toastColor = 'success';
         this.showProgressBar = true;
         this.presentToast(this.toastMessage, this.toastColor);
 
+        // Navigate to the home page after a delay
         setTimeout(() => {
           this.router.navigate(['/home']);
           this.showProgressBar = false;
