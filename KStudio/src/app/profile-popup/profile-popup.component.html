@@ -28,23 +28,27 @@
   <!-- List of User's Appointments -->
   <div *ngIf="selectedTab === 'trainings'">
     <ion-list>
-      <ion-card *ngFor="let booking of userAppointments">
+      <ion-card *ngFor="let appointment of userAppointments" (click)="showActions(appointment)">
         <ion-card-header>
+                   <!-- Arrow and Status icon -->
+                   <div class="icon-container">
+                    <!-- Status icon directly to the right of arrow -->
+                    <ion-icon 
+                      class="status-icon"
+                      [name]="getStatusIcon(appointment.userBookingStatus)" 
+                      [color]="getStatusColor(appointment.userBookingStatus)">
+                    </ion-icon>
+                    <!-- Arrow icon aligned in left-center -->
+                    <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+                  </div>
+
           <!-- Title and Date/Time -->
           <ion-label class="training-details">
-            <h2>{{ booking.title || 'Training' }}</h2>
-            <p>{{ booking.bookingStart | date: 'shortDate' }} | {{ booking.bookingStart | date: 'shortTime' }}</p>
+            <h2>{{ appointment.title || 'Training' }}</h2>
+            <p>{{ appointment.bookingStart | date: 'shortDate' }} | {{ appointment.bookingStart | date: 'shortTime' }} </p>
           </ion-label>
         </ion-card-header>
 
-        <ion-card-content>
-          <!-- Status of the Booking 
-          <p>Status: 
-            <ion-badge [color]="getStatusColor(appointment.bookings[0].status)">-->
-              <!--{{ appointment.bookings[0].status | translateStatus }}  Assuming you have a translation pipe
-            </ion-badge>
-          </p> -->
-        </ion-card-content>
       </ion-card>
     </ion-list>
   </div>

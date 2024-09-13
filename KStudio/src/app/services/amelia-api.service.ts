@@ -10,11 +10,7 @@ export class AmeliaService {
   constructor(private http: HttpClient) { }
 
   getMonthlyAppoindtments() {
-    this.http.get('/api/appointments', {
-      headers: {
-        'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
-      }
-    })
+    this.http.get('/api/appointments', { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'} })
     .subscribe(response => {
       console.log(response);
     });
