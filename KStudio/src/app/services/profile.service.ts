@@ -19,10 +19,9 @@ export class ProfileService {
      //#region Google Calendar
      private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
      private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
-     knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
+     knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', 'אימון קבוצתי' ]; // Array of known training types
      
    fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
-     console.log("eventid", eventId);
      return new Promise((resolve, reject) => {
        const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
        
@@ -33,7 +32,7 @@ export class ProfileService {
    
              // Find the first known training type in the title
              const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
-   
+             
              if (trainingType) {
                resolve(trainingType); // Return the found training type as the title
              } else {
@@ -63,11 +62,12 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   const url = `/api/appointments&dates=${startDate},${endDate}&skipServices=1&skipProviders=1`;
 
   const userEmail = this.authService.getUserEmail(); // Logged-in user's email
-  console.log("Logged-in User Email:", userEmail);
+  //console.log("Logged-in User Email:", userEmail);
 
+  
   return this.http.get(url, { headers: this.headers }).pipe(
     map((response: any) => {
-      console.log('API Response:', response);
+      //console.log('API Response:', response);
 
       if (response && response.data && response.data.appointments) {
         let userAppointments: any[] = [];
@@ -80,16 +80,16 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
           ) {
             // Iterate over each appointment on the given date
             response.data.appointments[date].appointments.forEach((appointment: any) => {
-              console.log('Checking appointment:', appointment);
+              //console.log('Checking appointment:', appointment);
               
               // Check if bookings array exists inside the appointment
               if (appointment.bookings && Array.isArray(appointment.bookings)) {
                 // Loop through all bookings and match with user email
                 appointment.bookings.forEach((booking: any, index: number) => {
                   if (booking.customer?.email === userEmail) {
-                    console.log('User booking matched:', booking);
+                    //console.log('User booking matched:', booking);
                     booking.googleCalendarEventId = appointment.googleCalendarEventId;
-                    console.log("google", booking.googleCalendarEventId);
+                    //console.log("google", booking.googleCalendarEventId);
                     // Create an object to store the appointment and the specific booking details
                     const userAppointment = {
                       ...appointment, // Copy the appointment details
@@ -103,13 +103,13 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
                   }
                 });
               } else {
-                console.log('No bookings found for appointment:', appointment);
+                //console.log('No bookings found for appointment:', appointment);
               }
             });
           }
         }
 
-        console.log('Final userAppointments array after filtering:', userAppointments);
+        //console.log('Final userAppointments array after filtering:', userAppointments);
         return userAppointments; // Return filtered user appointments with the user's specific booking status
       }
 
@@ -120,7 +120,39 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
 
 
 
+// Function to fetch customer ID using the user's email
+fetchCustomerIdByEmail(email: string | null): Observable<any> {
+  const url = `/api/users/customers&page=1&search=amelia`;
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk',
+  });
 
+  return this.http.get(url, { headers, observe: 'response' }).pipe(
+    map((response: any) => {
+      console.log('Full Response:', response); // Inspect headers and body
+      if (response && response.body && response.body.data && response.body.data.customers.length > 0) {
+        const customerId = response.body.data.customers[0].id;
+        localStorage.setItem('customerId', customerId);
+        return customerId;
+      }
+      return null;
+    })
+  );
+}
+
+  // Function to fetch available package slots using customer ID
+  fetchAvailablePackageSlots(customerId: string): Observable<any> {
+    const url = `/api/package-purchases/slots?customer=${customerId}`;
+    return this.http.get(url, { headers: this.headers }).pipe(
+      map((response: any) => {
+        if (response && response.data) {
+          return response.data;
+        }
+        return []; // Handle no data found
+      })
+    );
+  }
 
 
   // Helper function to format date as YYYY-MM-DD

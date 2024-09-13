@@ -44,8 +44,8 @@
 
           <!-- Title and Date/Time -->
           <ion-label class="training-details">
-            <h2>{{ appointment.title || 'Training' }}</h2>
-            <p>{{ appointment.bookingStart | date: 'shortDate' }} | {{ appointment.bookingStart | date: 'shortTime' }} </p>
+            <h2>{{ appointment.title }}</h2>
+            <p>{{ appointment.bookingStart | date: 'shortDate' }} | {{ appointment.bookingStart | date: 'HH:mm' }} </p>
           </ion-label>
         </ion-card-header>
 

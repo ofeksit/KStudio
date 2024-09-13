@@ -8,7 +8,8 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private apiUrl = 'https://k-studio.co.il/wp-json/jwt-auth/v1/token';
   private apiUrlExtended = 'https://k-studio.co.il/wp-json/wp/v2/users/me'
-
+  private getAmeliaUserIDURL = '/api/users/customers&page=1&search=';
+  
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<any> {
@@ -22,6 +23,9 @@ export class AuthService {
     localStorage.setItem('auth_token', token);
   }
 
+  storeCustomerID(customerID: string): void {
+    localStorage.setItem('customer_id', customerID);
+  }
   storeUserID(userID: string): void {
     localStorage.setItem('user_id', userID);
   }

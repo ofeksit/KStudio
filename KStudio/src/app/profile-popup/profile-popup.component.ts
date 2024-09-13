@@ -18,6 +18,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   userName: string | null;  // Fetched dynamically
   userRole: string | null = '';  // Fetched dynamically
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
+  userEmail: string | null = '';
   userID: string | null = '';
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   nextRenewalDate?: string;  // Subscription specific
@@ -80,8 +81,26 @@ export class ProfilePopupComponent implements AfterViewInit {
     
   ngOnInit() {
     this.loadUserAppointmentsLast60Days();
-    console.log("username", this.userName)
-    console.log("userrole", this.userRole)
+    //console.log("username", this.userName)
+    //console.log("userrole", this.userRole)
+
+    // Fetch customer ID using the email and then fetch available package slots
+    this.userEmail = this.authService.getUserEmail();  // Assuming this method exists
+    console.log("user email", this.userEmail);
+    this.profileService.fetchCustomerIdByEmail(this.userEmail).subscribe(customerId => {
+      if (customerId) {
+        console.log("enteres, customer ID", customerId);
+        this.profileService.fetchAvailablePackageSlots(customerId).subscribe((slots: any[]) => {
+          // Now we have the available slots for the user
+          console.log('Available package slots:', slots);
+
+          // Assuming you want to display the number of available slots
+          this.slotsLeft = slots.length;
+        });
+      } else {
+        console.error('Customer ID not found.');
+      }
+    });
   }
 
   loadUserAppointmentsLast60Days() {
@@ -97,14 +116,11 @@ export class ProfilePopupComponent implements AfterViewInit {
         if (booking) {
           // Ensure the booking object contains the status and title
           appointment.userBookingStatus = status; // Set the user's specific booking status
-          console.log("google:", booking.googleCalendarEventId)
           if (booking.googleCalendarEventId) {
-            console.log("enters");
-            console.log("event id is:", booking.googleca)
             // If there is a Google Calendar event ID, fetch the title
             const promise = this.profileService.fetchGoogleCalendarEventTitle(booking.googleCalendarEventId)
               .then((title: string) => {
-                booking.title = title; // Set the title from the Google Calendar event
+                appointment.title = title; // Set the title from the Google Calendar event
               })
               .catch((error) => {
                 console.error('Error fetching Google Calendar event title:', error);
@@ -123,12 +139,11 @@ export class ProfilePopupComponent implements AfterViewInit {
       Promise.all(promises).then(() => {
         // Update the user appointments after fetching titles
         this.userAppointments = appointments;
-        console.log('User Appointments (Last 60 Days):', this.userAppointments);
+        //console.log('User Appointments (Last 60 Days):', this.userAppointments);
       });
     });
   }
   
-
   //Fetch user role to hebrew description
   fetchUserRole (role: string | null): string {
     if (role === 'author')
@@ -170,10 +185,10 @@ export class ProfilePopupComponent implements AfterViewInit {
 
   async showActions(training: any) {
     const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Actions',
+      header: 'פעולות',
       buttons: [
         {
-          text: 'Cancel Training',
+          text: 'ביטול אימון',
           role: 'destructive',
           icon: 'close-circle-outline',
           handler: () => {
@@ -181,14 +196,14 @@ export class ProfilePopupComponent implements AfterViewInit {
           },
         },
         {
-          text: 'Reschedule',
+          text: 'תזמון מחדש',
           icon: 'time-outline',
           handler: () => {
             console.log('Reschedule training:', training);
           },
         },
         {
-          text: 'Close',
+          text: 'סגור',
           icon: 'close',
           role: 'cancel',
         },
