@@ -9,19 +9,19 @@
 }
 
 .swiper-slide {
-  width: 45%;  /* For larger screens */
-  height: 250px;  /* Reduce height for a more square-like look */
-  max-width: 300px;  /* Ensure that cards don’t grow too large */
+  width: 300px;  /* Fixed width for all cards */
+  height: 450px;  /* Fixed height for all cards */
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 0;
   margin-right: 10px;  /* Add space between slides */
 }
+
 
 .fitness-card {
   width: 100%;
@@ -30,48 +30,56 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
 }
+
+
 
 .fitness-card img {
   width: 100%;
-  height: auto;
+  height: 33%;  /* Fixed height for the image section */
+  object-fit: cover;  /* Ensures the image covers the area */
   border-radius: 15px 15px 0 0;
-  object-fit: cover;
 }
+
 
 .fitness-card ion-card-header {
+  height: 60px;  /* Fixed height for the title section */
   padding: 10px;
   text-align: center;
-}
-
-.fitness-card ion-card-content {
-  padding: 10px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fitness-card ion-card-title {
-  font-size: 1.2em;
+  font-size: 1.4em;
   color: #333;
   font-weight: bold;
+  white-space: nowrap;  /* Prevents text from wrapping */
+  overflow: hidden;  /* Hide the overflow text */
+  text-overflow: ellipsis;  /* Add ellipsis (...) for overflowed text */
+}
+
+.fitness-card ion-card-content {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;  /* Change this number to limit to 2 or 3 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
 }
 
 /* Media Queries for Mobile Devices */
 @media (max-width: 768px) {
   .swiper-slide {
-    width: 90%;  /* On mobile screens, make the cards wider */
-    height: auto;  /* Allow the height to adjust automatically */
-    max-width: 100%;  /* Make sure the cards take up all available space */
+    width: 90%;  /* On mobile, cards will take up most of the screen */
+    height: auto;  /* Adjust height automatically */
+    max-width: 100%;
   }
 
-  .fitness-card {
-    height: 20vh;  /* Make sure the content fits well in the card */
-    width: 30vh;
-  }
-
-  .swiper-container {
-    padding-left: 5px;
-    padding-right: 5px;
+  .fitness-card img {
+    height: 150px;  /* Reduced image height for mobile */
   }
 }
 
@@ -104,14 +112,14 @@ ion-content {
   padding: 20px;
 }
 
-/* Page title styles */
+/* Center the Title */
 .page-title {
   font-size: 1.8em;
   font-weight: bold;
-  color: rgb(44, 44, 44);
-  text-align: center;
+  color: #333;
   margin: 0;
-  font-family: 'Playwrite CU', sans-serif;
+  flex-grow: 1;  /* Allow the title to expand and center */
+  text-align: center;  /* Center the text within the space */
 }
 
 .home {
@@ -123,20 +131,27 @@ ion-content {
   border-radius: 20px;
   background: linear-gradient(135deg, #1dd1a1, #54a0ff);
   color: white;
-  margin-bottom: 20px;
-  padding: 20px;
 }
 
 /* Header row for bell icon and title */
 .header-row {
-  position: relative;  /* Ensure bell icon is positioned relative to the header */
   display: flex;
-  justify-content: center;  /* Center the title */
-  align-items: center;
+  justify-content: space-between;  /* Distribute items evenly */
+  align-items: center;  /* Vertically center the items */
   width: 100%;
   padding: 10px 15px;
+  position: relative;
 }
 
+
+/* WhatsApp Icon */
+.whatsapp-icon {
+  font-size: 24px;
+  background: linear-gradient(135deg, #25D366, #128C7E);  /* WhatsApp green gradient */
+  color: white;
+  border-radius: 50px;  /* Round button */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* Add subtle shadow */
+}
 
 ion-button {
   --background: linear-gradient(135deg, #ff6b6b, #feca57);
@@ -174,14 +189,13 @@ ion-icon {
   font-size: 24px;
 }
 
-/* Bell icon styles */
+/* Bell Icon */
 .bell-icon {
-  position: absolute;  /* Use absolute positioning to move the bell to the left */
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);  /* Vertically center the bell */
   font-size: 24px;
   color: white;
+  background: linear-gradient(135deg, #feca57, #ff6b6b);  /* Gradient for the bell */
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .app-logo {

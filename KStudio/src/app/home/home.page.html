@@ -5,11 +5,16 @@
     <ion-button class="bell-icon" (click)="openNotifications()" fill="clear">
       <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
     </ion-button>
-
-    <!-- Centered Title -->
+  
+    <!-- Centered Title/Logo -->
     <ion-text color="dark">
       <h1 class="page-title home">K Studio</h1> <!-- Your title here -->
     </ion-text>
+  
+    <!-- WhatsApp Icon -->
+    <ion-button class="whatsapp-icon" (click)="openWhatsApp()">
+      <ion-icon slot="icon-only" name="logo-whatsapp"></ion-icon>
+    </ion-button>
   </div>
 
   <!-- What's New Section -->
@@ -32,7 +37,7 @@
             <ion-card-title>{{ tip.title }}</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ tip.content }}
+            {{ tip.description }}
           </ion-card-content>
         </ion-card>
       </div>
@@ -41,10 +46,6 @@
     <div class="swiper-pagination"></div>
   </div>
 
-  <ion-button class="customer-service-button" expand="block" href="https://wa.me/yourNumber" style="--background: #25D366; --color: white; margin-top: 30px;">
-    <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-    צריכה עזרה? דברי איתנו!
-  </ion-button>
 
   <!-- Custom Bottom Navigation Bar -->
   <div class="custom-nav-bar">

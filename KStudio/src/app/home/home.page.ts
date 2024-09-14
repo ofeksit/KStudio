@@ -6,7 +6,7 @@ import { NotificationPopupComponent } from '../notification-popup/notification-p
 import { TrainingsPage } from '../trainings/trainings.page';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
 import { AuthService } from '../services/auth.service';
-
+import { BlocksService, Block } from '../services/blocks.service';
 
 @Component({
   selector: 'app-home',
@@ -22,11 +22,7 @@ export class HomePage implements OnInit {
   // Lesson and Fitness Tips data
   nextLesson: any;
   upcomingLessons: any[] = [];
-  fitnessTips = [
-    { title: 'Stay Hydrated', content: 'Drink at least 8 glasses of water per day!', image: 'assets/img/hydrate.jpg' },
-    { title: 'Stretch Daily', content: 'Improve flexibility and reduce injury risk with daily stretching.', image: 'assets/img/stretch.jpg' },
-    { title: 'Eat More Protein', content: 'Protein helps muscle recovery and keeps you full longer.', image: 'assets/img/protein.jpg' }
-  ];
+  fitnessTips: Block[] = [];
 
   // Swiper config
   slideOpts: SwiperOptions = {
@@ -35,12 +31,11 @@ export class HomePage implements OnInit {
     freeMode: true,      // Allow free scrolling
   };
 
-  constructor(private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
+  constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadNextLesson();
     this.loadUpcomingLessons();
-    this.loadFitnessTips();
   
     setTimeout(() => {
       new Swiper('.swiper-container', {
@@ -55,6 +50,11 @@ export class HomePage implements OnInit {
         },
       });
     }, 0);
+
+    this.blocksService.getBlocks().subscribe(
+      (data) => this.fitnessTips = data,
+      (error) => console.error("Error fetching blocks", error)
+    );
   }
   
   async openNotifications() {
@@ -66,6 +66,11 @@ export class HomePage implements OnInit {
       initialBreakpoint: 0.5,  // Start the modal at 50% of screen height
     });
     return await modal.present();
+  }
+
+  openWhatsApp() {
+    const phoneNumber = 'YOUR_PHONE_NUMBER';  // Replace with your WhatsApp number in international format
+    window.open(`https://wa.me/${phoneNumber}`, '_blank');
   }
 
   async openTrainings() {
@@ -135,23 +140,4 @@ export class HomePage implements OnInit {
     ];
   }
 
-  loadFitnessTips() {
-    this.fitnessTips = [
-      {
-        title: 'Stay Hydrated',
-        content: 'Drink at least 8 glasses of water per day!',
-        image: 'assets/img/hydrate.jpg',
-      },
-      {
-        title: 'Stretch Daily',
-        content: 'Improve flexibility and reduce injury risk with daily stretching.',
-        image: 'assets/img/stretch.jpg',
-      },
-      {
-        title: 'Eat More Protein',
-        content: 'Protein helps muscle recovery and keeps you full longer.',
-        image: 'assets/img/protein.jpg',
-      },
-    ];
-  }
 }
