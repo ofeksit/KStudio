@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -6,6 +6,8 @@ import { catchError, switchMap, switchMapTo } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ToastController } from '@ionic/angular';
 import { Keyboard } from '@capacitor/keyboard';
+import { tap } from 'rxjs/operators';
+import { of  } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -39,14 +41,15 @@ export class LoginPage {
         });
   }
 
+
   async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message: message,
-      duration: 2000,
+      duration: 3000, // Duration in milliseconds
       color: color,
       position: 'top'
     });
-    toast.present();
+    await toast.present(); // Make sure the toast is presented
   }
 
   login() {
@@ -58,6 +61,8 @@ export class LoginPage {
   
     this.authService.login(this.username, this.password).pipe(
       switchMap((response: any) => {
+        console.log('Login successful, token received:', response.data.token);
+        
         // Store token, ID, and email in local storage
         this.authService.storeToken(response.data.token);
         this.authService.storeUserID(response.data.id);
@@ -71,63 +76,87 @@ export class LoginPage {
         return this.http.get(`https://k-studio.co.il/wp-json/wp/v2/users/me`, { headers });
       }),
       switchMap((userDetails: any) => {
+        console.log('User details fetched:', userDetails);
+        
         // Store user details in local storage
         this.authService.storeUserFullName(userDetails.name);
         this.authService.storeUserGamiPts(userDetails.meta._gamipress_pts_points);
   
         const headers = new HttpHeaders({
-          'Authorization': `Bearer ${this.authService.getToken()}` // Get token from local storage
+          'Authorization': `Bearer ${this.authService.getToken()}`
         });
   
         // Second request: Get user role
         return this.http.get(`https://k-studio.co.il/wp-json/custom-api/v1/user-role/${userDetails.id}`, { headers });
       }),
       switchMap((userRoleResponse: any) => {
+        console.log('User role fetched:', userRoleResponse);
+        
         // Store user role in local storage
         this.authService.storeUserRole(userRoleResponse.roles[0]);
   
-        // Now fetch customer ID from WordPress custom API using the stored email
+        // Now call the custom WordPress endpoint that interacts with the Amelia API
         const userEmail = this.authService.getUserEmail();
+        const ameliaApiUrl = `https://k-studio.co.il/wp-json/custom-api/v1/amelia-customer-id?email=${userEmail}`;
   
-        // Custom WordPress endpoint to fetch customer ID from Amelia
-        const customEndpoint = `https://k-studio.co.il/wp-json/custom-api/v1/get-customer-id?email=${userEmail}`;
-        
-        return this.http.get(customEndpoint); // Call the custom WordPress API endpoint
+        return this.http.get(ameliaApiUrl); // Call the custom endpoint
       }),
-      switchMap((customerData: any) => {
-        // Store the customer ID in local storage
-        if (customerData && customerData.customerId) {
-          this.authService.storeCustomerID(customerData.customerId);
+      tap((ameliaResponse: any) => {
+        console.log('Amelia response received:', ameliaResponse);
+  
+        // Store the customer ID in local storage if the Amelia API call was successful
+        if (ameliaResponse && ameliaResponse.customerId) {
+          this.authService.storeCustomerID(ameliaResponse.customerId);
         }
-        return []; // Return empty array to finish
       }),
       catchError(error => {
-        this.errorMessage = 'ההתחברות נכשלה';
-        this.presentToast(this.errorMessage, 'danger');
-        return throwError(error);
+        console.error('Error occurred during login process:', error);
+        this.authService.logout(); // Ensure we clear the token
+  
+        if (error.status === 401 || error.status === 403) {
+          // Incorrect username/password
+          this.errorMessage = 'שם משתמש או סיסמה שגויים.';
+          this.presentToast(this.errorMessage, 'danger');
+        } else {
+          // Handle all other errors (e.g., during data fetching)
+          this.errorMessage = 'אירעה שגיאה, אנא נסה שנית';
+          this.presentToast(this.errorMessage, 'medium'); // Grey alert
+        }
+        
+        return throwError(error); // Propagate the error to stop the success flow
       })
     ).subscribe(
-      () => {
-        this.toastMessage = 'התחברת בהצלחה! הנך מועבר לדף הראשי';
-        this.toastColor = 'success';
-        this.showProgressBar = true;
-        this.presentToast(this.toastMessage, this.toastColor);
+      async () => {
+        // This block should run only when everything is successful
+        console.log('Login and data fetching succeeded, showing success message.');
   
-        // Navigate to the home page after a delay
+        // On successful login, show success toast and navigate
+        this.toastMessage = 'התחברת בהצלחה! הנך מועבר לדף הראשי';
+        
+        // Show success toast before navigating to home
+        await this.presentToast(this.toastMessage, 'success'); // Await the toast to ensure it displays
+        
+        // Show progress bar or navigate to home page after delay
+        this.showProgressBar = true;
+  
         setTimeout(() => {
           this.router.navigate(['/home']);
           this.showProgressBar = false;
         }, 3000);
       },
       (error) => {
-        this.errorMessage = 'שם משתמש או סיסמה שגויים.';
-        this.presentToast(this.errorMessage, 'danger');
+        // Now the error is properly handled in the catchError, so this block will only catch unexpected issues
+        console.error('An unexpected error occurred in subscribe:', error);
       }
     );
   }
   
   
+  
+  
 
+
+  
 
   // Toggle password visibility
   togglePasswordVisibility() {

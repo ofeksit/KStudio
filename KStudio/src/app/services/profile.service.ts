@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Appointment } from '../Models/appointment';
+
 
 @Injectable({
   providedIn: 'root',
@@ -118,28 +119,34 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   );
 }
 
-
-
-// Function to fetch customer ID using the user's email
 fetchCustomerIdByEmail(email: string | null): Observable<any> {
-  const url = `/api/users/customers&page=1&search=amelia`;
+  const encodedEmail = email || '';
+  const url = `/api/v1/users/customers&page=1&search=${encodedEmail}`;
+
   const headers = new HttpHeaders({
     'Content-Type': 'application/json',
     'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk',
   });
 
-  return this.http.get(url, { headers, observe: 'response' }).pipe(
+  return this.http.get(url, { headers, responseType: 'json' }).pipe(
     map((response: any) => {
-      console.log('Full Response:', response); // Inspect headers and body
-      if (response && response.body && response.body.data && response.body.data.customers.length > 0) {
-        const customerId = response.body.data.customers[0].id;
+      if (
+        response &&
+        response.data &&
+        response.data.customers &&
+        response.data.customers.length > 0
+      ) {
+        const customerId = response.data.customers[0].id;
         localStorage.setItem('customerId', customerId);
         return customerId;
+      } else {
+        return null;
       }
-      return null;
     })
   );
 }
+
+
 
   // Function to fetch available package slots using customer ID
   fetchAvailablePackageSlots(customerId: string): Observable<any> {
