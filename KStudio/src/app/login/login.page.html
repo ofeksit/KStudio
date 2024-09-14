@@ -50,7 +50,12 @@
       </div>
       
       <!-- Login Button -->
-      <ion-button expand="block" type="submit" class="login-btn">התחבר</ion-button>
+      <!-- <ion-button expand="block" type="submit" class="login-btn">התחבר</ion-button>-->
+      <button [disabled]="isLoading" (click)="login()" class="login-btn">
+        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+        <span *ngIf="!isLoading">התחבר</span>
+      </button>
+      
     </form>
 
     <!-- Progress bar for redirection -->
