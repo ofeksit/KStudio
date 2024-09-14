@@ -67,8 +67,12 @@ export class AuthService {
     return localStorage.getItem('user_fullname');
   }
 
-  getUserGamiPts(): number | null {
-    return 0;
+  getUserGamiPts(): string | null {
+    return localStorage.getItem('user_gami');
+  }
+
+  getCustomerID(): string | null {
+    return localStorage.getItem('customer_id');
   }
 
   logout(): void {

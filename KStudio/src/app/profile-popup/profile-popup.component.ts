@@ -19,7 +19,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   userRole: string | null = '';  // Fetched dynamically
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
   userEmail: string | null = '';
-  userID: string | null = '';
+  customerID: string | null = '';
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   nextRenewalDate?: string;  // Subscription specific
   slotsLeft?: number;  // Amelia package specific
@@ -38,7 +38,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.fetchUserRole(this.authService.getUserRole());
-    this.userID = this.authService.getUserID();
+    this.customerID = this.authService.getCustomerID();
   }
 
     //#region Google Calendar
@@ -84,23 +84,14 @@ export class ProfilePopupComponent implements AfterViewInit {
     //console.log("username", this.userName)
     //console.log("userrole", this.userRole)
 
-    // Fetch customer ID using the email and then fetch available package slots
-    this.userEmail = this.authService.getUserEmail();  // Assuming this method exists
-    console.log("user email", this.userEmail);
-    this.profileService.fetchCustomerIdByEmail(this.userEmail).subscribe(customerId => {
-      if (customerId) {
-        console.log("enteres, customer ID", customerId);
-        this.profileService.fetchAvailablePackageSlots(customerId).subscribe((slots: any[]) => {
-          // Now we have the available slots for the user
-          console.log('Available package slots:', slots);
 
-          // Assuming you want to display the number of available slots
-          this.slotsLeft = slots.length;
-        });
-      } else {
-        console.error('Customer ID not found.');
-      }
-    });
+    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe((slots: any[]) => {
+      // Now we have the available slots for the user
+      console.log('Available package slots:', slots);
+
+      // Assuming you want to display the number of available slots
+      this.slotsLeft = slots.length;
+    })
   }
 
   loadUserAppointmentsLast60Days() {
@@ -163,6 +154,10 @@ export class ProfilePopupComponent implements AfterViewInit {
     else if (role === 'personal')
       return 'מתאמנת אישית';
     return '';
+  }
+
+  checksUserPackage () {
+    
   }
 
   ngAfterViewInit() {

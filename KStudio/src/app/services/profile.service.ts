@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Appointment } from '../Models/appointment';
 
@@ -146,28 +146,31 @@ fetchCustomerIdByEmail(email: string | null): Observable<any> {
   );
 }
 
-
-
   // Function to fetch available package slots using customer ID
-  fetchAvailablePackageSlots(customerId: string): Observable<any> {
-    const url = `/api/package-purchases/slots?customer=${customerId}`;
-    return this.http.get(url, { headers: this.headers }).pipe(
-      map((response: any) => {
-        if (response && response.data) {
-          return response.data;
-        }
-        return []; // Handle no data found
-      })
-    );
-  }
+fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
+  const url = `/api/package-purchases/slots`;
+  return this.http.get(url, { headers: this.headers }).pipe(
+    map((response: any) => {
+      console.log('API Response:', response);  // Log the response for debugging
+      if (response && response.data) {
+        return response.data;
+      }
+      return []; // Handle no data found
+    }),
+    catchError((error) => {
+      console.error('API Error:', error);  // Log the error
+      return of([]); // Return an empty array or handle error as needed
+    })
+  );
+}
 
 
   // Helper function to format date as YYYY-MM-DD
-  private formatDate(date: Date): string {
+private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero
     const day = date.getDate().toString().padStart(2, '0'); // Add leading zero
     return `${year}-${month}-${day}`;
-  }
+}
 
 }
