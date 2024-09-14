@@ -137,14 +137,10 @@ fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
   );
 }
 
-cancelBooking(bookingId: string){
-  const url = '/api/{{admin_ajax_url}}/bookings/delete/'+bookingId;
+cancelBooking(bookingId: string): Observable<any>{
+  const url = '/api/bookings/delete/'+bookingId;
 
-  this.http.post(url).subscribe(response => {
-    console.log('User added to standby list', response);
-  }, error => {
-    console.error('Error adding user to standby list', error);
-  });
+  return this.http.post(url, {});
 }
 
 

@@ -257,11 +257,16 @@ export class ProfilePopupComponent implements AfterViewInit {
     }
   }
 
-  cancelBooking (bookingId: string){
-    this.profileService.cancelBooking(bookingId).subscribe((data: any[]) => {
-      // Now we have the available slots for the user
-      console.log('Data is:', data);
-    })
+  cancelBooking(bookingId: string) {
+    this.profileService.cancelBooking(bookingId).subscribe(
+      (data: any) => {
+        // Now we have the available slots for the user
+        console.log('Data is:', data);
+      },
+      (error) => {
+        console.error('Error occurred while canceling the booking', error);
+      }
+    );
   }
 
   async showSettings() {
