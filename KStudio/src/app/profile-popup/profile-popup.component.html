@@ -2,11 +2,14 @@
   <!-- Drag handle -->
   <div class="drag-handle"></div>
 
-  <!-- Profile Section -->
+  <!-- Profile Section with Settings Button -->
   <div class="profile-section">
     <img class="avatar" [src]="userPhoto" alt="User Avatar">
     <h2>{{ userName }}</h2>
     <p>{{ userRole }}</p>
+
+    <!-- Settings button -->
+    <ion-icon name="settings-outline" class="settings-icon" (click)="showSettings()"></ion-icon>
   </div>
 
   <!-- Show subscription details if available -->
@@ -24,6 +27,29 @@
       <ion-label>רכישות</ion-label>
     </ion-segment-button>
   </ion-segment>
+
+      <!--Skeleton Section-->
+      <ion-list *ngIf="isLoading">
+        <ion-list-header>
+          <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+        </ion-list-header>
+        <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
+          <ion-thumbnail slot="start">
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </ion-thumbnail>
+          <ion-label>
+            <h3>
+              <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+            </h3>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+            </p>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
 
   <!-- List of User's Appointments -->
   <div *ngIf="selectedTab === 'trainings'">

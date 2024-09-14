@@ -119,33 +119,6 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   );
 }
 
-fetchCustomerIdByEmail(email: string | null): Observable<any> {
-  const encodedEmail = email || '';
-  const url = `/api/v1/users/customers&page=1&search=${encodedEmail}`;
-
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk',
-  });
-
-  return this.http.get(url, { headers, responseType: 'json' }).pipe(
-    map((response: any) => {
-      if (
-        response &&
-        response.data &&
-        response.data.customers &&
-        response.data.customers.length > 0
-      ) {
-        const customerId = response.data.customers[0].id;
-        localStorage.setItem('customerId', customerId);
-        return customerId;
-      } else {
-        return null;
-      }
-    })
-  );
-}
-
   // Function to fetch available package slots using customer ID
 fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
   const url = `/api/package-purchases/slots`;
@@ -162,6 +135,16 @@ fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
       return of([]); // Return an empty array or handle error as needed
     })
   );
+}
+
+cancelBooking(bookingId: string){
+  const url = '/api/{{admin_ajax_url}}/bookings/delete/'+bookingId;
+
+  this.http.post(url).subscribe(response => {
+    console.log('User added to standby list', response);
+  }, error => {
+    console.error('Error adding user to standby list', error);
+  });
 }
 
 

@@ -24,6 +24,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   nextRenewalDate?: string;  // Subscription specific
   slotsLeft?: number;  // Amelia package specific
   selectedTab: string = 'trainings';  // Default selected tab
+  isLoading: boolean = true; // Set loading to true initially
 
   userAppointments: Booking[] = [];
   userPurchases: any[] = [];
@@ -95,6 +96,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
 
   loadUserAppointmentsLast60Days() {
+    this.isLoading = true;
     this.profileService.getLast60DaysAppointmentsForUser().subscribe((appointments: any[]) => {
       const promises: Promise<any>[] = [];
   
@@ -130,6 +132,8 @@ export class ProfilePopupComponent implements AfterViewInit {
       Promise.all(promises).then(() => {
         // Update the user appointments after fetching titles
         this.userAppointments = appointments;
+        console.log("appointments", this.userAppointments)
+        this.isLoading = false;
         //console.log('User Appointments (Last 60 Days):', this.userAppointments);
       });
     });
@@ -187,7 +191,7 @@ export class ProfilePopupComponent implements AfterViewInit {
           role: 'destructive',
           icon: 'close-circle-outline',
           handler: () => {
-            console.log('Cancel training:', training);
+            this.cancelBooking(training.matchedBooking.id);
           },
         },
         {
@@ -252,4 +256,39 @@ export class ProfilePopupComponent implements AfterViewInit {
         return 'לא ידוע';  // Hebrew for "unknown"
     }
   }
+
+  cancelBooking (bookingId: string){
+    this.profileService.cancelBooking(bookingId).subscribe((data: any[]) => {
+      // Now we have the available slots for the user
+      console.log('Data is:', data);
+    })
+  }
+
+  async showSettings() {
+  const actionSheet = await this.actionSheetCtrl.create({
+    header: 'הגדרות',
+    buttons: [
+      {
+        text: 'התנתק',
+        role: 'destructive',
+        icon: 'log-out-outline',
+        handler: () => {
+          this.authService.logout();  // Implement this in your AuthService
+          this.modalCtrl.dismiss();  // Close the modal after logging out
+          window.location.reload();  // Refresh the application
+          console.log('Logged out');
+        }
+      },
+      {
+        text: 'סגור',
+        icon: 'close',
+        role: 'cancel',
+      }
+    ]
+  });
+  await actionSheet.present();
+}
+
+
+
 }
