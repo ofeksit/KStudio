@@ -145,30 +145,24 @@ ion-content {
 
 
 /* WhatsApp Icon */
-.whatsapp-icon {
-  font-size: 24px;
-  background: linear-gradient(135deg, #25D366, #128C7E);  /* WhatsApp green gradient */
-  color: white;
-  border-radius: 50px;  /* Round button */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* Add subtle shadow */
+ion-button .whatsapp-icon {  
+  --background: linear-gradient(135deg, #25D366, #128C7E);  /* WhatsApp green gradient */
+  --box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  border-radius: 10px;
+  font-family: 'Alef', sans-serif;
+  font-weight: 500;
 }
 
-ion-button {
+ion-button .bell-button {
   --background: linear-gradient(135deg, #ff6b6b, #feca57);
   --box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-  border-radius: 30px;
+  border-radius: 10px;
   font-family: 'Alef', sans-serif;
   font-weight: 500;
 }
 
 ion-button[color="secondary"] {
   --background: #54a0ff;
-}
-
-ion-button .customer-service-button {
-  --background: #25D366; /* WhatsApp green background */
-  --color: white; /* Text color */
-  margin-top: 30px; /* Your custom margin */
 }
 
 
@@ -194,7 +188,15 @@ ion-icon {
   font-size: 24px;
   color: white;
   background: linear-gradient(135deg, #feca57, #ff6b6b);  /* Gradient for the bell */
-  border-radius: 50px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.whatsapp-icon {
+  font-size: 24px;
+  color: white;
+  background: linear-gradient(135deg, #25D366, #128C7E);  /* Gradient for the Whatsapp */
+  border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

@@ -121,7 +121,9 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
 
   // Function to fetch available package slots using customer ID
 fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
-  const url = `/api/package-purchases/slots`;
+  const url = `/api/packages/slots`;
+  
+
   return this.http.get(url, { headers: this.headers }).pipe(
     map((response: any) => {
       console.log('API Response:', response);  // Log the response for debugging
@@ -133,6 +135,24 @@ fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
     catchError((error) => {
       console.error('API Error:', error);  // Log the error
       return of([]); // Return an empty array or handle error as needed
+    })
+  );
+}
+
+fetchUserPurchases(userId: string | null): Observable<any> {
+  const url = `https://k-studio.co.il/wp-json/wn/v1/user-purchases/${userId}`;
+  return this.http.get(url, {}).pipe(
+    map((response: any) => {
+      response.forEach((order: any) => {
+        if (!order.invoice_link) {
+          order.invoice_link = ''; // Ensure invoice link is always present
+        }
+      });
+      return response || [];
+    }),
+    catchError((error) => {
+      console.error('Error fetching user purchases:', error);
+      return of([]); // Return an empty array if error occurs
     })
   );
 }

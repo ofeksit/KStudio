@@ -208,6 +208,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
             appointment.appointments.filter((app: any) =>
               app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
             ).map(async (app: any) => {
+              console.log("app", app);
               const googleCalendarTitle = app.googleCalendarEventId
                 ? await this.fetchGoogleCalendarEventTitle(app.googleCalendarEventId)
                 : 'אימון קבוצתי'; // Fallback to default if no Google Calendar ID
@@ -224,6 +225,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
                   .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
                 total_participants: 8,
                 booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+                providerId: app.providerId,
               };
             })
           );
@@ -477,27 +479,50 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   } 
 
   // Method to enroll the user in a training session
-  enrollUser(appointment: Appointment) {
+  enrollUser(appointment: Appointment) {    
     let serviceID= appointment.serviceID;
     let bookingStart = appointment.start_time;
-    let userID = this.authService.getUserID;
-    let userEmail = this.authService.getUserEmail;
+    let providerId = appointment.providerId;
 
-    console.log("serviceID", serviceID);
-    console.log("booking Start", bookingStart);
-    /* const url = 'https://k-studio.co.il/wp-json/amelia/v1/appointments/enroll';
+    let customerID = this.authService.getCustomerID();
+    let userEmail = this.authService.getUserEmail();
 
-    const data = {
-      appointment_id: appointment.id,
-      customer_id: this.userId,
-      email: this.userEmail
-    };
+      // Request body
+  const enrollData = {
+    serviceId: serviceID,
+    providerId: providerId,
+    bookings: [
+      {
+        customerId: customerID,
+        status: "approved",
+        duration: 3600, // Assuming the training is 1 hour (3600 seconds)
+        persons: 1,
+        extras: [], // Assuming no extras, modify if needed
+        customFields: {},
+        packageCustomerService: {
+          packageCustomer: {
+            id: 1732
+          }
+        }
+      }
+    ],
+    bookingStart: bookingStart
+  };
 
-    this.http.post(url, data).subscribe(response => {
-      console.log('User enrolled in appointment', response);
-    }, error => {
-      console.error('Error enrolling user', error);
-    });*/
+    console.log("data", enrollData)
+    // Send the request to enroll the user
+    this.http.post('/api/appointments', enrollData, {
+      headers: {
+        'Amelia': `C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk`, // Assuming token-based authentication
+        'Content-Type': 'application/json'
+      }
+    }).subscribe(
+      (response) => {
+        console.log('Enrollment successful', response);
+      },
+      (error) => {
+        console.error('Enrollment failed', error);
+      }
+    );
   }
-
 }

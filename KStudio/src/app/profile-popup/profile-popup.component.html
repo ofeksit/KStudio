@@ -18,15 +18,17 @@
     <p>Slots Left: {{ slotsLeft }}</p>
   </div>
 
-  <!-- Tabs for Trainings and Purchases -->
-  <ion-segment [(ngModel)]="selectedTab">
-    <ion-segment-button value="trainings">
-      <ion-label>אימונים</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="purchases">
-      <ion-label>רכישות</ion-label>
-    </ion-segment-button>
-  </ion-segment>
+  <div class="header-tabs">
+    <!-- Tabs for Trainings and Purchases -->
+    <ion-segment mode="md" [(ngModel)]="selectedTab" class="segment-tab">
+      <ion-segment-button value="trainings" class="header-tab">
+        <ion-label>אימונים</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="purchases" class="header-tab">
+        <ion-label>רכישות</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
 
       <!--Skeleton Section-->
       <ion-list *ngIf="isLoading">
@@ -64,6 +66,7 @@
                       [name]="getStatusIcon(appointment.userBookingStatus)" 
                       [color]="getStatusColor(appointment.userBookingStatus)">
                     </ion-icon>
+
                     <!-- Arrow icon aligned in left-center -->
                     <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
                   </div>
@@ -82,16 +85,26 @@
  <!-- Purchases List Styled Similar to Trainings List -->
  <div *ngIf="selectedTab === 'purchases'">
   <ion-list>
-    <ion-card *ngFor="let purchase of userPurchases">
+    <ion-card *ngFor="let purchase of userPurchases" (click)="downloadInvoice(purchase)">
       <ion-card-header>
         <div class="icon-container">
+          
+          <ion-icon 
+          class="status-icon"
+          [name]="getStatusIcon(purchase.status)" 
+          [color]="getStatusColor(purchase.status)">
+          </ion-icon>
+
           <!-- Arrow icon aligned in left-center -->
           <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+
+          <!-- Display order status icon on the right side of the arrow -->
+
         </div>
 
         <!-- Purchase item details (Order Number as Title and First Product as Description) -->
         <ion-label class="training-details">
-          <h2>{{ purchase.orderNumber }}</h2>
+          <h2>הזמנה מס' {{ purchase.orderNumber }}</h2>
           <p>{{ purchase.products[0].name }}</p>
         </ion-label>
       </ion-card-header>

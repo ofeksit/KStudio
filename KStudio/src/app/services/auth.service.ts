@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -77,6 +78,12 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('customer_id');
+    localStorage.removeItem('user_fullname');
+    localStorage.removeItem('user_gami');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_email');
   }
 
   isLoggedIn(): boolean {
@@ -84,5 +91,13 @@ export class AuthService {
     return !!token;  // Check if token exists and return true/false
   }
   
+  fetchUserRole(): Observable<any> {
+    const url = 'https://k-studio.co.il/wp-json/custom-api/v1/user-role/'+this.getUserID();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+
+    return this.http.get(url, { headers: headers });
+  }
 
 }

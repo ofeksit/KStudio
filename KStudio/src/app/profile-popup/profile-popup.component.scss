@@ -23,6 +23,58 @@
   margin-bottom: 20px;
 }
 
+.header-tab {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Ensures vertical alignment */
+  margin-bottom: 10px;
+  width: 100%; /* Ensures full width for centering */
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  padding: none;
+  --indicator-color: transparent; /* Remove the default active indicator */
+}
+
+/* Header Tabs Styling */
+.header-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Ensures vertical alignment */
+  margin-bottom: 10px;
+  width: 100%; /* Ensures full width for centering */
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.segment-button-checked {
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 12px; /* Set this to match your button's border-radius */
+  --indicator-color: transparent;
+  color: black;
+}
+
+ion-segment-button ion-label {
+  font-size: 1em;
+  font-weight: bold;
+  font-family: 'Alef';
+}
+
+.segment-button-checked::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%); /* Adjust the position to center the element */
+  width: 80%;
+  height: 4px; /* This is the border height */
+  background: #826251;
+  border-radius: 12px; /* Set this to match your button's border-radius */
+  transition: all 0.3s ease;
+}
+
 .settings-icon {
   font-size: 24px;
   position: absolute;
@@ -84,8 +136,7 @@ ion-card-header {
   text-align: right;  /* Move text to the right edge */
   padding-left: 30%; /* Add a little padding to move the content slightly from the edge */
   margin: 0 auto; /* This centers the inner div horizontally */
-
-
+  flex-grow: 1;
 }
 
 .training-details h2 {

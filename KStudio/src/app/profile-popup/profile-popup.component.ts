@@ -6,6 +6,7 @@ import { Appointment } from '../Models/appointment';
 import { Training } from '../Models/training';
 import { Booking } from '../Models/booking';
 import { HttpClient } from '@angular/common/http';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-profile-popup',
@@ -19,12 +20,15 @@ export class ProfilePopupComponent implements AfterViewInit {
   userRole: string | null = '';  // Fetched dynamically
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
   userEmail: string | null = '';
+  userID: string | null = '';
   customerID: string | null = '';
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   nextRenewalDate?: string;  // Subscription specific
   slotsLeft?: number;  // Amelia package specific
   selectedTab: string = 'trainings';  // Default selected tab
   isLoading: boolean = true; // Set loading to true initially
+  errorMessage: string = '';
+
 
   userAppointments: Booking[] = [];
   userPurchases: any[] = [];
@@ -35,11 +39,13 @@ export class ProfilePopupComponent implements AfterViewInit {
     private actionSheetCtrl: ActionSheetController,
     private profileService: ProfileService,
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private toastController: ToastController
   ) {
     this.userName = this.authService.getUserFullName();    
-    this.userRole = this.fetchUserRole(this.authService.getUserRole());
+    this.userRole = this.translateUserRole(this.authService.getUserRole());
     this.customerID = this.authService.getCustomerID();
+    this.userID = this.authService.getUserID();
   }
 
     //#region Google Calendar
@@ -81,18 +87,27 @@ export class ProfilePopupComponent implements AfterViewInit {
 
     
   ngOnInit() {
+    this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = this.translateUserRole(data.roles[0]);});
     this.loadUserAppointmentsLast60Days();
-    //console.log("username", this.userName)
-    //console.log("userrole", this.userRole)
+    this.loadUserPurchases();
 
-
-    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe((slots: any[]) => {
+/*    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe((slots: any[]) => {
       // Now we have the available slots for the user
       console.log('Available package slots:', slots);
 
       // Assuming you want to display the number of available slots
       this.slotsLeft = slots.length;
-    })
+    })*/
+  }
+
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000, // Duration in milliseconds
+      color: color,
+      position: 'bottom',
+    });
+    await toast.present(); // Make sure the toast is presented
   }
 
   loadUserAppointmentsLast60Days() {
@@ -140,7 +155,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
   
   //Fetch user role to hebrew description
-  fetchUserRole (role: string | null): string {
+  translateUserRole (role: string | null): string {
     if (role === 'author')
       return 'מתאמנת';
     else if (role === 'administrator')
@@ -211,10 +226,14 @@ export class ProfilePopupComponent implements AfterViewInit {
     await actionSheet.present();
   }
 
-  // Download purchase invoice
   downloadInvoice(order: any) {
-    console.log('Downloading invoice for order:', order.orderNumber);
-    // Add logic to download the invoice
+    if (order.invoice_link) {
+      window.open(order.invoice_link, '_blank'); // Opens the invoice link in a new tab
+    } else {
+      console.error('No invoice link available for this order.');
+      this.errorMessage = "לא ניתן להפיק חשבונית בעבור הזמנה זו."
+      this.presentToast(this.errorMessage, 'danger');
+    }
   }
 
   // Get status icons for trainings
@@ -224,8 +243,14 @@ export class ProfilePopupComponent implements AfterViewInit {
         return 'checkmark-circle-outline';
       case 'canceled':
         return 'close-circle-outline';
+      case 'cancelled':
+        return 'close-circle-outline';
       case 'pending':
         return 'time-outline';
+      case 'refunded':
+        return 'cash-outline';
+      case 'completed':
+        return 'checkmark-circle-outline';
       default:
         return 'alert-circle-outline';
     }
@@ -235,9 +260,15 @@ export class ProfilePopupComponent implements AfterViewInit {
     switch (status) {
       case 'approved':
         return 'success';
+      case 'completed':
+        return 'success';
       case 'canceled':
         return 'danger';
+      case 'cancelled':
+        return 'danger';
       case 'pending':
+        return 'warning';
+      case 'refunded':
         return 'warning';
       default:
         return 'medium';
@@ -294,6 +325,10 @@ export class ProfilePopupComponent implements AfterViewInit {
   await actionSheet.present();
 }
 
-
-
+loadUserPurchases() {
+  this.profileService.fetchUserPurchases(this.userID).subscribe((purchases: any[]) => {
+    console.log("purchases", purchases);
+    this.userPurchases = purchases;
+  });
+}
 }

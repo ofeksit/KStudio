@@ -12,4 +12,5 @@ export interface Appointment {
   total_participants: number;     // Optional for timeslots
   googleCalendarEventId?: string; // Add Google Calendar ID
   isFull?: boolean;
+  providerId?: number;
 }
