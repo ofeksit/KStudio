@@ -482,6 +482,9 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   enrollUser(appointment: Appointment) {    
     let serviceID= appointment.serviceID;
     let bookingStart = appointment.start_time;
+    const formattedBookingStart = bookingStart.slice(0, 16);
+    console.log(formattedBookingStart);
+
     let providerId = appointment.providerId;
 
     let customerID = this.authService.getCustomerID();
@@ -506,7 +509,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
         }
       }
     ],
-    bookingStart: bookingStart
+    bookingStart: formattedBookingStart
   };
 
     console.log("data", enrollData)

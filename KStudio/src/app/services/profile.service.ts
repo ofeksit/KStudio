@@ -57,9 +57,9 @@ export class ProfileService {
 // Get last 60 days appointments and filter for logged-in user by email
 getLast60DaysAppointmentsForUser(): Observable<any> {
   const today = new Date();
-  const endDate = this.formatDate(today);
+  const endDate = this.formatDate(new Date(today.setDate(today.getDate() + 30)));
   const startDate = this.formatDate(new Date(today.setDate(today.getDate() - 60)));
-
+  console.log("start date:", startDate, "end date:", endDate, "today", today)
   const url = `/api/appointments&dates=${startDate},${endDate}&skipServices=1&skipProviders=1`;
 
   const userEmail = this.authService.getUserEmail(); // Logged-in user's email
@@ -68,7 +68,7 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   
   return this.http.get(url, { headers: this.headers }).pipe(
     map((response: any) => {
-      //console.log('API Response:', response);
+      console.log('API Response:', response);
 
       if (response && response.data && response.data.appointments) {
         let userAppointments: any[] = [];
@@ -157,8 +157,8 @@ fetchUserPurchases(userId: string | null): Observable<any> {
   );
 }
 
-cancelBooking(bookingId: string): Observable<any>{
-  const url = '/api/bookings/delete/'+bookingId;
+cancelBooking(bookingId: string): Observable<any> {
+  const url = `https://k-studio.co.il/wp-json/wn/v1/cancel-booking/${bookingId}`;
 
   return this.http.post(url, {});
 }

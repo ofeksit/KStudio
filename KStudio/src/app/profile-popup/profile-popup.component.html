@@ -20,7 +20,7 @@
 
   <div class="header-tabs">
     <!-- Tabs for Trainings and Purchases -->
-    <ion-segment mode="md" [(ngModel)]="selectedTab" class="segment-tab">
+    <ion-segment mode="md" [(ngModel)]="selectedTab" class="segment-tab" (ionChange)="onTabChange($event)">
       <ion-segment-button value="trainings" class="header-tab">
         <ion-label>אימונים</ion-label>
       </ion-segment-button>
@@ -55,8 +55,39 @@
 
   <!-- List of User's Appointments -->
   <div *ngIf="selectedTab === 'trainings'">
+
+    <div class="filter-header" *ngIf="!isLoading">
+      <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
+        <ion-icon name="options-outline" slot="start"></ion-icon>
+        סינון
+      </ion-button>
+    </div>        
+
+    <!-- Modern Dropdown for Filters -->
+    <ion-list *ngIf="showDropdown" class="filter-dropdown">
+      <ion-item>
+        <ion-label style="text-indent: 8px;">הצג</ion-label>
+        <ion-segment [(ngModel)]="availabilityFilter" (ionChange)="onFilterChange()">
+          <ion-segment-button value="all">
+            <ion-label class="sub-label">הכל</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="approved">
+            <ion-label class="sub-label">
+              <ion-icon name="checkmark-circle-outline" slot="start" color="success"></ion-icon>
+            </ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="cancelled">
+            <ion-label class="sub-label">
+              <ion-icon name="close-circle-outline" slot="start" color="danger"></ion-icon>
+            </ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-item>
+    </ion-list>
+
+
     <ion-list>
-      <ion-card *ngFor="let appointment of userAppointments" (click)="showActions(appointment)">
+      <ion-card *ngFor="let appointment of filteredAppointments" (click)="appointment.userBookingStatus === 'approved' ? showActions(appointment) : null">
         <ion-card-header>
                    <!-- Arrow and Status icon -->
                    <div class="icon-container">
@@ -68,7 +99,7 @@
                     </ion-icon>
 
                     <!-- Arrow icon aligned in left-center -->
-                    <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+                    <ion-icon  *ngIf="appointment.userBookingStatus == 'approved'" name="chevron-forward-outline" class="arrow-icon"></ion-icon>
                   </div>
 
           <!-- Title and Date/Time -->

@@ -24,10 +24,10 @@
 }
 
 .header-tab {
-  display: flex;
+  //display: flex;
   justify-content: center;
   align-items: center; /* Ensures vertical alignment */
-  margin-bottom: 10px;
+  //margin-bottom: 10px;
   width: 100%; /* Ensures full width for centering */
   padding: 0;
   border: none;
@@ -107,7 +107,7 @@ p {
 }
 
 ion-segment {
-  margin-bottom: 20px;  
+  //margin-bottom: 20px;  
 }
 
 ion-list {
@@ -184,5 +184,49 @@ ion-segment-button.ion-activated {
   //border-radius: 15px;
   padding: 12px 20px;
   //--color: #333;                 /* Slightly darker for inactive */
-  border: 1px solid #ddd;        /* Softer border for iOS */
 }
+
+
+//Each ion Segment
+.filter-segment {
+  color: red;
+}
+
+.filter-button {
+  --border-radius: 30px;  /* Rounded button */
+  --padding-start: 15px;  /* Padding inside button */
+  --padding-end: 15px;
+  --background: #fff;
+  --box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  --color: #000;          /* Black text color */
+  --icon-size: 20px;      /* Adjust the icon size */
+  --border-color: #E5E5E5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 150px;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 25px;
+}
+
+.filter-button:hover {
+  --background: #f5f5f5;  /* Slight color change on hover */
+}
+
+.filter-dropdown {
+  margin-bottom: 15px;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.sub-label {
+  color: #2c2c2c;
+  font-weight: normal !important;
+}
+
+

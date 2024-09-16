@@ -7,6 +7,7 @@ import { Training } from '../Models/training';
 import { Booking } from '../Models/booking';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-profile-popup',
@@ -29,8 +30,12 @@ export class ProfilePopupComponent implements AfterViewInit {
   isLoading: boolean = true; // Set loading to true initially
   errorMessage: string = '';
 
-
+  availabilityFilter: string = '';
+  showDropdown: boolean = false;
+  selectedType: string = '';
   userAppointments: Booking[] = [];
+  filteredAppointments: Booking[] = [];
+  unfilteredAppointments: Booking[] = [];
   userPurchases: any[] = [];
   
   constructor(
@@ -87,9 +92,15 @@ export class ProfilePopupComponent implements AfterViewInit {
 
     
   ngOnInit() {
+    // Load the last saved filter choice from local storage (if exists)
+    const savedFilter = localStorage.getItem('userFilterChoice');
+    if (savedFilter) {
+      this.availabilityFilter = savedFilter;
+    }
     this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = this.translateUserRole(data.roles[0]);});
     this.loadUserAppointmentsLast60Days();
-    this.loadUserPurchases();
+    // Apply the filter after loading appointments
+    this.updateFilteredAppointments();
 
 /*    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe((slots: any[]) => {
       // Now we have the available slots for the user
@@ -114,42 +125,37 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.isLoading = true;
     this.profileService.getLast60DaysAppointmentsForUser().subscribe((appointments: any[]) => {
       const promises: Promise<any>[] = [];
-  
-      // Process each appointment
+      
       appointments.forEach((appointment: any) => {
-        // Access the matched booking and its status
         const booking = appointment.matchedBooking;
-        const status = appointment.userBookingStatus; // This is the user's specific booking status
-  
+        const status = appointment.userBookingStatus;
+        
         if (booking) {
-          // Ensure the booking object contains the status and title
-          appointment.userBookingStatus = status; // Set the user's specific booking status
+          appointment.userBookingStatus = status;
           if (booking.googleCalendarEventId) {
-            // If there is a Google Calendar event ID, fetch the title
             const promise = this.profileService.fetchGoogleCalendarEventTitle(booking.googleCalendarEventId)
               .then((title: string) => {
-                appointment.title = title; // Set the title from the Google Calendar event
+                appointment.title = title;
               })
               .catch((error) => {
                 console.error('Error fetching Google Calendar event title:', error);
-                booking.title = 'כללי'; // Default title if there was an error
+                booking.title = 'כללי';
               });
-  
             promises.push(promise);
           } else {
-            // No eventId, use a default or existing title
             booking.title = 'כללי';
           }
         }
       });
-  
-      // Wait for all the titles to be fetched before updating the view
+      
       Promise.all(promises).then(() => {
-        // Update the user appointments after fetching titles
         this.userAppointments = appointments;
-        console.log("appointments", this.userAppointments)
+        this.filteredAppointments = [...this.userAppointments];
+  
+        // Apply the filter after appointments are loaded
+        this.updateFilteredAppointments();
+  
         this.isLoading = false;
-        //console.log('User Appointments (Last 60 Days):', this.userAppointments);
       });
     });
   }
@@ -325,10 +331,45 @@ export class ProfilePopupComponent implements AfterViewInit {
   await actionSheet.present();
 }
 
-loadUserPurchases() {
+  loadUserPurchases() {
   this.profileService.fetchUserPurchases(this.userID).subscribe((purchases: any[]) => {
     console.log("purchases", purchases);
     this.userPurchases = purchases;
   });
-}
+  }
+
+  onTabChange(event: any) {
+    this.selectedTab = event.detail.value;
+    
+    if (this.selectedTab == 'purchases')
+      this.loadUserPurchases();
+  }
+
+  // Toggle dropdown visibility
+  toggleFilterDropdown() {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  // Call this method when availability or type filters change
+  onFilterChange() {
+    this.updateFilteredAppointments();
+    // Save the current filter choice to local storage
+    localStorage.setItem('userFilterChoice', this.availabilityFilter);
+  }
+
+  updateFilteredAppointments() {
+    let tempAppointments = [...this.userAppointments];  // Ensure you are working with a copy
+       
+    // Filter by availability filter (approved, cancelled, or all)
+    if (this.availabilityFilter === 'approved') {
+      tempAppointments = tempAppointments.filter(appointment => appointment.userBookingStatus === 'approved');
+    } else if (this.availabilityFilter === 'cancelled') {
+      tempAppointments = tempAppointments.filter(appointment => appointment.userBookingStatus === 'canceled');
+    } 
+    // If 'all' is selected, no filtering is needed
+  
+    // Update the displayed filtered list
+    this.filteredAppointments = tempAppointments;
+  }
+  
 }
