@@ -1,3 +1,17 @@
-<p>
-  purchase works!
-</p>
+<ion-list>
+  <ion-item *ngFor="let product of products">
+    <ion-avatar slot="start">
+      <!-- Add an appropriate icon here based on the product or status -->
+      <ion-icon name="cart-outline"></ion-icon>
+    </ion-avatar>
+
+    <ion-label>
+      <h2>{{ product.name }}</h2>
+      <p>{{ product.price + ".00₪" }}</p>
+    </ion-label>
+
+    <ion-button fill="outline" (click)="buyProduct(product)">
+      רכישה
+    </ion-button>
+  </ion-item>
+</ion-list>
