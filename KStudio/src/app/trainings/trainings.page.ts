@@ -30,8 +30,8 @@ export class TrainingsPage implements AfterViewInit {
   isPopupVisible = false; // Participants Popup
   activeAppointment: Appointment | null = null; // Track the active appointment for popup
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
-  userId: number = 123; //Define active user ID
-  userEmail: string = "example@example.com"; //Define active user email
+  userId: string | null; //Define active user ID
+  userEmail: string | null = ""; //Define active user email
   isLoading: boolean = true; // Set loading to true initially
   filteredAppointments: Appointment[] = [];
   unfilteredList: Appointment[] = [];
@@ -74,7 +74,10 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 
   //#endregion
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {}
+  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
+    this.userId = this.authService.getUserID();
+    this.userEmail = this.authService.getUserEmail();
+  }
 
   ngOnInit() {
     // Set loading to true when API call starts
@@ -462,7 +465,9 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   }
 
   // Function to add user to standby list
-  addToStandbyList(appointmentId: number, customerId: number, email: string) {
+  addToStandbyList(appointmentId: number, customerId: string | null, email: string | null) {
+    console.log("user id:", customerId);
+    console.log("email", email);
     const url = 'https://k-studio.co.il/wp-json/standby-list/v1/add';
 
     const data = {
