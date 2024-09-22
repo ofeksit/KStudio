@@ -26,4 +26,14 @@ export class PurchaseService {
     const url = `${this.apiUrl}/products?category=${categoryId}&consumer_key=${this.consumerKey}&consumer_secret=${this.consumerSecret}`;
     return this.http.get(url);
   }
+
+  // Authenticate user with the stored JWT token
+  authenticateUser(token: string): Observable<any> {
+    const url = `https://k-studio.co.il/wp-json/jwt-auth/v1/token/validate`;
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(url, {}, { headers });
+  }
 }
