@@ -140,7 +140,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 30); // Fetch for 30 days
+    next30Days.setDate(today.getDate() + 20); // Fetch for 30 days
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
     
@@ -215,7 +215,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   fetchBookedAppointments(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 30); // Fetch for 30 days
+    next30Days.setDate(today.getDate() + 20); // Fetch for 30 days
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching to the next 7 days
   
