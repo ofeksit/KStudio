@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
+import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-trainings',
@@ -38,7 +40,9 @@ export class TrainingsPage implements AfterViewInit {
   private apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
 
 //#endregion
-  //#region Google Calendar
+  
+
+//#region Google Calendar
   private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
   private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
 
@@ -73,6 +77,8 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 }
 
   //#endregion
+
+  
 
   constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
     this.userId = this.authService.getUserID();
@@ -131,116 +137,143 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   }
 
   // Gets all the available timeslots
-  fetchAvailableTimeslots(): Promise<void> {
+  async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 30);
-
+    next30Days.setDate(today.getDate() + 30); // Fetch for 30 days
+    const next7Days = new Date(today);
+    next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
+    
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
-
+  
     return new Promise((resolve, reject) => {
-      // Fetch the serviceIDs from the role
-      this.getServicesByRole().subscribe((serviceIDs: number[]) => {
+      this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
         if (serviceIDs.length === 0) {
           return reject('No service IDs found');
         }
-
-        // Create a promise for each serviceID request
+  
         const timeslotRequests = serviceIDs.map(serviceID => {
-          const url = `/api/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}`;
+          const url = `/api/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
           return this.http.get<{ data: { slots: any } }>(url, {
             headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' }
           }).toPromise();
         });
-
-        // Wait for all requests to finish
-        Promise.all(timeslotRequests).then((responses) => {
-          // Combine all timeslots from the responses
-          this.availableTimeslots = responses.flatMap((response: any) => {
-            const timeslotsData = response.data.slots;
-
-            return Object.keys(timeslotsData).flatMap(date =>
-              Object.keys(timeslotsData[date]).map(time => ({
-                start_time: new Date(`${date}T${time}`).toISOString(),
-                end_time: new Date(`${date}T${time}`).toISOString(),
-                type: 'timeslot',
-                title: { name: 'אימון קבוצתי' }, // Default title
-                favorite: false,
-                current_participants: [],
-                total_participants: 8,
-                booked: 0,
-              }))
-            );
-          });
-          resolve(); // Resolve when all data is ready
-        }).catch(error => reject(error)); // Handle any error in the requests
-      }, error => reject(error)); // Error handling for service IDs
+  
+        Promise.all(timeslotRequests).then(async (responses) => {
+          this.availableTimeslots = [];
+  
+          for (const response of responses) {
+            if (response && response.data && response.data.slots) {
+              const timeslotsData = response.data.slots;
+  
+              for (const date of Object.keys(timeslotsData)) {
+                for (const time of Object.keys(timeslotsData[date])) {
+                  const start_time = new Date(`${date}T${time}`).toISOString();
+                  const end_time = new Date(`${date}T${time}`).toISOString();
+  
+                  // Check if the timeslot is within the next 7 days
+                  const timeslotDate = new Date(start_time);
+                  let title;
+                  if (timeslotDate <= next7Days) {
+                    // Fetch title only for the next 7 days
+                    title = { name: await this.getAppointmentTitleByDateTime(date, time) };
+                  } else {
+                    // Use default title for dates beyond 7 days
+                    title = { name: 'אימון קבוצתי' };
+                  }
+  
+                  this.availableTimeslots.push({
+                    start_time,
+                    end_time,
+                    type: 'timeslot',
+                    title, 
+                    favorite: false,
+                    current_participants: [],
+                    total_participants: 8,
+                    booked: 0,
+                  });
+                }
+              }
+            }
+          }
+          resolve();
+        }).catch(error => reject(error));
+      }, error => reject(error));
     });
   }
+  
+
+  
+  
 
   //Gets all the appointments
   fetchBookedAppointments(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 30);
-
+    next30Days.setDate(today.getDate() + 30); // Fetch for 30 days
+    const next7Days = new Date(today);
+    next7Days.setDate(today.getDate() + 7); // Limit title fetching to the next 7 days
+  
     const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     };
-
-    // Assume serviceID contains the required service IDs
-    //let serviceID: number[] = this.getServicesByRole(); // This is a placeholder, adjust as needed for async handling
-
+  
     return new Promise((resolve, reject) => {
       this.getServicesByRole().subscribe((serviceIDs: number[]) => {
-        console.log("serviceIDS", serviceIDs);
-      const url = '/api/appointments&dates='+formatDate(today)+','+formatDate(next30Days)+'&page=1&skipServices=1&skipProviders=1'; 
-      this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
-        async (response) => {
-          const appointmentData = response.data.appointments;
-          const now = new Date();
-          const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-            appointment.appointments.filter((app: any) =>
-              app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
-            ).map(async (app: any) => {
-              console.log("app", app);
-              const googleCalendarTitle = app.googleCalendarEventId
-                ? await this.fetchGoogleCalendarEventTitle(app.googleCalendarEventId)
-                : 'אימון קבוצתי'; // Fallback to default if no Google Calendar ID
-      
-              return {
-                id: app.id,
-                start_time: app.bookingStart,
-                end_time: app.bookingEnd,
-                type: 'appointment',
-                title: { name: googleCalendarTitle }, // Set the Google Calendar title
-                serviceID: app.serviceId,
-                favorite: false,
-                current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                  .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                total_participants: 8,
-                booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                providerId: app.providerId,
-              };
-            })
-          );
-          
-          this.bookedAppointments = await Promise.all(appointmentsPromises);
-          resolve(); // Resolve when data is ready
-        },
-        (error) => reject(error) // Reject on error
-      );
-    }, (error) => reject(error)); // Error handling for service IDs
-  });
+        const url = `/api/appointments&dates=${formatDate(today)},${formatDate(next30Days)}&page=1&skipServices=1&skipProviders=1`;
+        this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
+          async (response) => {
+            const appointmentData = response.data.appointments;
+            const now = new Date();
+            const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
+              appointment.appointments.filter((app: any) =>
+                app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
+              ).map(async (app: any) => {
+                const appointmentStartDate = new Date(app.bookingStart);
+                let appointmentTempTitle;
+  
+                if (appointmentStartDate <= next7Days) {
+                  // Fetch title only for the next 7 days
+                  appointmentTempTitle = await this.getAppointmentTitleByAppointment(app);
+                } else {
+                  // Use default title for appointments beyond 7 days
+                  appointmentTempTitle = 'אימון קבוצתי';
+                }
+  
+                return {
+                  id: app.id,
+                  start_time: app.bookingStart,
+                  end_time: app.bookingEnd,
+                  type: 'appointment',
+                  title: { name: appointmentTempTitle }, 
+                  serviceID: app.serviceId,
+                  favorite: false,
+                  current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
+                    .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
+                  total_participants: 8,
+                  booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+                  providerId: app.providerId,
+                };
+              })
+            );
+            
+            this.bookedAppointments = await Promise.all(appointmentsPromises);
+            resolve();
+          },
+          (error) => reject(error)
+        );
+      }, (error) => reject(error));
+    });
   }
+  
 
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
@@ -463,6 +496,77 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.activeAppointment = null;
     this.isPopupVisible = false;
   }
+
+  async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
+    // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
+    const formattedDate = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
+    const formattedTime = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('HH:mm');
+
+    try {
+        // Wait for the response from the API and handle the possibility of undefined
+        const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${formattedDate}`).toPromise() || [];
+
+        if (response.length > 0) {
+            
+            // Find the event that matches the appointment time
+            const matchingEvent = response.find(event => event.includes(formattedTime));
+            
+            if (matchingEvent) {
+                const eventParts = matchingEvent.split(' - ').map(part => part.trim()); // Trim both parts
+                
+                if (eventParts.length === 2) {
+                    return eventParts[1];  // Return the title from the matched event
+                }
+            } 
+            return 'אימון קבוצתי';  // Fallback title if no match is found
+        }
+        return 'אימון קבוצתי';  // Fallback title if no events are returned
+    } catch (error) {
+        console.log('No events found for this date, using default');
+        return 'אימון קבוצתי';  // Fallback title in case of error
+    }
+}
+
+async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
+
+  
+  // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
+  const formattedDate = moment(date, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
+  const formattedTime = time;
+  
+  console.log("Formatted Date: ", formattedDate);
+  console.log("Formatted Time: ", formattedTime);
+  
+  try {
+      // Wait for the response from the API and handle the possibility of undefined
+      const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${formattedDate}`).toPromise() || [];
+
+      if (response.length > 0) {
+          console.log("Response from API: ", response);
+          
+          // Find the event that matches the appointment time
+          const matchingEvent = response.find(event => event.includes(formattedTime));
+          console.log("Matching Event: ", matchingEvent);
+          
+          if (matchingEvent) {
+              const eventParts = matchingEvent.split(' - ').map(part => part.trim()); // Trim both parts
+              console.log("Event Parts: ", eventParts);
+              
+              if (eventParts.length === 2) {
+                  return eventParts[1];  // Return the title from the matched event
+              }
+          } 
+          return 'Default Title';  // Fallback title if no match is found
+      }
+      return 'Default Title';  // Fallback title if no events are returned
+  } catch (error) {
+      console.log('No events found for this date, using default');
+      return 'Default Title';  // Fallback title in case of error
+  }
+}
+
+
+
 
   // Function to add user to standby list
   addToStandbyList(appointmentId: number, customerId: string | null, email: string | null) {
