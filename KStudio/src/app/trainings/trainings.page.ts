@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs';
 import { of } from 'rxjs';
 import { DayTrainings } from '../Models/day-trainings';
+import { AmeliaService } from '../services/amelia-api.service';
 
 @Component({
   selector: 'app-trainings',
@@ -40,15 +41,7 @@ export class TrainingsPage implements AfterViewInit {
   unfilteredList: Appointment[] = [];
   
 
-  trainingsByDay: { [key: string]: DayTrainings[] } = {
-    Sunday: [],
-    Monday: [], 
-    Tuesday: [], 
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: []
-  };
+  trainingsByDay: any;
 
 //#endregion
   
@@ -91,7 +84,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 
   
 
-  constructor(private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
+  constructor(private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
   }
@@ -99,26 +92,39 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   async ngOnInit() {
     // Set loading to true when API call starts
     this.isLoading = true;
-    await this.fetchAllTrainings();
-    Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
-      this.combineTimeslotsAndAppointments();
-      this.unfilteredList = [...this.combinedList];
-      this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Ensure selectedDay is set
-      this.updateFilteredAppointments();  // Apply initial filters (including day filter)
-
-      // Load favorite trainings from localStorage
-      const favoriteTrainingIds = this.getFavoriteTrainings();
-      this.combinedList.forEach(training => {
-        if (training.id && favoriteTrainingIds.includes(training.id)) {
-          training.favorite = true;
-        }
+    this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+    
+    // Check if the titles have already been fetched
+    if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
+      // Fetch the training titles if not already available
+      await this.ameliaService.fetchTitleTrainings();
+      this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+    }
+  
+    // Once titles are fetched, proceed to load the rest of the data
+    Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()])
+      .then(() => {
+        this.combineTimeslotsAndAppointments();
+        this.unfilteredList = [...this.combinedList];
+        this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Ensure selectedDay is set
+        this.updateFilteredAppointments(); // Apply initial filters (including day filter)
+  
+        // Load favorite trainings from localStorage
+        const favoriteTrainingIds = this.getFavoriteTrainings();
+        this.combinedList.forEach((training) => {
+          if (training.id && favoriteTrainingIds.includes(training.id)) {
+            training.favorite = true;
+          }
+        });
+  
+        // Set loading to false when data is ready
+        this.isLoading = false;
+      })
+      .catch(() => {
+        this.isLoading = false; // Ensure loading is disabled even in case of errors
       });
-      // Set loading to false when data is ready
-      this.isLoading = false;
-    }).catch(() => {
-      this.isLoading = false; // Ensure loading is disabled even in case of errors
-    });
   }
+  
 
   ngAfterViewInit() {
     setTimeout(() => {
@@ -502,7 +508,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.isPopupVisible = false;
   }
 
-  // Function to fetch trainings for all days and store them in list
+  /* Function to fetch trainings for all days and store them in list
   async fetchAllTrainings() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -522,21 +528,18 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
           });
       }
     }
-  }
+  }*/
 
   async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
     // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
-    const date = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
-    console.log("date from moment:", date.trim())
+    const date = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');    
     const formattedDay = this.getDayFromDate(date.trim());
     const formattedTime = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('HH:mm');
-    
-    console.log("formatedDay", formattedDay);
-    console.log("formattedTime", formattedTime);
+
     // Check if the day exists in trainingsByDay
     if (this.trainingsByDay[formattedDay]) {
       // Find the training by matching the time
-      const training = this.trainingsByDay[formattedDay].find(t => t.time === formattedTime);      
+      const training = this.trainingsByDay[formattedDay].find((t: { time: string; }) => t.time === formattedTime);      
       // Return the title if found, or null if no match
       if (training) {
         return training.title;
@@ -546,9 +549,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 }
 
   getDayFromDate(dateString: string): string {
-    console.log("date string", dateString)
-    
-    // Parse the date in DD/MM/YYYY format using Moment.js
+        // Parse the date in DD/MM/YYYY format using Moment.js
     const date = moment(dateString, "DD/MM/YYYY").toDate();
     // Array of day names
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -561,14 +562,12 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 
   // Your original function modified to use the initialized data
   async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
-    console.log("date", date);
     const formattedDate = moment(date, "YYYY-MM-DD").format('DD/MM/YYYY');
-    console.log("formattedDate", formattedDate)
     const day = this.getDayFromDate(formattedDate);
     // Check if the day exists in trainingsByDay
     if (this.trainingsByDay[day]) {
       // Find the training by matching the time
-      const training = this.trainingsByDay[day].find(t => t.time === time);      
+      const training = this.trainingsByDay[day].find((t: { time: string; }) => t.time === time);      
       // Return the title if found, or null if no match
       if (training) {
         return training.title;
