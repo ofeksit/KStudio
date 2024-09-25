@@ -48,45 +48,6 @@ export class TrainingsPage implements AfterViewInit {
 
 //#endregion
   
-
-//#region Google Calendar
-  private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
-  private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
-
-  
-fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
-
-    this.http.get<any>(calendarApiUrl).subscribe(
-      (response) => {
-        if (response && response.summary) {
-          const fullTitle = response.summary.trim();
-
-          // Find the first known training type in the title
-          const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
-
-          if (trainingType) {
-            resolve(trainingType); // Return the found training type as the title
-          } else {
-            resolve('כללי'); // Fallback if no known type is found
-          }
-        } else {
-          resolve('כללי'); // Fallback if no title is found
-        }
-      },
-      (error) => {
-        console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
-        resolve('כללי'); // Fallback to default if error occurs
-      }
-    );
-  });
-}
-
-  //#endregion
-
-  
-
   constructor(private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
@@ -525,28 +486,6 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.activeAppointment = null;
     this.isPopupVisible = false;
   }
-
-  /* Function to fetch trainings for all days and store them in list
-  async fetchAllTrainings() {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-    for (const day of days) {
-      const today = moment();
-      const targetDate = moment().day(day).format('DD/MM/YYYY');
-
-      const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${targetDate}`).toPromise() || [];
-
-      if (response.length > 0) {
-        console.log(`Trainings for ${day}:`, response);
-  
-          // Clean up the response and map it to the DayTrainings type
-          this.trainingsByDay[day] = response.map(event => {
-              const [time, title] = event.split(' - ').map(part => part.trim()); // Split time and title
-              return { time, title }; // Return as a DayTrainings object
-          });
-      }
-    }
-  }*/
 
   async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
     // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"

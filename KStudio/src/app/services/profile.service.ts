@@ -16,42 +16,6 @@ export class ProfileService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-
-     //#region Google Calendar
-     private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
-     private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
-     knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', 'אימון קבוצתי' ]; // Array of known training types
-     
-   fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
-     return new Promise((resolve, reject) => {
-       const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
-       
-       this.http.get<any>(calendarApiUrl).subscribe(
-         (response) => {
-           if (response && response.summary) {
-             const fullTitle = response.summary.trim();
-   
-             // Find the first known training type in the title
-             const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
-             
-             if (trainingType) {
-               resolve(trainingType); // Return the found training type as the title
-             } else {
-               resolve('כללי'); // Fallback if no known type is found
-             }
-           } else {
-             resolve('כללי'); // Fallback if no title is found
-           }
-         },
-         (error) => {
-           console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
-           resolve('כללי'); // Fallback to default if error occurs
-         }
-       );
-     });
-   }
-   
-     //#endregion
  
  
 // Get last 60 days appointments and filter for logged-in user by email
@@ -59,7 +23,7 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   const today = new Date();
   const endDate = this.formatDate(new Date(today.setDate(today.getDate() + 30)));
   const startDate = this.formatDate(new Date(today.setDate(today.getDate() - 60)));
-  console.log("start date:", startDate, "end date:", endDate, "today", today)
+  
   const url = `/api/appointments&dates=${startDate},${endDate}&skipServices=1&skipProviders=1`;
 
   const userEmail = this.authService.getUserEmail(); // Logged-in user's email
@@ -68,8 +32,6 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   
   return this.http.get(url, { headers: this.headers }).pipe(
     map((response: any) => {
-      console.log('API Response:', response);
-
       if (response && response.data && response.data.appointments) {
         let userAppointments: any[] = [];
 
@@ -119,25 +81,51 @@ getLast60DaysAppointmentsForUser(): Observable<any> {
   );
 }
 
-  // Function to fetch available package slots using customer ID
-fetchAvailablePackageSlots(customerId: string | null): Observable<any> {
-  const url = `/api/packages/slots`;
-  
+// Function to fetch available package slots and expiry date using customer ID
+fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlots: number, expiryDate: string }> {
+  const url = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
 
-  return this.http.get(url, { headers: this.headers }).pipe(
+  return this.http.get(url, {}).pipe(
     map((response: any) => {
-      console.log('API Response:', response);  // Log the response for debugging
-      if (response && response.data) {
-        return response.data;
+      if (response && response.data && response.data.length > 0) {
+        // Navigate through the response structure to get available slots and purchased date
+        const packages = response.data[0].packages;
+
+        if (packages && packages.length > 0) {
+          const purchases = packages[0].purchases;
+
+          if (purchases && purchases.length > 0) {
+            const availableSlots = purchases[0].purchase[0].available;
+            const purchasedDate = purchases[0].purchased;
+
+            // Calculate the expiry date (30 days from the purchased date)
+            const expiryDate = new Date(purchasedDate);
+            expiryDate.setDate(expiryDate.getDate() + 30); // Add 30 days
+
+            // Format the expiry date to "dd/mm/yyyy"
+            const formattedExpiryDate = `${expiryDate.getDate().toString().padStart(2, '0')}/${
+            (expiryDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryDate.getFullYear()}`;
+
+
+            return {
+              availableSlots: availableSlots,  // Return the available slots
+              expiryDate: formattedExpiryDate  // Return the formatted expiry date
+            };
+          }
+        }
       }
-      return []; // Handle no data found
+
+      // Default return if no data is found
+      return { availableSlots: 0, expiryDate: '' };
     }),
     catchError((error) => {
       console.error('API Error:', error);  // Log the error
-      return of([]); // Return an empty array or handle error as needed
+      return of({ availableSlots: 0, expiryDate: '' }); // Return default values on error
     })
   );
 }
+
+
 
 fetchUserPurchases(userId: string | null): Observable<any> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/user-purchases/${userId}`;

@@ -7,7 +7,10 @@ import { Training } from '../Models/training';
 import { Booking } from '../Models/booking';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
-import { filter } from 'rxjs';
+import { filter, Observable } from 'rxjs';
+import { AmeliaService } from '../services/amelia-api.service';
+import * as moment from 'moment';
+
 
 @Component({
   selector: 'app-profile-popup',
@@ -29,7 +32,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   selectedTab: string = 'trainings';  // Default selected tab
   isLoading: boolean = true; // Set loading to true initially
   errorMessage: string = '';
-
+  trainingsByDay: any;
   availabilityFilter: string = '';
   showDropdown: boolean = false;
   selectedType: string = '';
@@ -45,7 +48,8 @@ export class ProfilePopupComponent implements AfterViewInit {
     private profileService: ProfileService,
     private authService: AuthService,
     private http: HttpClient,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private ameliaService: AmeliaService
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.translateUserRole(this.authService.getUserRole());
@@ -53,45 +57,30 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userID = this.authService.getUserID();
   }
 
-    //#region Google Calendar
-    private API_KEY = 'AIzaSyDEKdEsUqP-YLZJg7FxbzXGkIo6g3QXKXI'; // API Key for google calendar
-    private CALENDAR_ID = 'rmhv208cik8co84gk1qnijslu4@group.calendar.google.com'; // Calendar ID for groups trainings
-  
     
-  fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
-    console.log("eventid", eventId);
-    return new Promise((resolve, reject) => {
-      const calendarApiUrl = `https://www.googleapis.com/calendar/v3/calendars/${this.CALENDAR_ID}/events/${eventId}?key=${this.API_KEY}`;
-      
-      this.http.get<any>(calendarApiUrl).subscribe(
-        (response) => {
-          if (response && response.summary) {
-            const fullTitle = response.summary.trim();
-  
-            // Find the first known training type in the title
-            const trainingType = this.knownTrainingTypes.find(type => fullTitle.includes(type));
-  
-            if (trainingType) {
-              resolve(trainingType); // Return the found training type as the title
-            } else {
-              resolve('כללי'); // Fallback if no known type is found
-            }
-          } else {
-            resolve('כללי'); // Fallback if no title is found
-          }
-        },
-        (error) => {
-          console.error('Error fetching Google Calendar event:', error); // Log the error for debugging
-          resolve('כללי'); // Fallback to default if error occurs
-        }
-      );
-    });
-  }
-  
-    //#endregion
+  async ngOnInit() {
+    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe(
+      ({ availableSlots, expiryDate }) => {
+        this.slotsLeft = availableSlots;  // Assign the available slots
+        this.nextRenewalDate = expiryDate;  // Assign the expiry date
+        console.log("Available slots left:", this.slotsLeft);
+        console.log("Expiry date:", this.nextRenewalDate);
+      },
+      (error) => {
+        console.error('Error fetching available slots and expiry date:', error);
+        this.slotsLeft = 0;
+        this.nextRenewalDate = '';  // Handle error by setting default values
+      }
+    );
+    this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+    
+    // Check if the titles have already been fetched
+    if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
+      // Fetch the training titles if not already available
+      await this.ameliaService.fetchTitleTrainings();
+      this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+    }
 
-    
-  ngOnInit() {
     // Load the last saved filter choice from local storage (if exists)
     const savedFilter = localStorage.getItem('userFilterChoice');
     if (savedFilter) {
@@ -102,13 +91,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     // Apply the filter after loading appointments
     this.updateFilteredAppointments();
 
-/*    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe((slots: any[]) => {
-      // Now we have the available slots for the user
-      console.log('Available package slots:', slots);
-
-      // Assuming you want to display the number of available slots
-      this.slotsLeft = slots.length;
-    })*/
+    
   }
 
   async presentToast(message: string, color: string) {
@@ -123,31 +106,33 @@ export class ProfilePopupComponent implements AfterViewInit {
 
   loadUserAppointmentsLast60Days() {
     this.isLoading = true;
-    this.profileService.getLast60DaysAppointmentsForUser().subscribe((appointments: any[]) => {
+    this.profileService.getLast60DaysAppointmentsForUser().subscribe(async (appointments: any[]) => {
       const promises: Promise<any>[] = [];
       
-      appointments.forEach((appointment: any) => {
+      for (const appointment of appointments) {
         const booking = appointment.matchedBooking;
         const status = appointment.userBookingStatus;
-        
+  
         if (booking) {
           appointment.userBookingStatus = status;
-          if (booking.googleCalendarEventId) {
-            const promise = this.profileService.fetchGoogleCalendarEventTitle(booking.googleCalendarEventId)
-              .then((title: string) => {
-                appointment.title = title;
-              })
-              .catch((error) => {
-                console.error('Error fetching Google Calendar event title:', error);
-                booking.title = 'כללי';
-              });
-            promises.push(promise);
-          } else {
-            booking.title = 'כללי';
-          }
+
+          // Fetch the title from the trainingsByDay using the date and time from the booking
+          const bookingDate = moment(appointment.bookingStart).format('YYYY-MM-DD');
+          const bookingTime = moment(appointment.bookingStart).format('HH:mm');
+  
+          const promise = this.getAppointmentTitleByDateTime(bookingDate, bookingTime)
+            .then((title: string) => {
+              appointment.title = title || 'כללי';  // Set the title or fallback to 'כללי'
+            })
+            .catch((error) => {
+              console.error('Error fetching appointment title:', error);
+              appointment.title = 'כללי';  // Fallback title in case of error
+            });
+  
+          promises.push(promise);
         }
-      });
-      
+      }
+  
       Promise.all(promises).then(() => {
         this.userAppointments = appointments;
         this.filteredAppointments = [...this.userAppointments];
@@ -156,8 +141,40 @@ export class ProfilePopupComponent implements AfterViewInit {
         this.updateFilteredAppointments();
   
         this.isLoading = false;
+      }).catch(() => {
+        this.isLoading = false;  // Ensure loading is disabled even in case of errors
       });
     });
+  }
+  
+
+    getDayFromDate(dateString: string): string {
+        // Parse the date in DD/MM/YYYY format using Moment.js
+    const date = moment(dateString, "DD/MM/YYYY").toDate();
+    // Array of day names
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    // Get the day of the week (0-6)
+    const dayIndex = date.getDay();
+    // Return the corresponding day name
+    return daysOfWeek[dayIndex];
+  }
+
+
+  // Your original function modified to use the initialized data
+  async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
+    const formattedDate = moment(date, "YYYY-MM-DD").format('DD/MM/YYYY');
+    const day = this.getDayFromDate(formattedDate);
+
+    // Check if the day exists in trainingsByDay
+    if (this.trainingsByDay[day]) {
+      // Find the training by matching the time
+      const training = this.trainingsByDay[day].find((t: { time: string; }) => t.time === time);      
+      // Return the title if found, or null if no match
+      if (training) {
+        return training.title;
+      }
+    }
+    return 'NONE'; // Return null if no match found
   }
   
   //Fetch user role to hebrew description
@@ -371,5 +388,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     // Update the displayed filtered list
     this.filteredAppointments = tempAppointments;
   }
+
+
   
 }

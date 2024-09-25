@@ -89,10 +89,7 @@ export class AmeliaService {
     }
   }
   
-
   getTrainingsTitles(): any {
     return this.trainingsByDay;
   }
-  
-
 }
