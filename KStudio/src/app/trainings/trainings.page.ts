@@ -6,6 +6,7 @@ import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs';
 import { of } from 'rxjs';
+import { DayTrainings } from '../Models/day-trainings';
 
 @Component({
   selector: 'app-trainings',
@@ -37,7 +38,17 @@ export class TrainingsPage implements AfterViewInit {
   isLoading: boolean = true; // Set loading to true initially
   filteredAppointments: Appointment[] = [];
   unfilteredList: Appointment[] = [];
-  private apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
+  
+
+  trainingsByDay: { [key: string]: DayTrainings[] } = {
+    Sunday: [],
+    Monday: [], 
+    Tuesday: [], 
+    Wednesday: [],
+    Thursday: [],
+    Friday: [],
+    Saturday: []
+  };
 
 //#endregion
   
@@ -85,10 +96,10 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.userEmail = this.authService.getUserEmail();
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // Set loading to true when API call starts
     this.isLoading = true;
-  
+    await this.fetchAllTrainings();
     Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()]).then(() => {
       this.combineTimeslotsAndAppointments();
       this.unfilteredList = [...this.combinedList];
@@ -126,6 +137,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
   
   //Get Services ID by loggedin role user
   getServicesByRole() {
+    const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
     // Get user role from localStorage
     const userRole = localStorage.getItem('user_role');
     console.log("userRole", userRole);
@@ -133,7 +145,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     const role = userRole ? userRole : 'guest';
 
     // Call the WordPress API with the role in the URL
-    return this.http.get<number[]>(`${this.apiUrl}${role}`);
+    return this.http.get<number[]>(`${apiUrl}${role}`);
   }
 
   // Gets all the available timeslots
@@ -206,10 +218,6 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       }, error => reject(error));
     });
   }
-  
-
-  
-  
 
   //Gets all the appointments
   fetchBookedAppointments(): Promise<void> {
@@ -274,7 +282,6 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     });
   }
   
-
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
@@ -483,8 +490,6 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     return appointment.current_participants >= appointment.total_participants;
   }
 
-
-
   // Method to show the popup
   showParticipantsPopup(appointment: Appointment) {
     this.activeAppointment = appointment;
@@ -497,76 +502,80 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
     this.isPopupVisible = false;
   }
 
-  async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
-    // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
-    const formattedDate = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
-    const formattedTime = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('HH:mm');
+  // Function to fetch trainings for all days and store them in list
+  async fetchAllTrainings() {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    try {
-        // Wait for the response from the API and handle the possibility of undefined
-        const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${formattedDate}`).toPromise() || [];
+    for (const day of days) {
+      const today = moment();
+      const targetDate = moment().day(day).format('DD/MM/YYYY');
 
-        if (response.length > 0) {
-            
-            // Find the event that matches the appointment time
-            const matchingEvent = response.find(event => event.includes(formattedTime));
-            
-            if (matchingEvent) {
-                const eventParts = matchingEvent.split(' - ').map(part => part.trim()); // Trim both parts
-                
-                if (eventParts.length === 2) {
-                    return eventParts[1];  // Return the title from the matched event
-                }
-            } 
-            return 'אימון קבוצתי';  // Fallback title if no match is found
-        }
-        return 'אימון קבוצתי';  // Fallback title if no events are returned
-    } catch (error) {
-        console.log('No events found for this date, using default');
-        return 'אימון קבוצתי';  // Fallback title in case of error
-    }
-}
-
-async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
-
-  
-  // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
-  const formattedDate = moment(date, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
-  const formattedTime = time;
-  
-  console.log("Formatted Date: ", formattedDate);
-  console.log("Formatted Time: ", formattedTime);
-  
-  try {
-      // Wait for the response from the API and handle the possibility of undefined
-      const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${formattedDate}`).toPromise() || [];
+      const response: string[] = await this.http.get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${targetDate}`).toPromise() || [];
 
       if (response.length > 0) {
-          console.log("Response from API: ", response);
-          
-          // Find the event that matches the appointment time
-          const matchingEvent = response.find(event => event.includes(formattedTime));
-          console.log("Matching Event: ", matchingEvent);
-          
-          if (matchingEvent) {
-              const eventParts = matchingEvent.split(' - ').map(part => part.trim()); // Trim both parts
-              console.log("Event Parts: ", eventParts);
-              
-              if (eventParts.length === 2) {
-                  return eventParts[1];  // Return the title from the matched event
-              }
-          } 
-          return 'Default Title';  // Fallback title if no match is found
+        console.log(`Trainings for ${day}:`, response);
+  
+          // Clean up the response and map it to the DayTrainings type
+          this.trainingsByDay[day] = response.map(event => {
+              const [time, title] = event.split(' - ').map(part => part.trim()); // Split time and title
+              return { time, title }; // Return as a DayTrainings object
+          });
       }
-      return 'Default Title';  // Fallback title if no events are returned
-  } catch (error) {
-      console.log('No events found for this date, using default');
-      return 'Default Title';  // Fallback title in case of error
+    }
   }
+
+  async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
+    // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
+    const date = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');
+    console.log("date from moment:", date.trim())
+    const formattedDay = this.getDayFromDate(date.trim());
+    const formattedTime = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('HH:mm');
+    
+    console.log("formatedDay", formattedDay);
+    console.log("formattedTime", formattedTime);
+    // Check if the day exists in trainingsByDay
+    if (this.trainingsByDay[formattedDay]) {
+      // Find the training by matching the time
+      const training = this.trainingsByDay[formattedDay].find(t => t.time === formattedTime);      
+      // Return the title if found, or null if no match
+      if (training) {
+        return training.title;
+      }
+    }
+    return 'NONE_1'; // Return null if no match found
 }
 
+  getDayFromDate(dateString: string): string {
+    console.log("date string", dateString)
+    
+    // Parse the date in DD/MM/YYYY format using Moment.js
+    const date = moment(dateString, "DD/MM/YYYY").toDate();
+    // Array of day names
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    // Get the day of the week (0-6)
+    const dayIndex = date.getDay();
+    // Return the corresponding day name
+    return daysOfWeek[dayIndex];
+  }
 
 
+  // Your original function modified to use the initialized data
+  async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
+    console.log("date", date);
+    const formattedDate = moment(date, "YYYY-MM-DD").format('DD/MM/YYYY');
+    console.log("formattedDate", formattedDate)
+    const day = this.getDayFromDate(formattedDate);
+    // Check if the day exists in trainingsByDay
+    if (this.trainingsByDay[day]) {
+      // Find the training by matching the time
+      const training = this.trainingsByDay[day].find(t => t.time === time);      
+      // Return the title if found, or null if no match
+      if (training) {
+        return training.title;
+      }
+    }
+    return 'NONE'; // Return null if no match found
+  }
 
   // Function to add user to standby list
   addToStandbyList(appointmentId: number, customerId: string | null, email: string | null) {
