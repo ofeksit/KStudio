@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { of } from 'rxjs';
 import { DayTrainings } from '../Models/day-trainings';
 import { AmeliaService } from '../services/amelia-api.service';
+import { ToastController  } from '@ionic/angular';
 
 @Component({
   selector: 'app-trainings',
@@ -39,9 +40,11 @@ export class TrainingsPage implements AfterViewInit {
   isLoading: boolean = true; // Set loading to true initially
   filteredAppointments: Appointment[] = [];
   unfilteredList: Appointment[] = [];
-  
-
   trainingsByDay: any;
+  showToast: boolean = false;
+  toastMessage: string = '';
+  toastColor: string = 'success';
+  errorMessage: string = '';
 
 //#endregion
   
@@ -84,13 +87,17 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
 
   
 
-  constructor(private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
+  constructor(private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
   }
 
   async ngOnInit() {
     // Set loading to true when API call starts
+    if (this.authService.getUserRole() == 'inactive'){
+      this.errorMessage = 'לא ניתן לבצע אימונים,  המשתמש לא פעיל'
+      this.presentToast(this.errorMessage, 'danger');
+    }
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     
@@ -123,6 +130,16 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       .catch(() => {
         this.isLoading = false; // Ensure loading is disabled even in case of errors
       });
+  }
+
+  async presentToast (message: string, color: string){
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000, 
+      color: color,
+      position: 'bottom',
+    });
+    await toast.present();
   }
   
 
@@ -224,6 +241,7 @@ fetchGoogleCalendarEventTitle(eventId: string): Promise<string> {
       }, error => reject(error));
     });
   }
+
 
   //Gets all the appointments
   fetchBookedAppointments(): Promise<void> {
