@@ -63,8 +63,6 @@ export class ProfilePopupComponent implements AfterViewInit {
       ({ availableSlots, expiryDate }) => {
         this.slotsLeft = availableSlots;  // Assign the available slots
         this.nextRenewalDate = expiryDate;  // Assign the expiry date
-        console.log("Available slots left:", this.slotsLeft);
-        console.log("Expiry date:", this.nextRenewalDate);
       },
       (error) => {
         console.error('Error fetching available slots and expiry date:', error);
@@ -314,10 +312,13 @@ export class ProfilePopupComponent implements AfterViewInit {
   cancelBooking(bookingId: string) {
     this.profileService.cancelBooking(bookingId).subscribe(
       (data: any) => {
-        // Now we have the available slots for the user
-        console.log('Data is:', data);
+        this.errorMessage = 'האימון בוטל בהצלחה'
+        this.presentToast(this.errorMessage, 'success');
+        console.log("data in cancelling", data);
       },
       (error) => {
+        this.errorMessage = 'לא ניתן לבטל אימון זה, אנא נסה שנית'
+        this.presentToast(this.errorMessage, 'danger');
         console.error('Error occurred while canceling the booking', error);
       }
     );

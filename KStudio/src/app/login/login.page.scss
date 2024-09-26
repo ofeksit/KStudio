@@ -90,7 +90,7 @@ ion-content {
   }
 
   .login-btn {
-    background: rgba(225, 114, 0); /* Fallback for Ionic background */
+    background: #37c6c2; /* Fallback for Ionic background */
     border-radius: 25px;
     font-weight: bold;
     font-size: 18px;
@@ -100,7 +100,7 @@ ion-content {
     background-activated: #744114; /* Custom activated background fallback */
   
     /* Use Ionic variables as well for better compatibility */
-    --background: rgba(225, 114, 0);
+    --background:#37c6c2;
     --border-radius: 25px;
     --background-activated: #744114;
   

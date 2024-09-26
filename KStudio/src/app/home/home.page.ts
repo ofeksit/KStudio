@@ -55,6 +55,7 @@ export class HomePage implements OnInit {
     );
   }
   
+
   async openNotifications() {
     const modal = await this.modalCtrl1.create({
       component: NotificationPopupComponent,
@@ -69,7 +70,7 @@ export class HomePage implements OnInit {
   
 
   openWhatsApp() {
-    const phoneNumber = 'YOUR_PHONE_NUMBER';  // Replace with your WhatsApp number in international format
+    const phoneNumber = '+972547937089';  // Replace with your WhatsApp number in international format
     window.open(`https://wa.me/${phoneNumber}`, '_blank');
   }
 

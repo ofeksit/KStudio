@@ -23,7 +23,6 @@ export class TrainingsPage implements AfterViewInit {
   selectedFilterAllFav: string = 'all';  // Default to "All" tab
   selectedType: string = '';  // Default: no type filter
   availabilityFilter: string = 'all';  // Default: show all
-
   showDropdown: boolean = false;  // Controls the visibility of the filter dropdown
   availableTypes: string[] = [];  // Array of available training types
   availableTimeslots: Appointment[] = []; //Timeslots list
@@ -124,7 +123,6 @@ export class TrainingsPage implements AfterViewInit {
     const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
     // Get user role from localStorage
     const userRole = localStorage.getItem('user_role');
-    console.log("userRole", userRole);
     // If no role is found, default to 'guest'
     const role = userRole ? userRole : 'guest';
 
@@ -225,7 +223,6 @@ export class TrainingsPage implements AfterViewInit {
         this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
           async (response) => {
             const appointmentData = response.data.appointments;
-            console.log("appointments", appointmentData)
             const now = new Date();
             const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
               appointment.appointments.filter((app: any) =>
@@ -548,6 +545,8 @@ export class TrainingsPage implements AfterViewInit {
 
     this.http.post(url, data).subscribe(response => {
       console.log('User added to standby list', response);
+      this.errorMessage = 'נוספת בהצלחה לרשימת ההמתנה'
+      this.presentToast(this.errorMessage, 'success');
     }, error => {
       console.error('Error adding user to standby list', error);
     });

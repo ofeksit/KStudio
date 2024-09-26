@@ -18,7 +18,7 @@ export class AppComponent implements OnInit{
     this.checkLoginStatus();
     this.ameliaService.fetchTitleTrainings().then(
       (data) => {
-        console.log('Training Titles loaded on startup');
+        
       },
       (error) => {
         console.log("Failed to fetch traning data on startup!");

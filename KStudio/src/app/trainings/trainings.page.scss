@@ -89,7 +89,7 @@ ion-button {
 .segment-tab .days-tabs {
   overflow-x: hidden;
   --background: #fff;
-  --indicator-color: #3498db;
+  //--indicator-color: #3498db;
   --border-radius: 10px;
   margin-top: 10px;
 }
@@ -271,7 +271,7 @@ ion-tab-bar {
 }
 
 ion-tab-button {
-  --color-selected: #3498db;
+  --color-selected: #666;
   --color: #666;
 }
 
@@ -375,20 +375,23 @@ ion-tab-button {
   background-color: #c5c5c563;
   position: relative;
   width: 50px;
-  border-radius: 25px;
+  border-radius: 7px;
 }
 
 .participant-popup {
   position: absolute;
   top: -10px;
-  left: 100px;
+  left: 60px;
   background-color: white;
-  border: 1px solid #ddd;
-  padding: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 150px;
+  border: none; /* Removed border for a cleaner look */
+  padding: 12px; /* Slightly increased padding for a more open, spacious feel */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Larger shadow for a floating effect */
+  width: 180px; /* Increased width for better readability */
   z-index: 10;
-  border-radius: 15px;
+  border-radius: 12px; /* Increased border-radius for a more polished look */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animation for popup appearance */
+  opacity: 0;
+  transform: translateY(-10px); /* Initial transform for the animation */
 }
 
 .participant-popup h4 {
@@ -415,4 +418,9 @@ ion-tab-button {
 
 .participants:hover {
   text-decoration: underline;
+}
+
+.participants:hover .participant-popup {
+  opacity: 1; /* Fade in effect */
+  transform: translateY(0); /* Slide in from above */
 }
