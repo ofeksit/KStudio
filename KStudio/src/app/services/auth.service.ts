@@ -39,6 +39,10 @@ export class AuthService {
     localStorage.setItem('user_role', userRole);
   }
 
+  storePackageCustomerID (packageCustomerId: string) {
+    localStorage.setItem('packageCustomerId', packageCustomerId);
+  }
+
   storeUserFullName (userFullname: string) {
     localStorage.setItem('user_fullname', userFullname);
   }
@@ -50,6 +54,10 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem('auth_token');
+  }
+
+  getPackageCustomerId(): string | null {
+    return localStorage.getItem('packageCustomerId');
   }
 
   getUserID(): string | null {

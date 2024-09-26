@@ -35,9 +35,6 @@ export class HomePage implements OnInit {
   constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
-    this.loadNextLesson();
-    this.loadUpcomingLessons();
-  
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
@@ -68,6 +65,8 @@ export class HomePage implements OnInit {
     });
     return await modal.present();
   }
+
+  
 
   openWhatsApp() {
     const phoneNumber = 'YOUR_PHONE_NUMBER';  // Replace with your WhatsApp number in international format
@@ -117,45 +116,4 @@ export class HomePage implements OnInit {
       console.log("User Not Logged In!");
     }
   }
-  
-
-  // Function to navigate to the Home Page
-  goHome() {
-    // If you want to refresh or go back to the home page, this can remain empty
-    // or you can implement navigation logic here if needed
-  }
-
-  
-
-
-  loadNextLesson() {
-    this.nextLesson = {
-      title: 'Yoga Class',
-      date: 'Tomorrow at 10:00 AM',
-    };
-  }
-
-  loadUpcomingLessons() {
-    this.upcomingLessons = [
-      {
-        title: 'HIIT Workout',
-        date: 'Monday at 6:00 PM',
-        trainer: 'John Doe',
-        image: 'assets/img/hiit.jpg',
-      },
-      {
-        title: 'Pilates',
-        date: 'Wednesday at 9:00 AM',
-        trainer: 'Sarah Lee',
-        image: 'assets/img/pilates.jpg',
-      },
-      {
-        title: 'Strength Training',
-        date: 'Friday at 5:00 PM',
-        trainer: 'Alex Brown',
-        image: 'assets/img/strength.jpg',
-      },
-    ];
-  }
-
 }

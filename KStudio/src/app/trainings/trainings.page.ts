@@ -225,6 +225,7 @@ export class TrainingsPage implements AfterViewInit {
         this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
           async (response) => {
             const appointmentData = response.data.appointments;
+            console.log("appointments", appointmentData)
             const now = new Date();
             const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
               appointment.appointments.filter((app: any) =>

@@ -104,7 +104,7 @@ fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlo
 
             // Format the expiry date to "dd/mm/yyyy"
             const formattedExpiryDate = `${expiryDate.getDate().toString().padStart(2, '0')}/${
-            (expiryDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryDate.getFullYear()}`;
+              (expiryDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryDate.getFullYear()}`;
 
 
             return {
