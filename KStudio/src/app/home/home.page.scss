@@ -9,8 +9,8 @@
 }
 
 .swiper-slide {
-  width: 300px;  /* Fixed width for all cards */
-  height: 450px;  /* Fixed height for all cards */
+  width: 350px;  /* Fixed width for all cards */
+  height: 520px;  /* Fixed height for all cards */
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -37,15 +37,16 @@
 
 .fitness-card img {
   width: 100%;
-  height: 33%;  /* Fixed height for the image section */
+  height: 40%;  /* Fixed height for the image section */
   object-fit: cover;  /* Ensures the image covers the area */
   border-radius: 15px 15px 0 0;
+  
 }
 
 
 .fitness-card ion-card-header {
   height: 60px;  /* Fixed height for the title section */
-  padding: 10px;
+  padding: 15px;  /* Increased padding for header */  
   text-align: center;
   display: flex;
   align-items: center;
@@ -62,12 +63,18 @@
 }
 
 .fitness-card ion-card-content {
-  display: -webkit-box;
   -webkit-line-clamp: 3;  /* Change this number to limit to 2 or 3 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   word-wrap: break-word;
+
+
+  display: block;
+  padding: 15px;  /* Increased padding for content */
+  height: auto;  /* Ensure content height adjusts to text */
+  font-size: 1.2em;  /* Slightly larger font size */
+  line-height: 1.5;  /* Improved line spacing for better readability */
 }
 
 /* Media Queries for Mobile Devices */

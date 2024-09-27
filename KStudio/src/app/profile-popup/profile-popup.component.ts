@@ -113,8 +113,6 @@ export class ProfilePopupComponent implements AfterViewInit {
   
         if (booking) {
           appointment.userBookingStatus = status;
-
-          // Fetch the title from the trainingsByDay using the date and time from the booking
           const bookingDate = moment(appointment.bookingStart).format('YYYY-MM-DD');
           const bookingTime = moment(appointment.bookingStart).format('HH:mm');
   
@@ -131,19 +129,20 @@ export class ProfilePopupComponent implements AfterViewInit {
         }
       }
   
-      Promise.all(promises).then(() => {
-        this.userAppointments = appointments;
-        this.filteredAppointments = [...this.userAppointments];
+      await Promise.all(promises);
+      // Sort the appointments by the bookingStart datetime in descending order.
+      this.userAppointments = appointments.sort((a, b) => moment(b.bookingStart).diff(moment(a.bookingStart)));
+      this.filteredAppointments = [...this.userAppointments];
   
-        // Apply the filter after appointments are loaded
-        this.updateFilteredAppointments();
+      this.updateFilteredAppointments();
   
-        this.isLoading = false;
-      }).catch(() => {
-        this.isLoading = false;  // Ensure loading is disabled even in case of errors
-      });
+      this.isLoading = false;
+    }, error => {
+      this.isLoading = false;  // Handle error
+      console.error('Error loading appointments:', error);
     });
-  }
+}
+
   
 
     getDayFromDate(dateString: string): string {
@@ -312,9 +311,16 @@ export class ProfilePopupComponent implements AfterViewInit {
   cancelBooking(bookingId: string) {
     this.profileService.cancelBooking(bookingId).subscribe(
       (data: any) => {
-        this.errorMessage = 'האימון בוטל בהצלחה'
-        this.presentToast(this.errorMessage, 'success');
-        console.log("data in cancelling", data);
+        if (data.data.cancelBookingUnavailable)
+        {
+          this.errorMessage = 'לא ניתן לבטל אימון זה'
+          this.presentToast(this.errorMessage, 'danger');
+        }
+        else {
+          this.errorMessage = 'האימון בוטל בהצלחה'
+          this.presentToast(this.errorMessage, 'success');
+          console.log("data in cancelling", data);
+        }
       },
       (error) => {
         this.errorMessage = 'לא ניתן לבטל אימון זה, אנא נסה שנית'
