@@ -1,16 +1,16 @@
 .swiper-container {
-  width: 100%;
+  width: 100%;  /* Adjust the width of the container to full width of the parent */
   height: auto; /* Let the container height adjust automatically */
   margin-bottom: 20px;
 }
-
 .swiper-wrapper {
   display: flex;
 }
 
 .swiper-slide {
-  width: 350px;  /* Fixed width for all cards */
-  height: 520px;  /* Fixed height for all cards */
+  width: 90%;  /* Increase width to 90% of its container */
+  max-width: 500px; /* You can set a max-width to prevent it from getting too wide on large screens */
+  height: auto;  /* Adjust height automatically based on content */
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -18,8 +18,8 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0;
-  margin-right: 10px;  /* Add space between slides */
+  padding: 20px;  /* Adjust padding to give more space inside */
+  margin-right: 10px;  /* Maintain space between slides */
 }
 
 
@@ -77,18 +77,20 @@
   line-height: 1.5;  /* Improved line spacing for better readability */
 }
 
-/* Media Queries for Mobile Devices */
+/*
+/* Media Queries for Mobile Devices 
 @media (max-width: 768px) {
   .swiper-slide {
-    width: 90%;  /* On mobile, cards will take up most of the screen */
-    height: auto;  /* Adjust height automatically */
+    width: 90%;  /* On mobile, cards will take up most of the screen 
+    height: auto;  /* Adjust height automatically 
     max-width: 100%;
   }
 
   .fitness-card img {
-    height: 150px;  /* Reduced image height for mobile */
+    height: 150px;  /* Reduced image height for mobile 
   }
 }
+*/
 
 ion-text h2 {
   font-size: 1.8em;
