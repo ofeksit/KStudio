@@ -13,6 +13,7 @@ import { environment } from 'src/environments/environment';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
 
+
 @Component({
   selector: 'app-trainings',
   templateUrl: './trainings.page.html',

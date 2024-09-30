@@ -5,11 +5,7 @@ const routes: Routes = [
   { path: 'home', loadChildren: () => import('./home/home.module').then( m => m.HomePageModule) },
   { path: 'login', loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule) },
   { path: 'trainings', loadChildren: () => import('./trainings/trainings.module').then( m => m.TrainingsPageModule) },
-  { path: 'admin-panel', loadChildren: () => import('./admin-panel/admin-panel.module').then( m => m.AdminPanelPageModule) },
   { path: 'payments', loadChildren: () => import('./payments/payments.module').then( m => m.PaymentsPageModule) },
-  { path: 'manage-trainings', loadChildren: () => import('./manage-trainings/manage-trainings.module').then( m => m.ManageTrainingsPageModule) },
-  { path: 'manage-enrollments', loadChildren: () => import('./manage-enrollments/manage-enrollments.module').then( m => m.ManageEnrollmentsPageModule) },
-  { path: 'send-notifications', loadChildren: () => import('./send-notifications/send-notifications.module').then( m => m.SendNotificationsPageModule) },
   //{ path: 'users-panel', loadChildren: () => import('./users/users.module').then( m => m.UsersPageModule) },
   { path: '**', redirectTo: 'home', pathMatch: 'full' },
   {
