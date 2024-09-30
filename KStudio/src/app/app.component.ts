@@ -3,8 +3,9 @@ import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
 import { AmeliaService } from './services/amelia-api.service';
 import { Platform } from '@ionic/angular';
-import OneSignal from 'onesignal-cordova-plugin';
-import { initializeApp } from 'firebase/app';
+import { register } from 'swiper/element/bundle';
+
+register();
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,7 @@ import { initializeApp } from 'firebase/app';
 })
 export class AppComponent implements OnInit{
   constructor( private ameliaService: AmeliaService, private authService: AuthService, private router: Router, private platform: Platform) {
-
+/*
     platform.ready().then(() => {
       //Debug OneSignal
       OneSignal.Debug.setLogLevel(6);
@@ -41,7 +42,7 @@ export class AppComponent implements OnInit{
 
     OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
       console.log("Notification permission Granted: " + success);
-    })
+    })*/
 
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');

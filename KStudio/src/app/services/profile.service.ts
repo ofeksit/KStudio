@@ -3,6 +3,9 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Appointment } from '../Models/appointment';
+import { environment } from 'src/environments/environment';
+import { Platform  } from '@ionic/angular';
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 
 
 @Injectable({
@@ -14,73 +17,69 @@ export class ProfileService {
     'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk', // API Key
   });
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private platform: Platform, private httpA: HTTP, private http: HttpClient, private authService: AuthService) {}
 
  
  
-// Get last 60 days appointments and filter for logged-in user by email
-getLast60DaysAppointmentsForUser(): Observable<any> {
-  const today = new Date();
-  const endDate = this.formatDate(new Date(today.setDate(today.getDate() + 30)));
-  const startDate = this.formatDate(new Date(today.setDate(today.getDate() - 60)));
-  
-  const url = `/api/appointments&dates=${startDate},${endDate}&skipServices=1&skipProviders=1`;
+  // Get last 60 days appointments and filter for logged-in user by email
+  getLast60DaysAppointmentsForUser(): Observable<any> {
+    const today = new Date();
+    const endDate = this.formatDate(new Date(today.setDate(today.getDate() + 30)));
+    const startDate = this.formatDate(new Date(today.setDate(today.getDate() - 60)));
 
-  const userEmail = this.authService.getUserEmail(); // Logged-in user's email
-  //console.log("Logged-in User Email:", userEmail);
+    const url = `${environment.apiBaseUrl}/appointments&dates=${startDate},${endDate}&skipServices=1&skipProviders=1`;
+    const userEmail = this.authService.getUserEmail(); // Logged-in user's email
+    const headers = { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' };
 
-  
-  return this.http.get(url, { headers: this.headers }).pipe(
-    map((response: any) => {
-      if (response && response.data && response.data.appointments) {
-        let userAppointments: any[] = [];
+    return new Observable((observer) => {
+      this.platform.ready().then(() => {
+        if (this.platform.is('cordova')) {
+          // Use Cordova HTTP plugin
+          this.httpA.get(url, {}, headers).then((response) => {
+            const parsedResponse = JSON.parse(response.data);
+            const appointmentsData = parsedResponse.data?.appointments || {};
+            let userAppointments: any[] = [];
 
-        // Loop through each date in the appointments object
-        for (const date in response.data.appointments) {
-          if (
-            response.data.appointments.hasOwnProperty(date) &&
-            Array.isArray(response.data.appointments[date].appointments)
-          ) {
-            // Iterate over each appointment on the given date
-            response.data.appointments[date].appointments.forEach((appointment: any) => {
-              //console.log('Checking appointment:', appointment);
-              
-              // Check if bookings array exists inside the appointment
-              if (appointment.bookings && Array.isArray(appointment.bookings)) {
-                // Loop through all bookings and match with user email
-                appointment.bookings.forEach((booking: any, index: number) => {
-                  if (booking.customer?.email === userEmail) {
-                    //console.log('User booking matched:', booking);
-                    booking.googleCalendarEventId = appointment.googleCalendarEventId;
-                    //console.log("google", booking.googleCalendarEventId);
-                    // Create an object to store the appointment and the specific booking details
-                    const userAppointment = {
-                      ...appointment, // Copy the appointment details
-                      matchedBooking: booking, // Store the specific booking that matches the user
-                      userBookingStatus: booking.status, // Store the specific booking status
-                      
-                    };
+            // Loop through each date in the appointments object
+            for (const date in appointmentsData) {
+              if (appointmentsData.hasOwnProperty(date) && Array.isArray(appointmentsData[date].appointments)) {
+                // Iterate over each appointment on the given date
+                appointmentsData[date].appointments.forEach((appointment: any) => {
+                  // Check if bookings array exists inside the appointment
+                  if (appointment.bookings && Array.isArray(appointment.bookings)) {
+                    // Loop through all bookings and match with user email
+                    appointment.bookings.forEach((booking: any) => {
+                      if (booking.customer?.email === userEmail) {
+                        booking.googleCalendarEventId = appointment.googleCalendarEventId;
 
-                    // Push the matched appointment to the userAppointments array
-                    userAppointments.push(userAppointment);
+                        // Create an object to store the appointment and the specific booking details
+                        const userAppointment = {
+                          ...appointment, // Copy the appointment details
+                          matchedBooking: booking, // Store the specific booking that matches the user
+                          userBookingStatus: booking.status, // Store the specific booking status
+                        };
+
+                        // Push the matched appointment to the userAppointments array
+                        userAppointments.push(userAppointment);
+                      }
+                    });
                   }
                 });
-              } else {
-                //console.log('No bookings found for appointment:', appointment);
               }
-            });
-          }
+            }
+
+            // Emit the filtered user appointments
+            observer.next(userAppointments);
+            observer.complete();
+          }).catch((error) => {
+            observer.error(`Error fetching appointments: ${error}`);
+          });
+        } else {
+          observer.error('Cordova is not available. Please run on a device or emulator.');
         }
-
-        //console.log('Final userAppointments array after filtering:', userAppointments);
-        return userAppointments; // Return filtered user appointments with the user's specific booking status
-      }
-
-      return []; // Return empty array if no data
-    })
-  );
-}
-
+      });
+    });
+  }
 // Function to fetch available package slots and expiry date using customer ID
 fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlots: number, expiryDate: string }> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;

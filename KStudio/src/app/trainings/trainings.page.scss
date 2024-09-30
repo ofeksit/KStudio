@@ -244,6 +244,8 @@ ion-select {
   background: white;
   padding: 10px;  /* Add padding inside the modal */
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 100vh;
 }
 
 .drag-handle {

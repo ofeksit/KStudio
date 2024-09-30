@@ -1,4 +1,4 @@
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" #mainContent>
   <!-- Container for bell icon and title -->
   <div class="header-row">
     <!-- Bell Icon -->
@@ -8,7 +8,7 @@
   
     <!-- Centered Title/Logo -->
     <ion-text color="dark">
-      <h1 class="page-title home">K Studio1</h1> <!-- Your title here -->
+      <h1 class="page-title home">K Studio</h1> <!-- Your title here -->
     </ion-text>
   
     <!-- WhatsApp Icon -->
@@ -27,24 +27,24 @@
     </ion-card-content>
   </ion-card>
 
+
   <!-- Swiper Section for Fitness Tips -->
   <div class="swiper-container">
     <div class="swiper-wrapper">
       <div class="swiper-slide" *ngFor="let tip of fitnessTips">
-        <ion-card class="fitness-card">
-          <img [src]="tip.image" alt="tip image">
-          <ion-card-header>
-            <ion-card-title>{{ tip.title }}</ion-card-title>
+          <img [src]="tip.image" alt="tip image" class="fitness-card-img">
+          <ion-card-header class="fitness-card-header">
+            <ion-card-title class="fitness-card-title">{{ tip.title }}</ion-card-title>
           </ion-card-header>
-          <ion-card-content>
+          <ion-card-content class="fitness-card-content">
             {{ tip.description }}
           </ion-card-content>
-        </ion-card>
       </div>
     </div>
     <!-- Pagination -->
     <div class="swiper-pagination"></div>
   </div>
+
 
 
   <!-- Custom Bottom Navigation Bar -->

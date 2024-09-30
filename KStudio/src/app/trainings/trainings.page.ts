@@ -9,6 +9,9 @@ import { of } from 'rxjs';
 import { DayTrainings } from '../Models/day-trainings';
 import { AmeliaService } from '../services/amelia-api.service';
 import { ToastController  } from '@ionic/angular';
+import { environment } from 'src/environments/environment';
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-trainings',
@@ -47,7 +50,7 @@ export class TrainingsPage implements AfterViewInit {
 
 //#endregion
   
-  constructor(private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService) {
+  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP) {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
   }
@@ -130,46 +133,52 @@ export class TrainingsPage implements AfterViewInit {
     return this.http.get<number[]>(`${apiUrl}${role}`);
   }
 
-  // Gets all the available timeslots
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
     next30Days.setDate(today.getDate() + 20); // Fetch for 30 days
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
-    
+
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
-  
+
     return new Promise((resolve, reject) => {
       this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
         if (serviceIDs.length === 0) {
           return reject('No service IDs found');
         }
-  
+
         const timeslotRequests = serviceIDs.map(serviceID => {
-          const url = `/api/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
-          return this.http.get<{ data: { slots: any } }>(url, {
-            headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' }
-          }).toPromise();
+          const url = `${environment.apiBaseUrl}/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
+
+          // Use the Cordova HTTP plugin instead of Angular HttpClient
+          return this.httpA.get(url, {}, {
+            'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
+          }).then(response => {
+            // Parse JSON response
+            return JSON.parse(response.data);
+          }).catch(error => {
+            reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
+          });
         });
-  
+
         Promise.all(timeslotRequests).then(async (responses) => {
           this.availableTimeslots = [];
-  
+
           for (const response of responses) {
             if (response && response.data && response.data.slots) {
               const timeslotsData = response.data.slots;
-  
+
               for (const date of Object.keys(timeslotsData)) {
                 for (const time of Object.keys(timeslotsData[date])) {
                   const start_time = new Date(`${date}T${time}`).toISOString();
                   const end_time = new Date(`${date}T${time}`).toISOString();
-  
+
                   // Check if the timeslot is within the next 7 days
                   const timeslotDate = new Date(start_time);
                   let title;
@@ -180,12 +189,12 @@ export class TrainingsPage implements AfterViewInit {
                     // Use default title for dates beyond 7 days
                     title = { name: 'אימון קבוצתי' };
                   }
-  
+
                   this.availableTimeslots.push({
                     start_time,
                     end_time,
                     type: 'timeslot',
-                    title, 
+                    title,
                     favorite: false,
                     current_participants: [],
                     total_participants: 8,
@@ -201,68 +210,78 @@ export class TrainingsPage implements AfterViewInit {
     });
   }
 
-
-  //Gets all the appointments
+  // Gets all the appointments
   fetchBookedAppointments(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 20); // Fetch for 30 days
+    next30Days.setDate(today.getDate() + 30); // Fetch for 30 days
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching to the next 7 days
-  
+
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
-  
+
     return new Promise((resolve, reject) => {
-      this.getServicesByRole().subscribe((serviceIDs: number[]) => {
-        const url = `/api/appointments&dates=${formatDate(today)},${formatDate(next30Days)}&page=1&skipServices=1&skipProviders=1`;
-        this.http.get<{ data: { appointments: any } }>(url, { headers: { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' } }).subscribe(
-          async (response) => {
-            const appointmentData = response.data.appointments;
-            console.log("appointments", appointmentData)
-            const now = new Date();
-            const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-              appointment.appointments.filter((app: any) =>
-                app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
-              ).map(async (app: any) => {
-                const appointmentStartDate = new Date(app.bookingStart);
-                let appointmentTempTitle;
-  
-                if (appointmentStartDate <= next7Days) {
-                  // Fetch title only for the next 7 days
-                  appointmentTempTitle = await this.getAppointmentTitleByAppointment(app);
-                } else {
-                  // Use default title for appointments beyond 7 days
-                  appointmentTempTitle = 'אימון קבוצתי';
-                }
-  
-                return {
-                  id: app.id,
-                  start_time: app.bookingStart,
-                  end_time: app.bookingEnd,
-                  type: 'appointment',
-                  title: { name: appointmentTempTitle }, 
-                  serviceID: app.serviceId,
-                  favorite: false,
-                  current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                    .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                  total_participants: 8,
-                  booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                  providerId: app.providerId,
-                };
-              })
-            );
-            
-            this.bookedAppointments = await Promise.all(appointmentsPromises);
-            resolve();
-          },
-          (error) => reject(error)
-        );
-      }, (error) => reject(error));
+      this.platform.ready().then(() => {
+        if (this.platform.is('cordova')) {
+          this.getServicesByRole().subscribe((serviceIDs: number[]) => {
+            const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(today)},${formatDate(next30Days)}&page=1&skipServices=1&skipProviders=1`;
+
+            // Use Cordova HTTP plugin
+            this.httpA.get(url, {}, {
+              'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
+            }).then(async (response) => {
+              const parsedResponse = JSON.parse(response.data);
+              const appointmentData = parsedResponse.data.appointments;
+              console.log("appointments", appointmentData);
+              const now = new Date();
+
+              const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
+                appointment.appointments.filter((app: any) =>
+                  app.status === 'approved' && app.past === false && new Date(app.bookingStart) > now && serviceIDs.includes(app.serviceId)
+                ).map(async (app: any) => {
+                  const appointmentStartDate = new Date(app.bookingStart);
+                  let appointmentTempTitle;
+
+                  if (appointmentStartDate <= next7Days) {
+                    // Fetch title only for the next 7 days
+                    appointmentTempTitle = await this.getAppointmentTitleByAppointment(app);
+                  } else {
+                    // Use default title for appointments beyond 7 days
+                    appointmentTempTitle = 'אימון קבוצתי';
+                  }
+
+                  return {
+                    id: app.id,
+                    start_time: app.bookingStart,
+                    end_time: app.bookingEnd,
+                    type: 'appointment',
+                    title: { name: appointmentTempTitle },
+                    serviceID: app.serviceId,
+                    favorite: false,
+                    current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
+                      .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
+                    total_participants: 8,
+                    booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+                    providerId: app.providerId,
+                  };
+                })
+              );
+
+              this.bookedAppointments = await Promise.all(appointmentsPromises);
+              resolve();
+            }).catch(error => {
+              reject(`Error fetching appointments: ${error}`);
+            });
+          }, (error) => reject(error));
+        } else {
+          reject('Cordova is not available, please run on a device or emulator.');
+        }
+      });
     });
   }
   
@@ -422,6 +441,7 @@ export class TrainingsPage implements AfterViewInit {
 
   //Function to dismiss the modal
   closeModal() {
+    document.body.classList.remove('no-scroll');
     this.modalCtrl.dismiss();
   }
 

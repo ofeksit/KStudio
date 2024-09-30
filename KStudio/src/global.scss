@@ -35,6 +35,7 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
+//@import 'swiper/swiper-bundle.min.css';
 
 
 
@@ -60,6 +61,11 @@ mat-card {
   border-radius: 12px;
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.no-scroll {
+  overflow: hidden;
+  touch-action: none; /* Prevent touch-based scrolling */
 }
 
 button {

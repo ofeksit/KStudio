@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  apiBaseUrl: 'https://k-studio.co.il/wp-admin/admin-ajax.php?action=wpamelia_api&call=/api/v1'
 };
