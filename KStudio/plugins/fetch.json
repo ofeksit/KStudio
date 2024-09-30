@@ -1,0 +1,10 @@
+{
+  "onesignal-cordova-plugin": {
+    "source": {
+      "type": "registry",
+      "id": "onesignal-cordova-plugin@^5.2.5"
+    },
+    "is_top_level": true,
+    "variables": {}
+  }
+}

@@ -18,10 +18,7 @@ log.txt
 /coverage
 
 # Ionic
-/.ionic
-/www
-/platforms
-/plugins
+
 
 # Compiled output
 /dist
