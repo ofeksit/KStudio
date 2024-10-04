@@ -63,6 +63,16 @@ export class HomePage implements OnInit {
       breakpoints: [0, 0.5, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
       initialBreakpoint: 0.5,  // Start the modal at 50% of screen height
     });
+    
+    // Disable scrolling when the modal is opened
+    await modal.present();
+    this.setDisableScroll(true);  // Disable background scroll when modal opens
+
+    // Re-enable scrolling when the modal is dismissed
+    modal.onDidDismiss().then(() => {
+      this.setDisableScroll(false); // Re-enable background scroll when modal is closed
+    });
+
     return await modal.present();
   }
 
@@ -77,9 +87,9 @@ export class HomePage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: TrainingsPage,
       cssClass: 'trainings-popup',
+      presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
       breakpoints: [0, 0.85, 1],
       initialBreakpoint: 0.85,
-      backdropDismiss: false,
     });
 
     // Disable scrolling when the modal is opened

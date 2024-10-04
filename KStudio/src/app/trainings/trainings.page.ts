@@ -522,7 +522,7 @@ export class TrainingsPage implements AfterViewInit {
         return training.title;
       }
     }
-    return 'NONE_1'; // Return null if no match found
+    return 'כללי'; // Return null if no match found
 }
 
   getDayFromDate(dateString: string): string {
@@ -550,7 +550,7 @@ export class TrainingsPage implements AfterViewInit {
         return training.title;
       }
     }
-    return 'NONE'; // Return null if no match found
+    return 'כללי'; // Return null if no match found
   }
 
   // Function to add user to standby list

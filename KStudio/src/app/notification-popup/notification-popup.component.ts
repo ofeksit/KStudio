@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -6,15 +6,16 @@ import { ModalController } from '@ionic/angular';
   templateUrl: './notification-popup.component.html',
   styleUrls: ['./notification-popup.component.scss'],
 })
-export class NotificationPopupComponent {
+export class NotificationPopupComponent implements OnInit{
 
-  notifications = [
-    { title: 'כותרת הודעה 1', description: 'זה התיאור של הודעה ראשונה.' },
-    { title: 'כותרת הודעה 2', description: 'זה התיאור של הודעה שנייה.' },
-    { title: 'כותרת הודעה 3', description: 'זה התיאור של הודעה שלישית.' }
-  ];
+  notifications: any[] = [];
 
   constructor(private modalCtrl: ModalController) {}
+  
+  ngOnInit(): void {
+    this.notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+  }
+
 
   dismiss() {
     this.modalCtrl.dismiss();

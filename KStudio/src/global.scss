@@ -45,6 +45,13 @@ body {
   color: #333;
 }
 
+html, body {
+  overscroll-behavior: none;
+  touch-action: none;
+  height: 100%;
+  overflow: hidden;
+}
+
 mat-toolbar {
   font-family: 'Alef', sans-serif;
   font-weight: bold;

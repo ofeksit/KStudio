@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AmeliaService } from './services/amelia-api.service';
 import { Platform } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
+import OneSignal from 'onesignal-cordova-plugin';
+
 
 register();
 
@@ -13,42 +15,69 @@ register();
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent implements OnInit{
-  constructor( private ameliaService: AmeliaService, private authService: AuthService, private router: Router, private platform: Platform) {
-/*
+  constructor(
+    private ameliaService: AmeliaService, 
+    private authService: AuthService, 
+    private router: Router, 
+    private platform: Platform
+  ) {
+    
     platform.ready().then(() => {
-      //Debug OneSignal
+      // Debug OneSignal
       OneSignal.Debug.setLogLevel(6);
       
-      //init One Signal
+      // Initialize OneSignal
       OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
-
+  
+      const userEmail = this.authService.getUserEmail();
+      // Retrieve the logged-in user's information (from AuthService or another source)
+        if (userEmail) {
+          // Tag the user in OneSignal with their unique ID or email
+          OneSignal.User.addTag("email", userEmail);  // Optional: tag with email as well
+        }
+  
       let myClickListener = async function(event: any) {
         let notificationData = JSON.stringify(event);
       };
       OneSignal.Notifications.addEventListener("click", myClickListener);
   
-      // Prompts the user for notification permissions.
-      // Since this shows a generic native prompt, we recommend instead using an In-App Message to prompt for notification permission (See step 7) to better communicate to your users what notifications they will get.
+      // Request notification permissions
       OneSignal.Notifications.requestPermission(true).then((accepted: boolean) => {
         console.log("User accepted notifications: " + accepted);
       });
     });    
-    
-    OneSignal.Notifications.addEventListener('click', async (e) => {
-      let clickData = await e.notification;
-
-      console.log("Notification cliciked: " + clickData);
-    })
-
-    OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
-      console.log("Notification permission Granted: " + success);
-    })*/
-
+  
+      // Handle notification clicks and store notifications
+      OneSignal.Notifications.addEventListener('click', async (event) => {
+        let notificationData = event.notification;
+        this.storeNotification(notificationData); // Store the clicked notification
+        console.log('Notification clicked: ', notificationData);
+      });
+  
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
   }
+  
+  storeNotification(notificationData: any) {
+    // Retrieve existing notifications from localStorage
+    let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
 
+    // Add the new notification to the front of the array
+    notifications.unshift({
+      title: notificationData.title,
+      message: notificationData.body,
+      timestamp: new Date(),
+    });
 
+    // Limit the array to the last 5 notifications
+    if (notifications.length > 5) {
+      notifications = notifications.slice(0, 5);
+    }
+
+    // Store the updated list back to localStorage
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }
+  
   ngOnInit() {
     this.checkLoginStatus();
     this.ameliaService.fetchTitleTrainings().then(
