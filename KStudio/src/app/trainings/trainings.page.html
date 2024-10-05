@@ -124,9 +124,26 @@
           </button>
 
           <!-- Check if appointment is full and show standby button -->
-          <button *ngIf="appointment.booked == appointment.total_participants" (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)" class="action-button">
-            הרשמה להמתנה
+          <button *ngIf="appointment.booked == appointment.total_participants" 
+                  (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)" 
+                  class="action-button" 
+                  [disabled]="isStandbyLoading || isStandbySuccess"
+                  [ngClass]="{'loading': isStandbyLoading, 'success': isStandbySuccess}">
+            
+            <ng-container *ngIf="!isStandbyLoading && !isStandbySuccess">הרשמה להמתנה</ng-container>
+            
+            <!-- Loading animation -->
+            <ng-container *ngIf="isStandbyLoading">
+              <ion-spinner name="crescent"></ion-spinner>
+            </ng-container>
+
+            <!-- Success checkmark -->
+            <ng-container *ngIf="isStandbySuccess">
+              <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+            </ng-container>
+
           </button>
+
         </div>
       </div>
     </div>

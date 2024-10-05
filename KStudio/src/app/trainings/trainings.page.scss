@@ -184,7 +184,7 @@ ion-item {
   transform: translateX(-50%); /* Adjust the position to center the element */
   width: 80%;
   height: 4px; /* This is the border height */
-  background: #826251;
+  background: #59c7cd;
   border-radius: 12px; /* Set this to match your button's border-radius */
   transition: all 0.3s ease;
 }
@@ -339,7 +339,7 @@ ion-tab-button {
 .progress-bar .progress {
   height: 6px;
   border-radius: 8px;
-  background-color: #568EA3;
+  background-color: #59c7cd;
 }
 
 .participants {
@@ -366,6 +366,26 @@ ion-tab-button {
   text-align: center;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.action-button.loading {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.action-button.success {
+  background-color: #4caf50;
+}
+
+.success-icon {
+  color: white;
+  font-size: 14px;
+}
+
+ion-spinner {
+  height: 10px;
+  width: 10px;
 }
 
 .action-button.full {

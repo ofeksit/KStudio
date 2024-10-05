@@ -6,7 +6,6 @@ import { Platform } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
 
-
 register();
 
 @Component({
@@ -22,7 +21,7 @@ export class AppComponent implements OnInit{
     private platform: Platform
   ) {
     
-    platform.ready().then(() => {
+    /*platform.ready().then(() => {
       // Debug OneSignal
       OneSignal.Debug.setLogLevel(6);
       
@@ -31,10 +30,10 @@ export class AppComponent implements OnInit{
   
       const userEmail = this.authService.getUserEmail();
       // Retrieve the logged-in user's information (from AuthService or another source)
-        if (userEmail) {
-          // Tag the user in OneSignal with their unique ID or email
-          OneSignal.User.addTag("email", userEmail);  // Optional: tag with email as well
-        }
+      if (userEmail) {
+        // Tag the user in OneSignal with their unique ID or email
+        OneSignal.User.addTag("email", userEmail);  // Optional: tag with email as well
+      }
   
       let myClickListener = async function(event: any) {
         let notificationData = JSON.stringify(event);
@@ -45,14 +44,22 @@ export class AppComponent implements OnInit{
       OneSignal.Notifications.requestPermission(true).then((accepted: boolean) => {
         console.log("User accepted notifications: " + accepted);
       });
+
+      // Handle notification before display (foregroundWillDisplay)
+      const foregroundWillDisplayListener = (event: any) => {
+        console.log(`Notification will display: ${JSON.stringify(event.notification)}`);
+        this.storeNotification(event.notification);  // Store the notification before display
+      };
+
+      OneSignal.Notifications.addEventListener('foregroundWillDisplay', foregroundWillDisplayListener.bind(this));
     });    
-  
-      // Handle notification clicks and store notifications
-      OneSignal.Notifications.addEventListener('click', async (event) => {
-        let notificationData = event.notification;
-        this.storeNotification(notificationData); // Store the clicked notification
-        console.log('Notification clicked: ', notificationData);
-      });
+    
+    // Handle notification clicks and store notifications
+    OneSignal.Notifications.addEventListener('click', async (event) => {
+      let notificationData = event.notification;
+      this.storeNotification(notificationData); // Store the clicked notification
+      console.log('Notification clicked: ', notificationData);
+    });*/
   
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
@@ -81,11 +88,9 @@ export class AppComponent implements OnInit{
   ngOnInit() {
     this.checkLoginStatus();
     this.ameliaService.fetchTitleTrainings().then(
-      (data) => {
-        
-      },
+      (data) => {},
       (error) => {
-        console.log("Failed to fetch traning data on startup!");
+        console.log("Failed to fetch training data on startup!");
       }
     );
   }
@@ -95,5 +100,4 @@ export class AppComponent implements OnInit{
       this.router.navigate(['/login']);
     }
   }
-  
 }

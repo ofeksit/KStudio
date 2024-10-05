@@ -5,7 +5,7 @@
 }
 .swiper-wrapper {
   display: flex;
-  width: 120vh;
+  width: 200vh;
 }
 
 .swiper-slide {
@@ -41,7 +41,7 @@
   height: 150px;  /* Fixed height for the image section */
   object-fit: cover;  /* Ensures the image covers the area */
   border-radius: 15px 15px 0 0;
-  
+  object-position: top;
 }
 
 
@@ -113,7 +113,7 @@ ion-toolbar {
 }
 
 ion-content {
-  --background: linear-gradient(135deg, rgba(173, 232, 244, 0.8), rgba(255, 255, 255, 0.6)); /* Optional image overlay */
+  --background: linear-gradient(135deg, rgb(200 200 200 / 80%), rgba(255, 255, 255, 0.6));
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -129,16 +129,17 @@ ion-content {
   margin: 0;
   flex-grow: 1;  /* Allow the title to expand and center */
   text-align: center;  /* Center the text within the space */
+  padding-top: 10px;
 }
 
 .home {
-  font-family: 'Playwrite CU';
-  font-size: 18px;
+  font-family: 'Teko';
+  font-size: 36px;
 }
 
 .news-card {
   border-radius: 20px;
-  background: linear-gradient(135deg, #1dd1a1, #54a0ff);
+  background: linear-gradient(135deg, #c38a49, #ccb08a);
   color: white;
 }
 
@@ -155,7 +156,7 @@ ion-content {
 
 /* WhatsApp Icon */
 ion-button .whatsapp-icon {  
-  --background: linear-gradient(135deg, #25D366, #128C7E);  /* WhatsApp green gradient */
+  --background: linear-gradient(135deg, #6ee39a, #128C7E);
   --box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
   border-radius: 10px;
   font-family: 'Alef', sans-serif;
@@ -163,7 +164,7 @@ ion-button .whatsapp-icon {
 }
 
 ion-button .bell-button {
-  --background: linear-gradient(135deg, #ff6b6b, #feca57);
+  --background: linear-gradient(135deg, #feca57, #ffa1a1);
   --box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
   border-radius: 10px;
   font-family: 'Alef', sans-serif;
@@ -196,7 +197,7 @@ ion-icon {
 .bell-icon {
   font-size: 24px;
   color: white;
-  background: linear-gradient(135deg, #feca57, #ff6b6b);  /* Gradient for the bell */
+  background: linear-gradient(135deg, #feca57, #ffa1a1);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -204,7 +205,7 @@ ion-icon {
 .whatsapp-icon {
   font-size: 24px;
   color: white;
-  background: linear-gradient(135deg, #25D366, #128C7E);  /* Gradient for the Whatsapp */
+  background: linear-gradient(135deg, #6ee39a, #128C7E);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

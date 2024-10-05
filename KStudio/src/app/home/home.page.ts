@@ -29,7 +29,7 @@ export class HomePage implements OnInit {
   nextLesson: any;
   upcomingLessons: any[] = [];
   fitnessTips: Block[] = [];
-
+  isLoading: boolean = true; // Loading state
 
   constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
@@ -49,8 +49,8 @@ export class HomePage implements OnInit {
     }, 0);
 
     this.blocksService.getBlocks().subscribe(
-      (data) => this.fitnessTips = data,
-      (error) => console.error("Error fetching blocks", error)
+      (data) => { this.fitnessTips = data; this.isLoading = false; },
+      (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
     );
   }
   

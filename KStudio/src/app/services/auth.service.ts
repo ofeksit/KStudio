@@ -92,6 +92,7 @@ export class AuthService {
     localStorage.removeItem('user_id');
     localStorage.removeItem('user_role');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('packageCustomerId');
   }
 
   isLoggedIn(): boolean {

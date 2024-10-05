@@ -57,12 +57,17 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userID = this.authService.getUserID();
   }
 
+  // Method to format the date from dd/mm/yyyy to dd.mm.yyyy
+  formatDate(dateString: string): string {
+    return dateString.replace(/\//g, '.');  // Replace all slashes with dots
+  }
+    
     
   async ngOnInit() {
     this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe(
       ({ availableSlots, expiryDate }) => {
         this.slotsLeft = availableSlots;  // Assign the available slots
-        this.nextRenewalDate = expiryDate;  // Assign the expiry date
+        this.nextRenewalDate = this.formatDate(expiryDate);  // Format the expiry date
       },
       (error) => {
         console.error('Error fetching available slots and expiry date:', error);
@@ -70,6 +75,7 @@ export class ProfilePopupComponent implements AfterViewInit {
         this.nextRenewalDate = '';  // Handle error by setting default values
       }
     );
+  
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     
     // Check if the titles have already been fetched
@@ -171,7 +177,7 @@ export class ProfilePopupComponent implements AfterViewInit {
         return training.title;
       }
     }
-    return 'NONE'; // Return null if no match found
+    return 'כללי'; // Return null if no match found
   }
   
   //Fetch user role to hebrew description

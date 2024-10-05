@@ -18,11 +18,22 @@
     transition: height 0.3s ease-in-out;
   }
 
+  .no-notifications {
+    font-family: Alef;
+    text-align: center;
+    padding-top: 150px;
+    color: grey;
+  }
+
   .notification-title {
     color: rgb(58, 58, 58);
     font-family: 'Alef';
     font-size: 1.5em;
   }
+
+  button.trash-icon {
+    background: none;
+}
 
   .notification-desc {
     color: black;

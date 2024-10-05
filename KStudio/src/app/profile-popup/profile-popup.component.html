@@ -6,8 +6,7 @@
   <div class="profile-section">
     <img class="avatar" [src]="userPhoto" alt="User Avatar">
     <h2>{{ userName }}</h2>
-    <p>{{ userRole }}</p>
-
+    
     <!-- Settings button -->
     <ion-icon name="settings-outline" class="settings-icon" (click)="showSettings()"></ion-icon>
   </div>
@@ -15,7 +14,7 @@
   <!-- Show subscription details if available -->
   <div *ngIf="nextRenewalDate">
     <p *ngIf="slotsLeft !== null && nextRenewalDate" class="packageInfo">
-      נותרו {{ slotsLeft }} אימונים בחבילה &#9679; תוקף: {{ nextRenewalDate }}
+      נותרו {{ slotsLeft }} אימונים <br> תוקף: {{ nextRenewalDate }}
     </p>
   </div>
 
