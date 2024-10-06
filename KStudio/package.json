@@ -1,5 +1,5 @@
 {
-  "name": "KStudio",
+  "name": "kstudio",
   "version": "1.0.0",
   "author": "OSitbon",
   "homepage": "https://sitbonn.com",
@@ -30,6 +30,7 @@
     "@capacitor/app": "6.0.1",
     "@capacitor/core": "6.1.2",
     "@capacitor/haptics": "6.0.1",
+    "@capacitor/ios": "6.1.2",
     "@capacitor/keyboard": "6.0.2",
     "@capacitor/share": "^6.0.2",
     "@capacitor/status-bar": "6.0.1",
@@ -84,5 +85,7 @@
     "plugins": {
       "onesignal-cordova-plugin": {}
     }
-  }
+  },
+  "main": "karma.conf.js",
+  "license": "ISC"
 }
