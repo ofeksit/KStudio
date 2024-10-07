@@ -43,6 +43,7 @@ body {
   font-family: 'Alef', sans-serif;
   background: #f4f4f9;
   color: #333;
+
 }
 
 html, body {
@@ -93,15 +94,3 @@ button {
   }
 
 
-  // IOS FIXES
-  :root {
-    --ion-safe-area-top: env(safe-area-inset-top);
-    --ion-safe-area-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .page-content {
-    padding-top: var(--ion-safe-area-top);
-    padding-bottom: var(--ion-safe-area-bottom);
-    background-color: #000; /* Match the background color with your homepage */
-  }
-  
