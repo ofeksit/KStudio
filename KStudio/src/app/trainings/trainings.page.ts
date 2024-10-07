@@ -60,7 +60,7 @@ export class TrainingsPage implements AfterViewInit {
   async ngOnInit() {
     // Set loading to true when API call starts
     if (this.authService.getUserRole() == 'inactive'){
-      this.errorMessage = 'לא ניתן לבצע אימונים,  המשתמש לא פעיל'
+      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל'
       this.presentToast(this.errorMessage, 'danger');
     }
     this.isLoading = true;

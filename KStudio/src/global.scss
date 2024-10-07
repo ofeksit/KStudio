@@ -91,3 +91,17 @@ button {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     transform: translateY(-4px);
   }
+
+
+  // IOS FIXES
+  :root {
+    --ion-safe-area-top: env(safe-area-inset-top);
+    --ion-safe-area-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .page-content {
+    padding-top: var(--ion-safe-area-top);
+    padding-bottom: var(--ion-safe-area-bottom);
+    background-color: #000; /* Match the background color with your homepage */
+  }
+  
