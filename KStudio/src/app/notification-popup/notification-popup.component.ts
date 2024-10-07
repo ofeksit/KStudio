@@ -8,17 +8,12 @@ import { ModalController, IonItemSliding } from '@ionic/angular';
 })
 export class NotificationPopupComponent implements OnInit {
 
-  notifications = [
-    {
-      title: "test",
-      message: "test"
-    }
-  ]
+  notifications: any[] = [];
 
   constructor(private modalCtrl: ModalController) {}
 
   ngOnInit(): void {
-    //this.notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    this.notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
   }
 
   deleteNotification(index: number, slidingItem: IonItemSliding) {
