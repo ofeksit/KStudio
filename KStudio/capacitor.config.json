@@ -15,9 +15,6 @@
     },
     "android": {
       "buildType": "debug"
-    },
-    "ios": {
-      "contentInset": "always"
     }
   }
   
