@@ -40,7 +40,7 @@ export class HomePage implements OnInit {
         spaceBetween: 10,  // Space between each slide
         centeredSlides: false,  // Avoid centering to limit scrolling
         loop: true,  // Disable looping to prevent continuous scrolling
-        freeMode: false,  // Disable free mode to keep the slides constrained
+        freeMode: false,  // Disable free mode to keep the slides constrained,
         pagination: {
           el: '.swiper-pagination',
           clickable: true,
