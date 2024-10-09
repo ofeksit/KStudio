@@ -13,4 +13,6 @@ export interface Appointment {
   googleCalendarEventId?: string; // Add Google Calendar ID
   isFull?: boolean;
   providerId?: number;
+  isLoading?: boolean; //Enrolling Animation
+  isSuccess?: boolean; //Enrolling Animation
 }

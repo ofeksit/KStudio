@@ -50,6 +50,9 @@ export class TrainingsPage implements AfterViewInit {
   errorMessage: string = '';
   isStandbyLoading: boolean = false;
   isStandbySuccess: boolean = false;
+  isEnrollLoading: boolean = false;
+  isEnrollSuccess: boolean = false;
+
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP) {
@@ -641,61 +644,128 @@ export class TrainingsPage implements AfterViewInit {
     }, error => {
       console.error('Error adding user to standby list', error);
       this.isStandbyLoading = false;
-      this.presentToast('Error adding user to standby list', 'danger');
+      this.presentToast('שגיאה', 'danger');
     });
   }
 
   // Method to enroll the user in a training session
-  enrollUser(appointment: Appointment) {    
-    let serviceID= appointment.serviceID;
+  enrollUser(appointment: Appointment) {
+    // Initialize individual loading and success flags for the appointment
+    appointment.isLoading = true;
+    appointment.isSuccess = false; // Reset success state
+
+    let serviceID = appointment.serviceID;
     let bookingStart = appointment.start_time;
-    const formattedBookingStart = bookingStart.slice(0, 16);
-    console.log(formattedBookingStart);
+    const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
 
     let providerId = appointment.providerId;
-
     let customerID = this.authService.getCustomerID();
-    let userEmail = this.authService.getUserEmail();
     let packageCustomerId = this.authService.getPackageCustomerId();
-      // Request body
-  const enrollData = {
-    type: "appointment",
-    serviceId: serviceID,
-    providerId: providerId,
-    locationId: null,
-    notifyParticipants: 0,
-    bookings: [
-      {
-        customerId: customerID,
-        status: "approved",
-        duration: 3600, // Assuming the training is 1 hour (3600 seconds)
-        persons: 1,
-        extras: [], // Assuming no extras, modify if needed
-        customFields: {},
-        packageCustomerService: {
-          packageCustomer: {
-            id: packageCustomerId
-          }
-        }
-      }
-    ],
-    bookingStart: formattedBookingStart
-  };
 
-    console.log("data", enrollData)
-    // Send the request to enroll the user
-    this.http.post('/api/appointments', enrollData, {
-      headers: {
-        'Amelia': `C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk`, // Assuming token-based authentication
-        'Content-Type': 'application/json'
+    // Request body for WordPress API
+    const enrollData = {
+      type: 'appointment',
+      serviceId: serviceID,
+      providerId: providerId,
+      locationId: null,
+      notifyParticipants: 0,
+      bookings: [
+        {
+          customerId: customerID,
+          status: 'approved',
+          duration: 3600, // Assuming the training is 1 hour (3600 seconds)
+          persons: 1, // Assuming booking is for 1 person
+          extras: [], // Assuming no extras, modify if needed
+          customFields: {}, // Any custom fields if applicable
+          packageCustomerService: {
+            packageCustomer: {
+              id: packageCustomerId, // Package Customer ID
+            },
+          },
+        },
+      ],
+      bookingStart: formattedBookingStart, // Starting time for the booking
+    };
+
+    console.log('Request body data', JSON.stringify(enrollData));
+
+    // Check if Cordova is available and use the appropriate method
+    this.platform.ready().then(() => {
+      if (this.platform.is('cordova')) {
+        // Stringify the enrollData to ensure it's correctly formatted
+        const body = JSON.stringify(enrollData);
+
+        // Use Cordova HTTP plugin to send POST request to the WordPress API
+        this.httpA.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
+          'Content-Type': 'application/json',
+        }).then((response) => {
+          const parsedResponse = JSON.parse(response.data);
+          
+          // Log the full response to see the structure in Logcat
+          console.log('Enrollment successful', JSON.stringify(parsedResponse, null, 2));
+
+          // Handle the specific messages based on the response
+          if (parsedResponse.data?.timeSlotUnavailable) {
+            this.presentToast(parsedResponse.message || 'The time slot is unavailable', 'danger');
+          } else if (parsedResponse.data?.customerAlreadyBooked) {
+            this.presentToast(parsedResponse.message || 'You have already booked this training', 'success');
+          } else if (parsedResponse.message) {
+            this.presentToast(parsedResponse.message, 'success');
+          } else {
+            this.presentToast('Enrollment successful!', 'success');
+            appointment.isSuccess = true; // Mark as successful
+          }
+
+          appointment.isLoading = false;
+
+          // Reset the button after 2 seconds
+          setTimeout(() => {
+            appointment.isSuccess = false;
+          }, 2000);
+
+        }).catch((error) => {
+          console.error('Enrollment failed', JSON.stringify(error));
+          appointment.isLoading = false;
+          this.presentToast('An error occurred while booking the training', 'danger');
+        });
+      } else {
+        // Fallback to Angular HttpClient if Cordova is not available
+        const body = JSON.stringify(enrollData);
+        this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).subscribe(
+          (response: any) => {
+            console.log('Enrollment successful', JSON.stringify(response, null, 2));
+
+            if (response.data?.timeSlotUnavailable) {
+              this.presentToast(response.message || 'The time slot is unavailable', 'danger');
+            } else if (response.data?.customerAlreadyBooked) {
+              this.presentToast(response.message || 'You have already booked this training', 'success');
+            } else if (response.message) {
+              this.presentToast(response.message, 'success');
+            } else {
+              this.presentToast('Enrollment successful!', 'success');
+              appointment.isSuccess = true; // Mark as successful
+            }
+
+            appointment.isLoading = false;
+
+            // Reset the button after 2 seconds
+            setTimeout(() => {
+              appointment.isSuccess = false;
+            }, 2000);
+
+          },
+          (error) => {
+            console.error('Enrollment failed', JSON.stringify(error));
+            appointment.isLoading = false;
+            this.presentToast('An error occurred while booking the training', 'danger');
+          }
+        );
       }
-    }).subscribe(
-      (response) => {
-        console.log('Enrollment successful', response);
-      },
-      (error) => {
-        console.error('Enrollment failed', error);
-      }
-    );
+    });
   }
+
 }

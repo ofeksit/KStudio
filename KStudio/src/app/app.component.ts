@@ -20,7 +20,7 @@ export class AppComponent implements OnInit{
     private router: Router, 
     private platform: Platform
   ) {
-    
+    /*
     platform.ready().then(() => {
       
       // Debug OneSignal
@@ -61,7 +61,7 @@ export class AppComponent implements OnInit{
       this.storeNotification(notificationData); // Store the clicked notification
       console.log('Notification clicked: ', notificationData);
     });
-  
+  */
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
   }
