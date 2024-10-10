@@ -4,7 +4,6 @@ export interface Appointment {
   title: { name: string }; // Optional for timeslots
   serviceID?: number;
   start_time: string;
-  end_time: string;
   booked: number;
   capacity?: number;
   favorite?: boolean;

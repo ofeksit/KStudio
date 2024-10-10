@@ -141,7 +141,7 @@ export class TrainingsPage implements AfterViewInit {
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 20); // Fetch for 30 days
+    next30Days.setDate(today.getDate() + 20); // Fetch for 20 days
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
   
@@ -152,7 +152,6 @@ export class TrainingsPage implements AfterViewInit {
       return `${year}-${month}-${day}`;
     };
   
-    // Helper function to format date and time in 'YYYY-MM-DDTHH:mm:ss' and convert to Israel time
     const formatDateTimeInIsraelTime = (dateString: string, timeString: string): string => {
       const localDate = new Date(`${dateString}T${timeString}`);
       const options: Intl.DateTimeFormatOptions = {
@@ -165,10 +164,8 @@ export class TrainingsPage implements AfterViewInit {
         second: '2-digit',
         hour12: false,
       };
-  
-      const israelTime = new Intl.DateTimeFormat('sv-SE', options).format(localDate);
-      // Return in ISO format 'YYYY-MM-DDTHH:mm:ss'
-      return israelTime.replace(' ', 'T');
+      const israelTime = new Intl.DateTimeFormat('en-GB', options).format(localDate);
+      return israelTime.replace(',', '').replace(/\//g, '-');
     };
   
     return new Promise((resolve, reject) => {
@@ -181,23 +178,21 @@ export class TrainingsPage implements AfterViewInit {
           const url = `${environment.apiBaseUrl}/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
   
           if (this.platform.is('cordova')) {
-            // Use the Cordova HTTP plugin if Cordova is available
             return this.httpA.get(url, {}, {
               'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
             }).then(response => {
-              // Parse JSON response
               return JSON.parse(response.data);
             }).catch(error => {
               reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
             });
           } else {
-            // Use Angular HttpClient if not running on Cordova
             return this.http.get(url, {
               headers: {
                 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
               }
             }).toPromise().then(response => {
-              return response; // response is already JSON in HttpClient
+              console.log("response", response)
+              return response;
             }).catch(error => {
               reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
             });
@@ -213,28 +208,14 @@ export class TrainingsPage implements AfterViewInit {
   
               for (const date of Object.keys(timeslotsData)) {
                 for (const time of Object.keys(timeslotsData[date])) {
-                  // Format the date and time to Israel time
-                  const start_time = formatDateTimeInIsraelTime(date, time);
-                  const end_time = formatDateTimeInIsraelTime(date, time);
+                  const start_time = formatDateTimeInIsraelTime(date, time);                  
   
-                  // Check if the timeslot is within the next 7 days
                   const timeslotDate = new Date(start_time);
-                  let title;
+                  let title = { name: await this.getAppointmentTitleByDateTime(date, time) };
   
-                  console.log("appointment start day:", timeslotDate);
-                  console.log("next 7 days:", next7Days);
-  
-                  if (timeslotDate <= next7Days) {
-                    // Fetch title only for the next 7 days
-                    title = { name: await this.getAppointmentTitleByDateTime(date, time) };
-                  } else {
-                    // Use default title for dates beyond 7 days
-                    title = { name: 'אימון קבוצתי' };
-                  }
   
                   this.availableTimeslots.push({
                     start_time,
-                    end_time,
                     type: 'timeslot',
                     title,
                     favorite: false,
@@ -246,13 +227,11 @@ export class TrainingsPage implements AfterViewInit {
               }
             }
           }
-          console.log("available time slots:", this.availableTimeslots);
           resolve();
         }).catch(error => reject(error));
       }, error => reject(error));
     });
   }
-  
   
   
 
@@ -415,11 +394,7 @@ export class TrainingsPage implements AfterViewInit {
       return isValid;
     });
   
-    console.log("Combined list after filtering:", this.combinedList);
-  
     this.extractAvailableDays();
-  
-    console.log("Combined list before sorting:", this.combinedList);
   
     // Sort by start time only
     this.combinedList.sort((a, b) => {
@@ -427,8 +402,6 @@ export class TrainingsPage implements AfterViewInit {
       const dateB = new Date(b.start_time).getTime();
       return dateA - dateB;
     });
-  
-    console.log("Final sorted combinedList:", this.combinedList);
   }
   
   // Helper function to parse 'DD-MM-YYYY HH:mm:ss' to 'YYYY-MM-DDTHH:mm:ss'
@@ -726,6 +699,7 @@ export class TrainingsPage implements AfterViewInit {
 
     let serviceID = appointment.serviceID;
     let bookingStart = appointment.start_time;
+    console.log("booking Start", bookingStart);
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
 
     let providerId = appointment.providerId;
