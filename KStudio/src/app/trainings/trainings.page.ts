@@ -152,6 +152,25 @@ export class TrainingsPage implements AfterViewInit {
       return `${year}-${month}-${day}`;
     };
   
+    // Helper function to format date and time in 'YYYY-MM-DDTHH:mm:ss' and convert to Israel time
+    const formatDateTimeInIsraelTime = (dateString: string, timeString: string): string => {
+      const localDate = new Date(`${dateString}T${timeString}`);
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      };
+  
+      const israelTime = new Intl.DateTimeFormat('sv-SE', options).format(localDate);
+      // Return in ISO format 'YYYY-MM-DDTHH:mm:ss'
+      return israelTime.replace(' ', 'T');
+    };
+  
     return new Promise((resolve, reject) => {
       this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
         if (serviceIDs.length === 0) {
@@ -194,12 +213,17 @@ export class TrainingsPage implements AfterViewInit {
   
               for (const date of Object.keys(timeslotsData)) {
                 for (const time of Object.keys(timeslotsData[date])) {
-                  const start_time = new Date(`${date}T${time}`).toISOString();
-                  const end_time = new Date(`${date}T${time}`).toISOString();
+                  // Format the date and time to Israel time
+                  const start_time = formatDateTimeInIsraelTime(date, time);
+                  const end_time = formatDateTimeInIsraelTime(date, time);
   
                   // Check if the timeslot is within the next 7 days
                   const timeslotDate = new Date(start_time);
                   let title;
+  
+                  console.log("appointment start day:", timeslotDate);
+                  console.log("next 7 days:", next7Days);
+  
                   if (timeslotDate <= next7Days) {
                     // Fetch title only for the next 7 days
                     title = { name: await this.getAppointmentTitleByDateTime(date, time) };
@@ -222,11 +246,14 @@ export class TrainingsPage implements AfterViewInit {
               }
             }
           }
+          console.log("available time slots:", this.availableTimeslots);
           resolve();
         }).catch(error => reject(error));
       }, error => reject(error));
     });
   }
+  
+  
   
 
   // Gets all the appointments
@@ -265,7 +292,7 @@ export class TrainingsPage implements AfterViewInit {
                 ).map(async (app: any) => {
                   const appointmentStartDate = new Date(app.bookingStart);
                   let appointmentTempTitle;
-  
+                  
                   if (appointmentStartDate <= next7Days) {
                     // Fetch title only for the next 7 days
                     appointmentTempTitle = await this.getAppointmentTitleByAppointment(app);
@@ -313,7 +340,6 @@ export class TrainingsPage implements AfterViewInit {
                 ).map(async (app: any) => {
                   const appointmentStartDate = new Date(app.bookingStart);
                   let appointmentTempTitle;
-  
                   if (appointmentStartDate <= next7Days) {
                     // Fetch title only for the next 7 days
                     appointmentTempTitle = await this.getAppointmentTitleByAppointment(app);
@@ -353,24 +379,67 @@ export class TrainingsPage implements AfterViewInit {
   
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
+    // Combine timeslots and appointments
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-    this.unfilteredList = [...this.combinedList];  
-
-    // Ensure valid dates
+    this.unfilteredList = [...this.combinedList];
+  
+    console.log("After adding available timeslots:", this.availableTimeslots);
+    console.log("Combined list before filtering and sorting:", this.combinedList);
+  
+    // Ensure valid start dates for both timeslots and appointments
     this.combinedList = this.combinedList.filter(item => {
-      const startDate = new Date(item.start_time);
-      const endDate = new Date(item.end_time);
-      return !isNaN(startDate.getTime()) && !isNaN(endDate.getTime());
+      // If the start_time is already in ISO format (e.g., in bookedAppointments), no need to parse it
+      let startDate: Date;
+  
+      // If the item is a timeslot, parse the date manually
+      if (item.type === 'timeslot') {
+        const parsedStartTime = this.parseDateString(item.start_time);  // Parse timeslot date
+        startDate = new Date(parsedStartTime);
+      } else {
+        // For booked appointments, assume the date is already valid
+        startDate = new Date(item.start_time);
+      }
+  
+      // Check if the startDate is valid
+      const isValid = !isNaN(startDate.getTime());
+  
+      if (!isValid) {
+        console.log("Invalid start date detected in item:", item); // Debug log for invalid items
+      } else {
+        // If valid, update the start_time to be the ISO string if it's a timeslot
+        if (item.type === 'timeslot') {
+          item.start_time = startDate.toISOString();
+        }
+      }
+  
+      return isValid;
     });
-
+  
+    console.log("Combined list after filtering:", this.combinedList);
+  
     this.extractAvailableDays();
-
+  
+    console.log("Combined list before sorting:", this.combinedList);
+  
+    // Sort by start time only
     this.combinedList.sort((a, b) => {
       const dateA = new Date(a.start_time).getTime();
       const dateB = new Date(b.start_time).getTime();
       return dateA - dateB;
     });
+  
+    console.log("Final sorted combinedList:", this.combinedList);
   }
+  
+  // Helper function to parse 'DD-MM-YYYY HH:mm:ss' to 'YYYY-MM-DDTHH:mm:ss'
+  parseDateString(dateString: string): string {
+    const [datePart, timePart] = dateString.split(' ');
+    const [day, month, year] = datePart.split('-');
+    return `${year}-${month}-${day}T${timePart}`;
+  }
+  
+  
+  
 
   //Extract 
   extractAvailableDays() {
@@ -650,6 +719,7 @@ export class TrainingsPage implements AfterViewInit {
 
   // Method to enroll the user in a training session
   enrollUser(appointment: Appointment) {
+    console.log("appointment:", appointment);
     // Initialize individual loading and success flags for the appointment
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
@@ -687,33 +757,28 @@ export class TrainingsPage implements AfterViewInit {
       bookingStart: formattedBookingStart, // Starting time for the booking
     };
 
-    console.log('Request body data', JSON.stringify(enrollData));
-
     // Check if Cordova is available and use the appropriate method
-    this.platform.ready().then(() => {
-      if (this.platform.is('cordova')) {
-        // Stringify the enrollData to ensure it's correctly formatted
-        const body = JSON.stringify(enrollData);
-
-        // Use Cordova HTTP plugin to send POST request to the WordPress API
-        this.httpA.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
+    /*this.platform.ready().then(() => {
+      // Fallback to Angular HttpClient if Cordova is not available
+      const body = JSON.stringify(enrollData);
+      this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
+        headers: {
           'Content-Type': 'application/json',
-        }).then((response) => {
-          const parsedResponse = JSON.parse(response.data);
-          
-          // Log the full response to see the structure in Logcat
-          console.log('Enrollment successful', JSON.stringify(parsedResponse, null, 2));
+        },
+      }).subscribe(
+        (response: any) => {
+          console.log('Enrollment successful', JSON.stringify(response, null, 2));
 
-          // Handle the specific messages based on the response
-          if (parsedResponse.data?.timeSlotUnavailable) {
-            this.presentToast(parsedResponse.message || 'The time slot is unavailable', 'danger');
-          } else if (parsedResponse.data?.customerAlreadyBooked) {
-            this.presentToast(parsedResponse.message || 'You have already booked this training', 'success');
-          } else if (parsedResponse.message) {
-            this.presentToast(parsedResponse.message, 'success');
-          } else {
-            this.presentToast('Enrollment successful!', 'success');
+          // Handle the time slot unavailable or already booked cases
+          if (response.data?.timeSlotUnavailable) {
+            this.presentToast(response.message || 'The time slot is unavailable', 'danger');
+          } else if (response.data?.customerAlreadyBooked) {
+            this.presentToast(response.message || 'You have already booked this training', 'success');
+          } else if (response.message) {
+            this.presentToast(response.message, 'success');
             appointment.isSuccess = true; // Mark as successful
+          } else {
+            appointment.isSuccess = true; // Fallback to success if no error conditions
           }
 
           appointment.isLoading = false;
@@ -722,50 +787,15 @@ export class TrainingsPage implements AfterViewInit {
           setTimeout(() => {
             appointment.isSuccess = false;
           }, 2000);
-
-        }).catch((error) => {
+        },
+        (error) => {
           console.error('Enrollment failed', JSON.stringify(error));
           appointment.isLoading = false;
-          this.presentToast('An error occurred while booking the training', 'danger');
-        });
-      } else {
-        // Fallback to Angular HttpClient if Cordova is not available
-        const body = JSON.stringify(enrollData);
-        this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }).subscribe(
-          (response: any) => {
-            console.log('Enrollment successful', JSON.stringify(response, null, 2));
-
-            if (response.data?.timeSlotUnavailable) {
-              this.presentToast(response.message || 'The time slot is unavailable', 'danger');
-            } else if (response.data?.customerAlreadyBooked) {
-              this.presentToast(response.message || 'You have already booked this training', 'success');
-            } else if (response.message) {
-              this.presentToast(response.message, 'success');
-            } else {
-              this.presentToast('Enrollment successful!', 'success');
-              appointment.isSuccess = true; // Mark as successful
-            }
-
-            appointment.isLoading = false;
-
-            // Reset the button after 2 seconds
-            setTimeout(() => {
-              appointment.isSuccess = false;
-            }, 2000);
-
-          },
-          (error) => {
-            console.error('Enrollment failed', JSON.stringify(error));
-            appointment.isLoading = false;
-            this.presentToast('An error occurred while booking the training', 'danger');
-          }
-        );
-      }
-    });
+          this.presentToast('שגיאה', 'danger');
+        }
+      );
+    });*/
   }
+
 
 }
