@@ -21,7 +21,7 @@ export class AppComponent implements OnInit{
     private platform: Platform
   ) {
     
-    /* platform.ready().then(() => {
+    platform.ready().then(() => {
       
       // Debug OneSignal
       OneSignal.Debug.setLogLevel(6);
@@ -61,7 +61,7 @@ export class AppComponent implements OnInit{
       this.storeNotification(notificationData); // Store the clicked notification
       console.log('Notification clicked: ', notificationData);
     });
-  */
+  
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
   }
