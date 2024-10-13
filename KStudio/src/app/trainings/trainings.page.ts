@@ -138,6 +138,30 @@ export class TrainingsPage implements AfterViewInit {
     return this.http.get<number[]>(`${apiUrl}${role}`);
   }
 
+  formatDateTimeInIsraelTime(dateString: string, timeString: string): string {
+    const localDate = new Date(`${dateString}T${timeString}`);
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    };
+  
+    // Format the date and time as per Israeli time zone
+    const israelTime = new Intl.DateTimeFormat('en-CA', options).format(localDate); // Using 'en-CA' to format as yyyy-mm-dd
+  
+    // Adjust the format to return yyyy-mm-dd hh:mm:ss
+    const [datePart, timePart] = israelTime.replace(',', '').split(' ');
+    const formattedDate = datePart.replace(/\//g, '-');
+    return `${formattedDate} ${timePart}`;
+  }
+  
+
+
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
@@ -145,29 +169,14 @@ export class TrainingsPage implements AfterViewInit {
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
   
-    const formatDate = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-  
-    const formatDateTimeInIsraelTime = (dateString: string, timeString: string): string => {
-      const localDate = new Date(`${dateString}T${timeString}`);
-      const options: Intl.DateTimeFormatOptions = {
-        timeZone: 'Asia/Jerusalem',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      };
-      const israelTime = new Intl.DateTimeFormat('en-GB', options).format(localDate);
-      return israelTime.replace(',', '').replace(/\//g, '-');
-    };
-  
+  // Updated formatDate function to format the date as yyyy-mm-dd
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+    
     return new Promise((resolve, reject) => {
       this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
         if (serviceIDs.length === 0) {
@@ -191,7 +200,6 @@ export class TrainingsPage implements AfterViewInit {
                 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
               }
             }).toPromise().then(response => {
-              console.log("response", response)
               return response;
             }).catch(error => {
               reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
@@ -207,19 +215,20 @@ export class TrainingsPage implements AfterViewInit {
               const timeslotsData = response.data.slots;
   
               for (const date of Object.keys(timeslotsData)) {
+                const formattedDate = formatDate(new Date(date));
+
                 for (const time of Object.keys(timeslotsData[date])) {
-                  const start_time = formatDateTimeInIsraelTime(date, time);                  
+                  const start_time = this.formatDateTimeInIsraelTime(formattedDate, time);                  
   
-                  const timeslotDate = new Date(start_time);
                   let title = { name: await this.getAppointmentTitleByDateTime(date, time) };
-  
-  
                   this.availableTimeslots.push({
                     start_time,
                     type: 'timeslot',
                     title,
                     favorite: false,
                     current_participants: [],
+                    serviceID: 12, 
+                    providerId: 169,
                     total_participants: 8,
                     booked: 0,
                   });
@@ -361,41 +370,9 @@ export class TrainingsPage implements AfterViewInit {
     // Combine timeslots and appointments
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
     this.unfilteredList = [...this.combinedList];
-  
-    console.log("After adding available timeslots:", this.availableTimeslots);
-    console.log("Combined list before filtering and sorting:", this.combinedList);
-  
-    // Ensure valid start dates for both timeslots and appointments
-    this.combinedList = this.combinedList.filter(item => {
-      // If the start_time is already in ISO format (e.g., in bookedAppointments), no need to parse it
-      let startDate: Date;
-  
-      // If the item is a timeslot, parse the date manually
-      if (item.type === 'timeslot') {
-        const parsedStartTime = this.parseDateString(item.start_time);  // Parse timeslot date
-        startDate = new Date(parsedStartTime);
-      } else {
-        // For booked appointments, assume the date is already valid
-        startDate = new Date(item.start_time);
-      }
-  
-      // Check if the startDate is valid
-      const isValid = !isNaN(startDate.getTime());
-  
-      if (!isValid) {
-        console.log("Invalid start date detected in item:", item); // Debug log for invalid items
-      } else {
-        // If valid, update the start_time to be the ISO string if it's a timeslot
-        if (item.type === 'timeslot') {
-          item.start_time = startDate.toISOString();
-        }
-      }
-  
-      return isValid;
-    });
-  
+   
     this.extractAvailableDays();
-  
+    
     // Sort by start time only
     this.combinedList.sort((a, b) => {
       const dateA = new Date(a.start_time).getTime();
@@ -403,16 +380,6 @@ export class TrainingsPage implements AfterViewInit {
       return dateA - dateB;
     });
   }
-  
-  // Helper function to parse 'DD-MM-YYYY HH:mm:ss' to 'YYYY-MM-DDTHH:mm:ss'
-  parseDateString(dateString: string): string {
-    const [datePart, timePart] = dateString.split(' ');
-    const [day, month, year] = datePart.split('-');
-    return `${year}-${month}-${day}T${timePart}`;
-  }
-  
-  
-  
 
   //Extract 
   extractAvailableDays() {
@@ -699,7 +666,7 @@ export class TrainingsPage implements AfterViewInit {
 
     let serviceID = appointment.serviceID;
     let bookingStart = appointment.start_time;
-    console.log("booking Start", bookingStart);
+    
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
 
     let providerId = appointment.providerId;
@@ -732,7 +699,7 @@ export class TrainingsPage implements AfterViewInit {
     };
 
     // Check if Cordova is available and use the appropriate method
-    /*this.platform.ready().then(() => {
+    this.platform.ready().then(() => {
       // Fallback to Angular HttpClient if Cordova is not available
       const body = JSON.stringify(enrollData);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
@@ -749,7 +716,6 @@ export class TrainingsPage implements AfterViewInit {
           } else if (response.data?.customerAlreadyBooked) {
             this.presentToast(response.message || 'You have already booked this training', 'success');
           } else if (response.message) {
-            this.presentToast(response.message, 'success');
             appointment.isSuccess = true; // Mark as successful
           } else {
             appointment.isSuccess = true; // Fallback to success if no error conditions
@@ -768,7 +734,7 @@ export class TrainingsPage implements AfterViewInit {
           this.presentToast('שגיאה', 'danger');
         }
       );
-    });*/
+    });
   }
 
 

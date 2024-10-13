@@ -2,14 +2,11 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
 import { ProfileService } from '../services/profile.service';
 import { AuthService } from '../services/auth.service';
-import { Appointment } from '../Models/appointment';
-import { Training } from '../Models/training';
 import { Booking } from '../Models/booking';
-import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
-import { filter, Observable } from 'rxjs';
 import { AmeliaService } from '../services/amelia-api.service';
 import * as moment from 'moment';
+import { Md5 } from 'ts-md5';
 
 
 @Component({
@@ -40,6 +37,8 @@ export class ProfilePopupComponent implements AfterViewInit {
   filteredAppointments: Booking[] = [];
   unfilteredAppointments: Booking[] = [];
   userPurchases: any[] = [];
+  gravatarUrl: string = '';
+  
   
   constructor(
     private gestureCtrl: GestureController,
@@ -47,7 +46,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     private actionSheetCtrl: ActionSheetController,
     private profileService: ProfileService,
     private authService: AuthService,
-    private http: HttpClient,
     private toastController: ToastController,
     private ameliaService: AmeliaService
   ) {
@@ -55,6 +53,16 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userRole = this.translateUserRole(this.authService.getUserRole());
     this.customerID = this.authService.getCustomerID();
     this.userID = this.authService.getUserID();
+    this.userEmail = this.authService.getUserEmail();
+    this.setGravatarUrl();
+  }
+
+  setGravatarUrl(){
+    if (this.userEmail){
+      const hash = Md5.hashStr(this.userEmail.trim().toLowerCase());
+      console.log("hash:", hash);
+      this.gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+    }
   }
 
   // Method to format the date from dd/mm/yyyy to dd.mm.yyyy
@@ -77,6 +85,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     );
   
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+    this.profileService.getUserPackageCustomerID();
     
     // Check if the titles have already been fetched
     if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
@@ -118,6 +127,7 @@ export class ProfilePopupComponent implements AfterViewInit {
         const status = appointment.userBookingStatus;
   
         if (booking) {
+          console.log("booking start", appointment.bookingStart)
           appointment.userBookingStatus = status;
           const bookingDate = moment(appointment.bookingStart).format('YYYY-MM-DD');
           const bookingTime = moment(appointment.bookingStart).format('HH:mm');
@@ -149,9 +159,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     });
 }
 
-  
-
-    getDayFromDate(dateString: string): string {
+  getDayFromDate(dateString: string): string {
         // Parse the date in DD/MM/YYYY format using Moment.js
     const date = moment(dateString, "DD/MM/YYYY").toDate();
     // Array of day names
@@ -233,13 +241,6 @@ export class ProfilePopupComponent implements AfterViewInit {
           icon: 'close-circle-outline',
           handler: () => {
             this.cancelBooking(training.matchedBooking.id);
-          },
-        },
-        {
-          text: 'תזמון מחדש',
-          icon: 'time-outline',
-          handler: () => {
-            console.log('Reschedule training:', training);
           },
         },
         {

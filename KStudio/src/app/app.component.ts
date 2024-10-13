@@ -20,8 +20,8 @@ export class AppComponent implements OnInit{
     private router: Router, 
     private platform: Platform
   ) {
-    /*
-    platform.ready().then(() => {
+    
+    /* platform.ready().then(() => {
       
       // Debug OneSignal
       OneSignal.Debug.setLogLevel(6);

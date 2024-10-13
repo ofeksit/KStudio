@@ -19,8 +19,6 @@ export class ProfileService {
 
   constructor(private platform: Platform, private httpA: HTTP, private http: HttpClient, private authService: AuthService) {}
 
- 
- 
   // Get last 60 days appointments and filter for logged-in user by email
   getLast60DaysAppointmentsForUser(): Observable<any> {
     const today = new Date();
@@ -75,13 +73,55 @@ export class ProfileService {
             observer.error(`Error fetching appointments: ${error}`);
           });
         } else {
-          observer.error('Cordova is not available. Please run on a device or emulator.');
+          // Use HttpClient for non-Cordova environments
+          this.http.get(url, { headers: this.headers }).subscribe(
+            (response: any) => {
+              const appointmentsData = response.data?.appointments || {};
+              let userAppointments: any[] = [];
+
+              // Loop through each date in the appointments object
+              for (const date in appointmentsData) {
+                if (appointmentsData.hasOwnProperty(date) && Array.isArray(appointmentsData[date].appointments)) {
+                  // Iterate over each appointment on the given date
+                  appointmentsData[date].appointments.forEach((appointment: any) => {
+                    // Check if bookings array exists inside the appointment
+                    if (appointment.bookings && Array.isArray(appointment.bookings)) {
+                      // Loop through all bookings and match with user email
+                      appointment.bookings.forEach((booking: any) => {
+                        if (booking.customer?.email === userEmail) {
+                          booking.googleCalendarEventId = appointment.googleCalendarEventId;
+
+                          // Create an object to store the appointment and the specific booking details
+                          const userAppointment = {
+                            ...appointment, // Copy the appointment details
+                            matchedBooking: booking, // Store the specific booking that matches the user
+                            userBookingStatus: booking.status, // Store the specific booking status
+                          };
+
+                          // Push the matched appointment to the userAppointments array
+                          userAppointments.push(userAppointment);
+                        }
+                      });
+                    }
+                  });
+                }
+              }
+
+              // Emit the filtered user appointments
+              observer.next(userAppointments);
+              observer.complete();
+            },
+            (error) => {
+              observer.error(`Error fetching appointments: ${error}`);
+            }
+          );
         }
       });
     });
   }
-// Function to fetch available package slots and expiry date using customer ID
-fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlots: number, expiryDate: string }> {
+  
+  // Function to fetch available package slots and expiry date using customer ID
+  fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlots: number, expiryDate: string }> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
 
   return this.http.get(url, {}).pipe(
@@ -122,11 +162,34 @@ fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlo
       return of({ availableSlots: 0, expiryDate: '' }); // Return default values on error
     })
   );
-}
+  }
+
+  getUserPackageCustomerID(){
+    let customerId = this.authService.getPackageCustomerId();
+    const url = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
+
+    return this.http.get(url, {}).pipe(
+      map((packageResponse: any) => {
+        console.log('Package response received:', packageResponse);
+
+        // Extract the packageCustomerId and store it in local storage
+        if (packageResponse && packageResponse.data && packageResponse.data[0] && 
+            packageResponse.data[0].packages[0] && 
+            packageResponse.data[0].packages[0].purchases[0] && 
+            packageResponse.data[0].packages[0].purchases[0].packageCustomerId) {
+            const packageCustomerId = packageResponse.data[0].packages[0].purchases[0].packageCustomerId;
+            this.authService.storePackageCustomerID(packageCustomerId);
+        }
+      }),
+      catchError((error) => {
+        console.error('API Error:', error);  // Log the error
+        return of({ availableSlots: 0, expiryDate: '' }); // Return default values on error
+      })
+    );
+  }
 
 
-
-fetchUserPurchases(userId: string | null): Observable<any> {
+  fetchUserPurchases(userId: string | null): Observable<any> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/user-purchases/${userId}`;
   return this.http.get(url, {}).pipe(
     map((response: any) => {
@@ -142,21 +205,21 @@ fetchUserPurchases(userId: string | null): Observable<any> {
       return of([]); // Return an empty array if error occurs
     })
   );
-}
+  }
 
-cancelBooking(bookingId: string): Observable<any> {
+  cancelBooking(bookingId: string): Observable<any> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/cancel-booking/${bookingId}`;
 
   return this.http.post(url, {});
-}
+  }
 
 
   // Helper function to format date as YYYY-MM-DD
-private formatDate(date: Date): string {
+  private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero
     const day = date.getDate().toString().padStart(2, '0'); // Add leading zero
     return `${year}-${month}-${day}`;
-}
+  }
 
 }

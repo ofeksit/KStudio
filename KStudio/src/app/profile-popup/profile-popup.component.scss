@@ -205,10 +205,20 @@ ion-segment-button.ion-activated {
   //--color-checked: white;
   //--background: #f0f0f0;         /* Slight background color for inactive */
   //border-radius: 15px;
-  padding: 12px 20px;
+  //padding: 12px 20px;
   //--color: #333;                 /* Slightly darker for inactive */
 }
 
+.subscriptionDetails {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+}
+
+.inside-container {
+  
+}
 
 //Each ion Segment
 .filter-segment {
