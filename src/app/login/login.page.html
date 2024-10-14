@@ -1,0 +1,65 @@
+<ion-content>
+  <!-- Background Image Section -->
+  <div class="background-container">
+    <div class="background-image"></div>
+    <div class="overlay"></div>
+    <div class="logo-container">
+      <!-- Add your logo -->
+      <img src="https://k-studio.co.il/wp-content/uploads/2022/11/לוגו-כיתוב-עגול-טורקיז-שקוף-01-scaled.webp" alt="Logo">
+    </div>
+  </div>
+
+  <!-- Form Container -->
+  <div class="form-container">
+    <form (ngSubmit)="login()" class="login-form">
+      <h2 class="welcome-message" style="direction: rtl; text-align: center;">ברוך הבא!</h2>
+
+      <!-- Email Field -->
+      <div class="email-container">
+        <ion-input 
+          [(ngModel)]="username" 
+          type="email" 
+          name="email" 
+          required 
+          label="שם משתמש" 
+          label-placement="floating" 
+          placeholder="הקלד את שם המשתמש"
+          (focus)="scrollToInput($event)">
+        </ion-input>        
+      </div>
+      
+      <!-- Password Field with Eye Icon -->
+      <div class="password-container" style="position: relative;">
+        <ion-input 
+          [(ngModel)]="password" 
+          [type]="passwordType" 
+          name="password" 
+          required 
+          label="סיסמה" 
+          label-placement="floating" 
+          placeholder="הכנס סיסמה"
+          (focus)="scrollToInput($event)">
+        </ion-input>
+        <!-- Eye Icon for Toggling Visibility -->
+        <ion-icon 
+          [name]="passwordIcon" 
+          class="password-toggle-icon" 
+          (click)="togglePasswordVisibility()" 
+          style="position: absolute; right: 15px; top: 25px; font-size: 20px;">
+        </ion-icon>
+      </div>
+      
+      <!-- Login Button -->
+      <!-- <ion-button expand="block" type="submit" class="login-btn">התחבר</ion-button>-->
+      <button [disabled]="isLoading" (click)="login()" class="login-btn">
+        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+        <span *ngIf="!isLoading">התחבר</span>
+      </button>
+      
+    </form>
+
+    <!-- Progress bar for redirection -->
+    <ion-progress-bar *ngIf="showProgressBar" type="indeterminate" color="success"></ion-progress-bar>
+
+  </div>
+</ion-content>

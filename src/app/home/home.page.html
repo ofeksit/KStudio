@@ -1,0 +1,86 @@
+<ion-content class="ion-padding" #mainContent>
+  <!-- Container for bell icon and title -->
+  <div class="header-row">
+    <!-- Bell Icon -->
+    <ion-button class="bell-icon" (click)="openNotifications()" fill="clear">
+      <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+    </ion-button>
+  
+    <!-- Centered Title/Logo -->
+    <ion-text color="dark">
+      <h1 class="page-title home">K Studio</h1> <!-- Your title here -->
+    </ion-text>
+  
+    <!-- WhatsApp Icon -->
+    <ion-button class="whatsapp-icon" (click)="openWhatsApp()" fill="clear">
+      <ion-icon slot="icon-only" name="logo-whatsapp"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- What's New Section -->
+  <ion-card class="news-card">
+    <ion-card-header>
+      <ion-card-title>מה חדש?</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      כאן תוכלי למצוא טיפים ונושאים חדשים מאיתנו אלייך.
+    </ion-card-content>
+  </ion-card>
+
+
+  <!-- Swiper Section for Fitness Tips with Skeleton Loader -->
+  <div *ngIf="isLoading">
+    <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
+  </div>
+
+  <!-- Swiper Section for Fitness Tips -->
+  <div class="swiper-container">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide" *ngFor="let tip of fitnessTips">
+          <img [src]="tip.image" alt="tip image" class="fitness-card-img">
+          <ion-card-header class="fitness-card-header">
+            <ion-card-title class="fitness-card-title">{{ tip.title }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content class="fitness-card-content">
+            {{ tip.description }}
+          </ion-card-content>
+      </div>
+    </div>
+    <!-- Pagination -->
+    <div class="swiper-pagination"></div>
+  </div>
+
+</ion-content>
+ 
+
+  <!-- Custom Bottom Navigation Bar -->
+  <div class="custom-nav-bar">
+    <!-- Home Button -->
+    <div class="nav-item">
+      <ion-icon name="home-outline"></ion-icon>
+      <ion-label>בית</ion-label>
+    </div>
+
+    <!-- Trainings Button -->
+    <div class="nav-item" (click)="openTrainings()">
+      <ion-icon name="barbell-outline"></ion-icon>
+      <ion-label>אימונים</ion-label>
+    </div>
+
+    <!-- Profile Button -->
+    <div class="nav-item" (click)="openProfile()">
+      <ion-icon name="person-outline"></ion-icon>
+      <ion-label>פרופיל</ion-label>
+    </div>
+
+    <!-- Profile Button 
+    <div class="nav-item" (click)="openPurchase()">
+      <ion-icon name="cart-outline"></ion-icon>
+      <ion-label>רכישה</ion-label>
+    </div>
+    -->
+  </div>
+
+
