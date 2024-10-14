@@ -7,8 +7,6 @@ import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
 
 
-
-
 register();
 
 @Component({
@@ -22,12 +20,11 @@ export class AppComponent implements OnInit{
     private authService: AuthService, 
     private router: Router, 
     private platform: Platform,
-  ) {
+      ) {
     
     this.platform.ready().then(() => {
       this.setupOneSignal();
-
-      console.log("platform's ready");
+      
     })
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
