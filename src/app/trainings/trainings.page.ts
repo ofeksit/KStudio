@@ -260,11 +260,9 @@ export class TrainingsPage implements AfterViewInit {
     return new Promise((resolve, reject) => {
       this.platform.ready().then(() => {
         this.getServicesByRole().subscribe((serviceIDs: number[]) => {
-          const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(today)},${formatDate(next30Days)}&page=1&skipServices=1&skipProviders=1`;
+          const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(today)},${formatDate(next30Days)}`;
   
-          const loggedInCustomerId = this.authService.getCustomerID();
-          console.log('Logged-in customer ID:', loggedInCustomerId); // Log customer ID
-  
+          const loggedInCustomerId = this.authService.getCustomerID();  
           if (this.platform.is('cordova')) {
             this.httpA.get(url, {}, {
               'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
@@ -275,23 +273,16 @@ export class TrainingsPage implements AfterViewInit {
   
               const now = new Date();
               const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments
-  
-                  console.log('Bookings for this appointment:', app.bookings); // Log bookings
+                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
   
                   // Log the type of customerId for debugging
-                  app.bookings.forEach((booking: any) => {
-                    console.log('Booking customerId:', booking.customerId, typeof booking.customerId); // Type of customerId from booking
-                  });
   
-                  console.log('Logged-in customerId (local storage):', loggedInCustomerId, typeof loggedInCustomerId); // Type of customerId from localStorage
   
                   // Ensure both IDs are numbers for comparison
                   const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
                   // Check if the user is booked
                   const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId);
-                  console.log('Is user booked:', isUserBooked); // Log isUserBooked
   
                   let appointmentTempTitle;
                   const appointmentStartDate = new Date(app.bookingStart);
@@ -352,23 +343,13 @@ export class TrainingsPage implements AfterViewInit {
   
               const now = new Date();
               const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments
-  
-                  console.log('Bookings for this appointment:', app.bookings); // Log bookings
-  
-                  // Log the type of customerId for debugging
-                  app.bookings.forEach((booking: any) => {
-                    console.log('Booking customerId:', booking.customerId, typeof booking.customerId); // Type of customerId from booking
-                  });
-  
-                  console.log('Logged-in customerId (local storage):', loggedInCustomerId, typeof loggedInCustomerId); // Type of customerId from localStorage
+                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
   
                   // Ensure both IDs are numbers for comparison
                   const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
                   // Check if the user is booked
                   const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId);
-                  console.log('Is user booked:', isUserBooked); // Log isUserBooked
   
                   let appointmentTempTitle;
                   const appointmentStartDate = new Date(app.bookingStart);
