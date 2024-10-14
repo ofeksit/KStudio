@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">KStudio</string>
-    <string name="title_activity_main">KStudio</string>
-    <string name="package_name">io.kstudio.os</string>
-    <string name="custom_url_scheme">io.kstudio.os</string>
-</resources>
