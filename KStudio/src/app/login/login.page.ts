@@ -153,13 +153,6 @@ export class LoginPage {
     ).subscribe(
         async () => {
             console.log('Login and data fetching succeeded, showing success message.');
-
-            // On successful login, show success toast and navigate
-            this.toastMessage = 'התחברת בהצלחה! הנך מועבר לדף הראשי';
-
-            // Show success toast before navigating to home
-            await this.presentToast(this.toastMessage, 'success'); // Await the toast to ensure it displays
-
             // Show progress bar or navigate to home page after delay
             this.showProgressBar = true;
 

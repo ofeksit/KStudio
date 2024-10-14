@@ -27,6 +27,9 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <meta-data android:name="com.onesignal.NotificationServiceExtension"
+          android:value="com.onesignal.example.NotificationServiceExtension" />
     </application>
 
     <!-- Permissions -->

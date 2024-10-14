@@ -118,26 +118,39 @@
         </div>
 
         <div class="card-footer">
-        <!-- Check if slots are available -->
-        <button *ngIf="appointment.booked < appointment.total_participants" 
-                (click)="enrollUser(appointment)" 
-                class="action-button" 
-                [disabled]="appointment.isLoading || appointment.isSuccess"
-                [ngClass]="{'loading': appointment.isLoading, 'success': appointment.isSuccess}">
-          
-          <ng-container *ngIf="!appointment.isLoading && !appointment.isSuccess">הרשמה</ng-container>
-          
-          <!-- Loading animation -->
-          <ng-container *ngIf="appointment.isLoading">
-            <ion-spinner name="crescent"></ion-spinner>
+          <!-- Check if user is already booked -->
+          <ng-container *ngIf="appointment.isUserBooked; else showEnrollButton">
+            <!-- Show a different message or disable the button -->
+            <button class="action-button enrolled-button" disabled>
+              <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+              רשום
+            </button>
           </ng-container>
 
-          <!-- Success checkmark -->
-          <ng-container *ngIf="appointment.isSuccess">
-            <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
-          </ng-container>
+          <!-- Show the enroll button if the user is not booked -->
+          <ng-template #showEnrollButton>
+            <!-- Check if slots are available -->
+            <button *ngIf="appointment.booked < appointment.total_participants" 
+                    (click)="enrollUser(appointment)" 
+                    class="action-button" 
+                    [disabled]="appointment.isLoading || appointment.isSuccess"
+                    [ngClass]="{'loading': appointment.isLoading, 'success': appointment.isSuccess}">
+              
+              <ng-container *ngIf="!appointment.isLoading && !appointment.isSuccess">הרשמה</ng-container>
+              
+              <!-- Loading animation -->
+              <ng-container *ngIf="appointment.isLoading">
+                <ion-spinner name="crescent"></ion-spinner>
+              </ng-container>
 
-        </button>
+              <!-- Success checkmark -->
+              <ng-container *ngIf="appointment.isSuccess">
+                <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+              </ng-container>
+
+            </button>
+          </ng-template>
+
 
           <!-- Check if appointment is full and show standby button -->
           <button *ngIf="appointment.booked == appointment.total_participants" 

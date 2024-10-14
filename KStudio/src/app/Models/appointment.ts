@@ -14,4 +14,5 @@ export interface Appointment {
   providerId?: number;
   isLoading?: boolean; //Enrolling Animation
   isSuccess?: boolean; //Enrolling Animation
+  isUserBooked?: boolean;
 }

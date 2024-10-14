@@ -392,6 +392,13 @@ ion-spinner {
   background-color: #757575;
 }
 
+.enrolled-button {
+  background-color: #4caf50; /* Green background to show success */
+  color: white;
+  cursor: not-allowed; /* Show that it's not clickable */
+}
+
+
 
 .participants-container {
   background-color: #c5c5c563;
