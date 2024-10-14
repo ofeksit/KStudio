@@ -3,7 +3,7 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
-    "liveUpdates": {
+    "LiveUpdates": {
       "appId": "51618994",
       "channel": "Production",
       "autoUpdateMethod": "background",
