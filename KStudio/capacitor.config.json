@@ -1,20 +1,19 @@
 {
-    "appId": "io.kstudio.os",
-    "appName": "KStudio",
-    "webDir": "www",
-    "cordova": {
-      "preferences": {
-        "ScrollEnabled": "false",
-        "BackupWebStorage": "none",
-        "SplashMaintainAspectRatio": "true",
-        "FadeSplashScreenDuration": "300",
-        "SplashShowOnlyFirstTime": "false",
-        "SplashScreen": "screen",
-        "SplashScreenDelay": "3000"
-      }
-    },
-    "android": {
-      "buildType": "debug"
+  "appId": "io.kstudio.os",
+  "appName": "KStudio",
+  "webDir": "www",
+  "cordova": {
+    "preferences": {
+      "ScrollEnabled": "false",
+      "BackupWebStorage": "none",
+      "SplashMaintainAspectRatio": "true",
+      "FadeSplashScreenDuration": "300",
+      "SplashShowOnlyFirstTime": "false",
+      "SplashScreen": "screen",
+      "SplashScreenDelay": "3000"
     }
+  },
+  "android": {
+    "buildType": "debug"
   }
-  
+}
