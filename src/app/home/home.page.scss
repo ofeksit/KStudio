@@ -24,6 +24,10 @@
   margin-right: 10px;  /* Maintain space between slides */
 }
 
+.ion-iphone {
+  padding-top: constant(safe-area-inset-top) !important;
+  padding-top: env(safe-area-inset-top) !important;
+}
 
 .fitness-card {
   width: 100%;
