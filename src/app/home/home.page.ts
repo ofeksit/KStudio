@@ -9,6 +9,7 @@ import { AuthService } from '../services/auth.service';
 import { BlocksService, Block } from '../services/blocks.service';
 import { PurchaseComponent } from '../purchase/purchase.component';
 import { register } from 'swiper/element/bundle';
+import OneSignal from 'onesignal-cordova-plugin';
 
 register();
 
@@ -34,6 +35,7 @@ export class HomePage implements OnInit {
   constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
+    this.setupOneSignal();
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
@@ -54,6 +56,57 @@ export class HomePage implements OnInit {
     );
   }
   
+  setupOneSignal() {
+    // Remove this method to stop OneSignal Debugging
+    OneSignal.Debug.setLogLevel(6)
+    
+    // Replace YOUR_ONESIGNAL_APP_ID with your OneSignal App ID
+    OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
+    const userEmail = this.authService.getUserEmail();
+    // Retrieve the logged-in user's information (from AuthService or another source)
+    if (userEmail) {
+      // Tag the user in OneSignal with their unique ID or email
+      OneSignal.User.addTag("email", userEmail);  // Optional: tag with email as well
+    }
+    else {
+      OneSignal.User.addTag("email", "error");
+    }
+
+    // Handle notification clicks and store notifications
+    OneSignal.Notifications.addEventListener('click', async (event) => {
+      let notificationData = event.notification;
+      this.storeNotification(notificationData); // Store the clicked notification
+      console.log('Notification clicked: ', notificationData);
+    });
+
+    OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
+      console.log("Notification permission granted " + success);
+    })
+  }
+
+  
+
+  
+  storeNotification(notificationData: any) {
+    console.log("store notifications:", notificationData);
+    // Retrieve existing notifications from localStorage
+    let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+
+    // Add the new notification to the front of the array
+    notifications.unshift({
+      title: notificationData.title,
+      message: notificationData.body,
+      timestamp: new Date(),
+    });
+
+    // Limit the array to the last 5 notifications
+    if (notifications.length > 5) {
+      notifications = notifications.slice(0, 5);
+    }
+
+    // Store the updated list back to localStorage
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }
 
   async openNotifications() {
     const modal = await this.modalCtrl1.create({

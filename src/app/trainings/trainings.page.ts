@@ -109,7 +109,6 @@ export class TrainingsPage implements AfterViewInit {
     });
     await toast.present();
   }
-  
 
   ngAfterViewInit() {
     setTimeout(() => {
@@ -127,15 +126,10 @@ export class TrainingsPage implements AfterViewInit {
   }
   
   //Get Services ID by loggedin role user
-  getServicesByRole() {
+  getServicesByRole(): Observable<number[]> {
     const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
-    // Get user role from localStorage
-    const userRole = localStorage.getItem('user_role');
-    // If no role is found, default to 'guest'
-    const role = userRole ? userRole : 'guest';
-
-    // Call the WordPress API with the role in the URL
-    return this.http.get<number[]>(`${apiUrl}${role}`);
+    const userRole = localStorage.getItem('user_role') || 'guest';
+    return this.http.get<number[]>(`${apiUrl}${userRole}`);
   }
 
   formatDateTimeInIsraelTime(dateString: string, timeString: string): string {
@@ -159,8 +153,6 @@ export class TrainingsPage implements AfterViewInit {
     const formattedDate = datePart.replace(/\//g, '-');
     return `${formattedDate} ${timePart}`;
   }
-  
-
 
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
@@ -405,61 +397,43 @@ export class TrainingsPage implements AfterViewInit {
     });
   }
   
-  
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
-    // Combine timeslots and appointments
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
     this.unfilteredList = [...this.combinedList];
-   
     this.extractAvailableDays();
-    
-    // Sort by start time only
-    this.combinedList.sort((a, b) => {
-      const dateA = new Date(a.start_time).getTime();
-      const dateB = new Date(b.start_time).getTime();
-      return dateA - dateB;
-    });
+    this.combinedList.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
   }
 
   //Extract 
   extractAvailableDays() {
     const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
 
     const allDates = this.combinedList
-      .filter(item => {
-        const date = new Date(item.start_time);
-        return !isNaN(date.getTime());
-      })
+      .filter(item => !isNaN(new Date(item.start_time).getTime()))
       .map(item => new Date(item.start_time).toISOString().split('T')[0]);
 
-    // Remove duplicates and sort dates
     this.days = Array.from(new Set(allDates)).map(date => {
       const parsedDate = new Date(date);
       const dayOfWeek = hebrewDays[parsedDate.getDay()];
       const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
 
-      return {
-        date,
-        day: dayOfWeek,
-        formattedDate,
-      };
+      return { date, day: dayOfWeek, formattedDate };
     });
 
-    // Sort so that today is at the start
     this.days.sort((a, b) => {
       if (a.date === today) return -1;
       if (b.date === today) return 1;
-      return new Date(a.date).getTime() - new Date(b.date).getTime(); // Sort chronologically
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
-    this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Default to the first available day (today)
+    this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
   }
 
   extractAvailableTypes() {
     const typesSet = new Set(this.filteredAppointments.map(appointment => appointment.title.name));
-    this.availableTypes = Array.from(typesSet); // Convert Set back to Array for display
+    this.availableTypes = Array.from(typesSet);
   }
   
   // Filter the combined list by selected day
@@ -493,35 +467,24 @@ export class TrainingsPage implements AfterViewInit {
   //Updates list according the conditions
   updateFilteredAppointments() {
     let tempAppointments = [...this.unfilteredList];
-  
-    // Filter by selected day
+
     if (this.selectedDay) {
-      tempAppointments = tempAppointments.filter(appointment => {
-        const appointmentDate = moment(appointment.start_time).format('YYYY-MM-DD');
-        return appointmentDate === this.selectedDay;
-      });
+      tempAppointments = tempAppointments.filter(appointment => moment(appointment.start_time).format('YYYY-MM-DD') === this.selectedDay);
     }
-  
-    // Filter by availability (show only available if 'available' is selected)
+
     if (this.availabilityFilter === 'available') {
       tempAppointments = tempAppointments.filter(appointment => appointment.booked < appointment.total_participants);
     }
-  
-    // Filter by type (if a type is selected)
+
     if (this.selectedType) {
-      console.log("Applying type filter:", this.selectedType);  // Debugging the type filter application
       tempAppointments = tempAppointments.filter(appointment => appointment.title.name === this.selectedType);
     }
-  
-    // Filter by favorites if needed
+
     if (this.selectedFilterAllFav === 'favorites') {
       tempAppointments = tempAppointments.filter(appointment => appointment.favorite);
     }
-  
-    // Update the displayed filtered list
+
     this.filteredAppointments = tempAppointments;
-  
-    // After filtering, extract available types from the filtered list
     this.extractAvailableTypes();
   }
 
@@ -564,20 +527,18 @@ export class TrainingsPage implements AfterViewInit {
   // Toggle favorite status and save to localStorage
   toggleFavorite(training: any) {
     training.favorite = !training.favorite;
-    
-    // Save favorites to localStorage
     const currentFavorites = this.getFavoriteTrainings();
-    
+
     if (training.favorite) {
-      currentFavorites.push(training.id); // Add the favorite training ID
+      currentFavorites.push(training.id);
     } else {
       const index = currentFavorites.indexOf(training.id);
       if (index > -1) {
-        currentFavorites.splice(index, 1); // Remove from favorites
+        currentFavorites.splice(index, 1);
       }
     }
-    
-    this.saveFavoriteTrainings(currentFavorites); // Save updated favorites
+
+    this.saveFavoriteTrainings(currentFavorites);
   }
 
   // Get favorites from localStorage
@@ -638,7 +599,7 @@ export class TrainingsPage implements AfterViewInit {
       }
     }
     return 'כללי'; // Return null if no match found
-}
+  }
 
   getDayFromDate(dateString: string): string {
         // Parse the date in DD/MM/YYYY format using Moment.js
@@ -650,7 +611,6 @@ export class TrainingsPage implements AfterViewInit {
     // Return the corresponding day name
     return daysOfWeek[dayIndex];
   }
-
 
   // Your original function modified to use the initialized data
   async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
@@ -790,7 +750,5 @@ export class TrainingsPage implements AfterViewInit {
       );
     });
   }
-
-
 
 }
