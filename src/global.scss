@@ -43,7 +43,8 @@ body {
   font-family: 'Alef', sans-serif;
   background: #f4f4f9;
   color: #333; 
-
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html, body {
