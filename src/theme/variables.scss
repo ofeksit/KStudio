@@ -2,10 +2,13 @@
 // http://ionicframework.com/docs/theming/
 
 :root {
-    --ion-safe-area-bottom: 14px;
-}
-
-.ios {
-    --ion-safe-area-top: -1 !important;
-    --ion-safe-area-bottom: 14px;
-}
+    --ion-safe-area-bottom: env(safe-area-inset-bottom, 14px); /* Use env() with fallback */
+    --ion-safe-area-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .ios {
+    /* Avoid using negative values here as it may cause layout shifts */
+    --ion-safe-area-top: env(safe-area-inset-top, 0px) !important;
+    --ion-safe-area-bottom: env(safe-area-inset-bottom, 14px);
+  }
+  
