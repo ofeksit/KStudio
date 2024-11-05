@@ -42,14 +42,8 @@
 body {
   font-family: 'Alef', sans-serif;
   background: #f4f4f9;
-  color: #333;
-  margin-top: env(safe-area-inset-top, 0px);
+  color: #333; 
 
-}
-
-.custom-nav-bar {
-  /* Use --ion-safe-area-bottom to account for different safe area sizes */
-  margin-bottom: calc(7px + var(--ion-safe-area-bottom, 14px));
 }
 
 html, body {
