@@ -43,7 +43,12 @@ body {
   font-family: 'Alef', sans-serif;
   background: #f4f4f9;
   color: #333;
+  margin-top: constant(safe-area-inset-top);
+  margin-top: env(safe-area-inset-top);
+}
 
+.custom-nav-bar {
+  margin-bottom: calc(7px + env(safe-area-inset-top));
 }
 
 html, body {
