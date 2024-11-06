@@ -703,6 +703,7 @@ export class TrainingsPage implements AfterViewInit {
     this.platform.ready().then(() => {
       // Fallback to Angular HttpClient if Cordova is not available
       const body = JSON.stringify(enrollData);
+      console.log("body:", body);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
         headers: {
           'Content-Type': 'application/json',
