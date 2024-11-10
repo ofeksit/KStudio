@@ -274,7 +274,10 @@ export class TrainingsPage implements AfterViewInit {
                   const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
                   // Check if the user is booked
-                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId);
+                  // Check if the user is booked and the status is 'approved'
+                  console.log("status booking is:", app.bookings.some((booking: any) => booking.status));
+                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
+
   
                   let appointmentTempTitle;
                   const appointmentStartDate = new Date(app.bookingStart);
@@ -341,7 +344,8 @@ export class TrainingsPage implements AfterViewInit {
                   const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
                   // Check if the user is booked
-                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId);
+                  console.log("status booking is:", app.bookings.some((booking: any) => booking.status));
+                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
   
                   let appointmentTempTitle;
                   const appointmentStartDate = new Date(app.bookingStart);

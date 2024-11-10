@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://k-studio.co.il/wp-admin/admin-ajax.php?action=wpamelia_api&call=/api/v1',
+  apiBaseUrl: '/api',
   firebaseConfig: {
     apiKey: 'AIzaSyAVIl7Qm3E9kW3tXmRZ0c3CJRbVJL3xS9g',
     authDomain: 'YOUR_AUTH_DOMAIN',
