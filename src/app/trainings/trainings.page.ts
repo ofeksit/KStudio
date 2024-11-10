@@ -692,7 +692,6 @@ export class TrainingsPage implements AfterViewInit {
           extras: [], // Assuming no extras, modify if needed
           customFields: {}, // Any custom fields if applicable
           utcOffset: null,
-          timeZone: 'en_US',
           packageCustomerService: {
             packageCustomer: {
               id: packageCustomerId, // Package Customer ID, can be null if no package is being used
@@ -700,12 +699,7 @@ export class TrainingsPage implements AfterViewInit {
           },
         },
       ],
-      bookingStart: formattedBookingStart, // Starting time for the booking
-      payment: {
-        currency: 'USD', // Set payment status as pending (change as needed)
-        gateway: 'onSite', // Assuming no payment gateway is used, modify if necessary
-        data: ''
-      }
+      bookingStart: formattedBookingStart // Starting time for the booking
     };
 
     // Check if Cordova is available and use the appropriate method
