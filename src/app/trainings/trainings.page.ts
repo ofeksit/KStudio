@@ -699,11 +699,12 @@ enrollUser(appointment: Appointment) {
       },
     ],
     bookingStart: formattedBookingStart, // Starting time for the booking
-    utcOffset: utcOffset, // Add UTC offset
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timeZone
+    utcOffset: null, // Add UTC offset
+    timeZone: 'en_US', // Add timeZone
     payment: {
-      status: 'pending', // Set payment status as pending (change as needed)
-      gateway: null, // Assuming no payment gateway is used, modify if necessary
+      currency: 'USD', // Set payment status as pending (change as needed)
+      gateway: 'onSite', // Assuming no payment gateway is used, modify if necessary
+      data: ''
     }
   };
 
