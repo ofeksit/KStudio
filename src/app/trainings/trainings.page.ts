@@ -658,98 +658,106 @@ export class TrainingsPage implements AfterViewInit {
     });
   }
 
-  // Method to enroll the user in a training session
-  enrollUser(appointment: Appointment) {
-    console.log("appointment:", appointment);
-    // Initialize individual loading and success flags for the appointment
-    appointment.isLoading = true;
-    appointment.isSuccess = false; // Reset success state
+// Method to enroll the user in a training session
+enrollUser(appointment: Appointment) {
+  console.log("appointment:", appointment);
+  // Initialize individual loading and success flags for the appointment
+  appointment.isLoading = true;
+  appointment.isSuccess = false; // Reset success state
 
-    let serviceID = appointment.serviceID;
-    let bookingStart = appointment.start_time;
-    
-    const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
+  let serviceID = appointment.serviceID;
+  let bookingStart = appointment.start_time;
+  const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
 
-    let providerId = appointment.providerId;
-    let customerID = this.authService.getCustomerID();
-    let packageCustomerId = this.authService.getPackageCustomerId();
+  let providerId = appointment.providerId;
+  let customerID = this.authService.getCustomerID();
+  let packageCustomerId = this.authService.getPackageCustomerId();
 
-    // Request body for WordPress API
-    const enrollData = {
-      type: 'appointment',
-      serviceId: serviceID,
-      providerId: providerId,
-      locationId: null,
-      notifyParticipants: 0,
-      bookings: [
-        {
-          customerId: customerID,
-          status: 'approved',
-          duration: 3600, // Assuming the training is 1 hour (3600 seconds)
-          persons: 1, // Assuming booking is for 1 person
-          extras: [], // Assuming no extras, modify if needed
-          customFields: {}, // Any custom fields if applicable
-          packageCustomerService: {
-            packageCustomer: {
-              id: packageCustomerId, // Package Customer ID
-            },
+  // Calculate the current UTC offset in minutes
+  const utcOffset = -(new Date().getTimezoneOffset());
+
+  // Request body for WordPress API
+  const enrollData = {
+    type: 'appointment',
+    serviceId: serviceID,
+    providerId: providerId,
+    locationId: null,
+    notifyParticipants: 0,
+    bookings: [
+      {
+        customerId: customerID,
+        status: 'approved',
+        duration: 3600, // Assuming the training is 1 hour (3600 seconds)
+        persons: 1, // Assuming booking is for 1 person
+        extras: [], // Assuming no extras, modify if needed
+        customFields: {}, // Any custom fields if applicable
+        packageCustomerService: {
+          packageCustomer: {
+            id: packageCustomerId, // Package Customer ID, can be null if no package is being used
           },
         },
-      ],
-      bookingStart: formattedBookingStart, // Starting time for the booking
-    };
+      },
+    ],
+    bookingStart: formattedBookingStart, // Starting time for the booking
+    utcOffset: utcOffset, // Add UTC offset
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Add timeZone
+    payment: {
+      status: 'pending', // Set payment status as pending (change as needed)
+      gateway: null, // Assuming no payment gateway is used, modify if necessary
+    }
+  };
 
-    // Check if Cordova is available and use the appropriate method
-    this.platform.ready().then(() => {
-      // Fallback to Angular HttpClient if Cordova is not available
-      const body = JSON.stringify(enrollData);
-      console.log("body:", body);
-      this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).subscribe(
-        (response: any) => {
-          console.log('Enrollment successful', JSON.stringify(response, null, 2));
+  // Check if Cordova is available and use the appropriate method
+  this.platform.ready().then(() => {
+    // Fallback to Angular HttpClient if Cordova is not available
+    const body = JSON.stringify(enrollData);
+    console.log("body:", body);
+    this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).subscribe(
+      (response: any) => {
+        console.log('Enrollment successful', JSON.stringify(response, null, 2));
 
-          // Handle the time slot unavailable or already booked cases
-          if (response.data?.timeSlotUnavailable) {
-            this.presentToast(response.message || 'The time slot is unavailable', 'danger');
-          } else if (response.data?.customerAlreadyBooked) {
-            this.presentToast(response.message || 'You have already booked this training', 'success');
-          } else if (response.message) {
-            // Enrollment was successful
-            appointment.isSuccess = true;
+        // Handle the time slot unavailable or already booked cases
+        if (response.data?.timeSlotUnavailable) {
+          this.presentToast(response.message || 'The time slot is unavailable', 'danger');
+        } else if (response.data?.customerAlreadyBooked) {
+          this.presentToast(response.message || 'You have already booked this training', 'success');
+        } else if (response.message) {
+          // Enrollment was successful
+          appointment.isSuccess = true;
 
-            if (!appointment.current_participants) {
-              appointment.current_participants = [];
-            }
-
-            // Update participants and booked count immediately after success
-            appointment.booked += 1;
-            const userFullName = `${this.authService.getUserFullName()}`;
-            appointment.current_participants.push(userFullName);
-
-            // Mark the user as booked so the button changes
-            appointment.isUserBooked = true;
-          } else {
-            appointment.isSuccess = true; // Fallback to success if no error conditions
+          if (!appointment.current_participants) {
+            appointment.current_participants = [];
           }
 
-          appointment.isLoading = false;
+          // Update participants and booked count immediately after success
+          appointment.booked += 1;
+          const userFullName = `${this.authService.getUserFullName()}`;
+          appointment.current_participants.push(userFullName);
 
-          // Reset the button after 2 seconds
-          setTimeout(() => {
-            appointment.isSuccess = false;
-          }, 2000);
-        },
-        (error) => {
-          console.error('Enrollment failed', JSON.stringify(error));
-          appointment.isLoading = false;
-          this.presentToast('שגיאה', 'danger');
+          // Mark the user as booked so the button changes
+          appointment.isUserBooked = true;
+        } else {
+          appointment.isSuccess = true; // Fallback to success if no error conditions
         }
-      );
-    });
-  }
+
+        appointment.isLoading = false;
+
+        // Reset the button after 2 seconds
+        setTimeout(() => {
+          appointment.isSuccess = false;
+        }, 2000);
+      },
+      (error) => {
+        console.error('Enrollment failed', JSON.stringify(error));
+        appointment.isLoading = false;
+        this.presentToast('שגיאה', 'danger');
+      }
+    );
+  });
+}
 
 }
