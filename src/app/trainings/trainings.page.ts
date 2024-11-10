@@ -701,11 +701,6 @@ export class TrainingsPage implements AfterViewInit {
         },
       ],
       bookingStart: formattedBookingStart, // Starting time for the booking
-      payment: {
-        status: 'pending', // Assuming a default pending status (adjust based on your payment setup)
-        gateway: 'onSite', // Assuming payment gateway type, adjust as needed
-        currency: 'USD' // Assuming currency, adjust as necessary
-      },
       timeZone: timeZone // Add user's time zone to the request
     };
 
