@@ -675,6 +675,7 @@ export class TrainingsPage implements AfterViewInit {
 
     // Calculate the current UTC offset in minutes
     const utcOffset = -(new Date().getTimezoneOffset());
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Retrieve user's timezone
 
     // Request body for WordPress API
     const enrollData = {
@@ -691,7 +692,7 @@ export class TrainingsPage implements AfterViewInit {
           persons: 1, // Assuming booking is for 1 person
           extras: [], // Assuming no extras, modify if needed
           customFields: {}, // Any custom fields if applicable
-          utcOffset: null,
+          utcOffset: utcOffset, // Set utcOffset here in minutes
           packageCustomerService: {
             packageCustomer: {
               id: packageCustomerId, // Package Customer ID, can be null if no package is being used
@@ -699,7 +700,13 @@ export class TrainingsPage implements AfterViewInit {
           },
         },
       ],
-      bookingStart: formattedBookingStart // Starting time for the booking
+      bookingStart: formattedBookingStart, // Starting time for the booking
+      payment: {
+        status: 'pending', // Assuming a default pending status (adjust based on your payment setup)
+        gateway: 'onSite', // Assuming payment gateway type, adjust as needed
+        currency: 'USD' // Assuming currency, adjust as necessary
+      },
+      timeZone: timeZone // Add user's time zone to the request
     };
 
     // Check if Cordova is available and use the appropriate method
