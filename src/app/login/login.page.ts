@@ -66,8 +66,7 @@ export class LoginPage {
     this.isLoading = true;
 
     this.authService.login(this.username, this.password).pipe(
-        switchMap((response: any) => {
-            console.log('Login successful, token received:', response.data.token);
+        switchMap((response: any) => {            
 
             // Store token, ID, and email in local storage
             this.authService.storeToken(response.data.token);
@@ -82,7 +81,6 @@ export class LoginPage {
             return this.http.get(`https://k-studio.co.il/wp-json/wp/v2/users/me`, { headers });
         }),
         switchMap((userDetails: any) => {
-            console.log('User details fetched:', userDetails);
 
             // Store user details in local storage
             this.authService.storeUserFullName(userDetails.name);
@@ -95,8 +93,7 @@ export class LoginPage {
             // Second request: Get user role
             return this.http.get(`https://k-studio.co.il/wp-json/custom-api/v1/user-role/${userDetails.id}`, { headers });
         }),
-        switchMap((userRoleResponse: any) => {
-            console.log('User role fetched:', userRoleResponse);
+        switchMap((userRoleResponse: any) => {            
 
             // Store user role in local storage
             this.authService.storeUserRole(userRoleResponse.roles[0]);
@@ -108,7 +105,6 @@ export class LoginPage {
             return this.http.get(ameliaApiUrl); // Call the custom endpoint
         }),
         switchMap((ameliaResponse: any) => {
-            console.log('Amelia response received:', ameliaResponse);
 
             // Store the customer ID in local storage if the Amelia API call was successful
             if (ameliaResponse && ameliaResponse.customerId) {
@@ -120,8 +116,7 @@ export class LoginPage {
             return this.http.get(packageApiUrl);
         }),
         tap((packageResponse: any) => {
-            console.log('Package response received:', packageResponse);
-
+            
             // Extract the packageCustomerId and store it in local storage
             if (packageResponse && packageResponse.data && packageResponse.data[0] && 
                 packageResponse.data[0].packages[0] && 
@@ -152,7 +147,6 @@ export class LoginPage {
         })
     ).subscribe(
         async () => {
-            console.log('Login and data fetching succeeded, showing success message.');
             // Show progress bar or navigate to home page after delay
             this.showProgressBar = true;
 

@@ -68,6 +68,8 @@ export class TrainingsPage implements AfterViewInit {
     }
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
+
+
     
     // Check if the titles have already been fetched
     if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
@@ -261,7 +263,6 @@ export class TrainingsPage implements AfterViewInit {
             }).then(async (response) => {
               const parsedResponse = JSON.parse(response.data);
               const appointmentData = parsedResponse.data.appointments;
-              console.log("appointments", appointmentData);
   
               const now = new Date();
               const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
@@ -275,7 +276,10 @@ export class TrainingsPage implements AfterViewInit {
   
                   // Check if the user is booked
                   // Check if the user is booked and the status is 'approved'
-                  console.log("status booking is:", app.bookings.some((booking: any) => booking.status));
+                  console.log("Mobile");
+                  console.log('Normalized Customer ID:', normalizedCustomerId);
+                  console.log('Booking Data:', app.bookings);
+
                   const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
 
   
@@ -333,8 +337,7 @@ export class TrainingsPage implements AfterViewInit {
                 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
               }
             }).toPromise().then(async (response: any) => {
-              const appointmentData = response.data.appointments;
-              console.log("appointments", appointmentData);
+              const appointmentData = response.data.appointments;              
   
               const now = new Date();
               const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
@@ -344,7 +347,7 @@ export class TrainingsPage implements AfterViewInit {
                   const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
                   // Check if the user is booked
-                  console.log("status booking is:", app.bookings.some((booking: any) => booking.status));
+                  console.log("Computer");
                   const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
   
                   let appointmentTempTitle;
@@ -664,7 +667,6 @@ export class TrainingsPage implements AfterViewInit {
 
   // Method to enroll the user in a training session
   enrollUser(appointment: Appointment) {
-    console.log("appointment:", appointment);
     // Initialize individual loading and success flags for the appointment
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
@@ -712,14 +714,13 @@ export class TrainingsPage implements AfterViewInit {
     this.platform.ready().then(() => {
       // Fallback to Angular HttpClient if Cordova is not available
       const body = JSON.stringify(enrollData);
-      console.log("body:", body);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/book-training', body, {
         headers: {
           'Content-Type': 'application/json',
         },
       }).subscribe(
         (response: any) => {
-          console.log('Enrollment successful', JSON.stringify(response, null, 2));
+          
 
           // Handle the time slot unavailable or already booked cases
           if (response.data?.timeSlotUnavailable) {

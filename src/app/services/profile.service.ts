@@ -170,8 +170,7 @@ export class ProfileService {
 
     return this.http.get(url, {}).pipe(
       map((packageResponse: any) => {
-        console.log('Package response received:', packageResponse);
-
+        
         // Extract the packageCustomerId and store it in local storage
         if (packageResponse && packageResponse.data && packageResponse.data[0] && 
             packageResponse.data[0].packages[0] && 

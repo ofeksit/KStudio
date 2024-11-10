@@ -55,12 +55,19 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userID = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.setGravatarUrl();
-  }
+    this.authService.fetchPackageCustomerId(this.customerID).subscribe({
+      next: (response) => {
+        
+      },
+      error: (error) => {
+        console.error("Error fetching package id", error);
+      }
+    })
+  } 
 
   setGravatarUrl(){
     if (this.userEmail){
       const hash = Md5.hashStr(this.userEmail.trim().toLowerCase());
-      console.log("hash:", hash);
       this.gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
     }
   }
@@ -127,7 +134,6 @@ export class ProfilePopupComponent implements AfterViewInit {
         const status = appointment.userBookingStatus;
   
         if (booking) {
-          console.log("booking start", appointment.bookingStart)
           appointment.userBookingStatus = status;
           const bookingDate = moment(appointment.bookingStart).format('YYYY-MM-DD');
           const bookingTime = moment(appointment.bookingStart).format('HH:mm');
@@ -326,7 +332,6 @@ export class ProfilePopupComponent implements AfterViewInit {
         else {
           this.errorMessage = 'האימון בוטל בהצלחה'
           this.presentToast(this.errorMessage, 'success');
-          console.log("data in cancelling", data);
         }
       },
       (error) => {
@@ -364,7 +369,6 @@ export class ProfilePopupComponent implements AfterViewInit {
 
   loadUserPurchases() {
   this.profileService.fetchUserPurchases(this.userID).subscribe((purchases: any[]) => {
-    console.log("purchases", purchases);
     this.userPurchases = purchases;
   });
   }

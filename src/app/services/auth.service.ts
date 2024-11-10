@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
-
+import { switchMap, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -108,6 +108,28 @@ export class AuthService {
     });
 
     return this.http.get(url, { headers: headers });
+  }
+
+  // New standalone function to fetch packageCustomerId
+  fetchPackageCustomerId(customerId: string | null): Observable<any> {
+    const packageApiUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
+    return this.http.get(packageApiUrl).pipe(
+      tap((packageResponse: any) => {
+
+        // Extract the packageCustomerId and store it in local storage
+        if (
+          packageResponse && 
+          packageResponse.data && 
+          packageResponse.data[0] && 
+          packageResponse.data[0].packages[0] && 
+          packageResponse.data[0].packages[0].purchases[0] && 
+          packageResponse.data[0].packages[0].purchases[0].packageCustomerId
+        ) {
+          const packageCustomerId = packageResponse.data[0].packages[0].purchases[0].packageCustomerId;
+          this.storePackageCustomerID(packageCustomerId);
+        }
+      })
+    );
   }
 
 }
