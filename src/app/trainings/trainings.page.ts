@@ -52,12 +52,14 @@ export class TrainingsPage implements AfterViewInit {
   isStandbySuccess: boolean = false;
   isEnrollLoading: boolean = false;
   isEnrollSuccess: boolean = false;
+  customerID: string | null = "";
 
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP) {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
+    this.customerID = this.authService.getCustomerID();
   }
 
   async ngOnInit() {
@@ -68,7 +70,14 @@ export class TrainingsPage implements AfterViewInit {
     }
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
-
+    this.authService.fetchPackageCustomerId(this.customerID).subscribe({
+      next: (response) => {
+        
+      },
+      error: (error) => {
+        console.error("Error fetching package id", error);
+      }
+    })
 
     
     // Check if the titles have already been fetched
