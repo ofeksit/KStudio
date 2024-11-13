@@ -1,5 +1,7 @@
 import UIKit
 import Capacitor
+import OneSignalFramework
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,6 +9,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+      
+      OneSignal.Debug.setLogLevel(.LL_VERBOSE)
+      OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6", withLaunchOptions: launchOptions)
+      
+      OneSignal.Notifications.requestPermission({ accepted in
+        print("User accepted notifications: \(accepted)")}, fallbackToSettings: true)
         // Override point for customization after application launch.
         return true
     }
@@ -32,6 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
+  
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
