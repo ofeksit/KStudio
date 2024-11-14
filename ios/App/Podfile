@@ -1,7 +1,4 @@
-require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
-
-platform :ios, '13.0'
-use_frameworks!
+@ -5,29 +5,39 @@
 
 # workaround to avoid Xcode caching of Pods that requires
 # Product -> Clean Build Folder after new Cordova plugins installed
@@ -25,18 +22,8 @@ end
 
 target 'App' do
   capacitor_pods
-  pod 'OneSignal/OneSignal', '>=5.0.0', '< 6.0'
-  pod 'OneSignal/OneSignalInAppMessages', '>= 5.0.0', '< 6.0'
-  
   # Add your Pods here
 end
-
-target 'OneSignalNotificationServiceExtension' do
-  pod 'OneSignal/OneSignal', '>= 5.0.0', '< 6.0'
-  pod 'OneSignal/OneSignalInAppMessages', '>= 5.0.0', '< 6.0'
-end
-
-target 'App' 
 
 post_install do |installer|
   assertDeploymentTarget(installer)
