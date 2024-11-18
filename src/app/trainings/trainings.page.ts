@@ -739,7 +739,7 @@ export class TrainingsPage implements AfterViewInit {
           } else if (response.message) {
             // Enrollment was successful
             appointment.isSuccess = true;
-
+            console.log("responsemessage: ", response.message);
             if (!appointment.current_participants) {
               appointment.current_participants = [];
             }
