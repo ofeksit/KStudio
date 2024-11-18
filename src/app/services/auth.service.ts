@@ -128,6 +128,9 @@ export class AuthService {
           const packageCustomerId = packageResponse.data[0].packages[0].purchases[0].packageCustomerId;
           this.storePackageCustomerID(packageCustomerId);
         }
+        else {
+          this.storePackageCustomerID("");
+        }
       })
     );
   }

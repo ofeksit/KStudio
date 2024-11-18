@@ -71,8 +71,8 @@ export class TrainingsPage implements AfterViewInit {
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      next: (response) => {
-        
+      next: (packageResponse) => {
+       
       },
       error: (error) => {
         console.error("Error fetching package id", error);

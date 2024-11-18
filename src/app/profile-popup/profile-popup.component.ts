@@ -56,8 +56,8 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userEmail = this.authService.getUserEmail();
     this.setGravatarUrl();
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      next: (response) => {
-        
+      next: (packageResponse) => {
+
       },
       error: (error) => {
         console.error("Error fetching package id", error);
