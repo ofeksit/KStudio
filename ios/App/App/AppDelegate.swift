@@ -11,7 +11,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
       FirebaseApp.configure()
       OneSignal.Debug.setLogLevel(.LL_VERBOSE)
-      OneSignal.initialize("", withLaunchOptions: launchOptions)
+      OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6", withLaunchOptions: launchOptions)
       
       OneSignal.Notifications.requestPermission({ accepted in
         print("User accepted notifications: \(accepted)")

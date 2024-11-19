@@ -3,6 +3,12 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
+    "LiveUpdates": {
+      "appId": "51618994",
+      "channel": "ProductionI",
+      "autoUpdateMethod": "background",
+      "maxVersions": 2
+    }
   },
   "cordova": {
     "preferences": {
