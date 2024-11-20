@@ -53,6 +53,7 @@ export class TrainingsPage implements AfterViewInit {
   isEnrollLoading: boolean = false;
   isEnrollSuccess: boolean = false;
   customerID: string | null = "";
+  userRole: string | null = "";
 
 //#endregion
   
@@ -60,25 +61,33 @@ export class TrainingsPage implements AfterViewInit {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerID = this.authService.getCustomerID();
-  }
 
-  async ngOnInit() {
-    // Set loading to true when API call starts
-    if (this.authService.getUserRole() == 'inactive'){
-      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל'
-      this.presentToast(this.errorMessage, 'danger');
-    }
-    this.isLoading = true;
-    this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
       next: (packageResponse) => {
-       
+
       },
       error: (error) => {
         console.error("Error fetching package id", error);
       }
     })
 
+  }
+
+  async ngOnInit() {
+    this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = (data.roles[0]);});
+
+    // Set loading to true when API call starts
+    if (this.authService.getUserRole() == 'inactive'){
+      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל'
+      this.presentToast(this.errorMessage, 'danger');
+    }
+    else if (this.authService.getUserRole() == 'trial-users'){
+      this.errorMessage = 'לא ניתן לטעון אימונים, משתמש ניסיון';
+      this.presentToast(this.errorMessage, 'danger');
+    }
+
+    this.isLoading = true;
+    this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     
     // Check if the titles have already been fetched
     if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
@@ -676,23 +685,20 @@ export class TrainingsPage implements AfterViewInit {
 
   // Method to enroll the user in a training session
   enrollUser(appointment: Appointment) {
-    // Initialize individual loading and success flags for the appointment
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
-
+  
     let serviceID = appointment.serviceID;
     let bookingStart = appointment.start_time;
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
-
+  
     let providerId = appointment.providerId;
     let customerID = this.authService.getCustomerID();
     let packageCustomerId = this.authService.getPackageCustomerId();
-
-    // Calculate the current UTC offset in minutes
+  
     const utcOffset = -(new Date().getTimezoneOffset());
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Retrieve user's timezone
-
-    // Request body for WordPress API
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
     const enrollData = {
       type: 'appointment',
       serviceId: serviceID,
@@ -703,25 +709,23 @@ export class TrainingsPage implements AfterViewInit {
         {
           customerId: customerID,
           status: 'approved',
-          duration: 3600, // Assuming the training is 1 hour (3600 seconds)
-          persons: 1, // Assuming booking is for 1 person
-          extras: [], // Assuming no extras, modify if needed
-          customFields: {}, // Any custom fields if applicable
-          utcOffset: utcOffset, // Set utcOffset here in minutes
+          duration: 3600,
+          persons: 1,
+          extras: [],
+          customFields: {},
+          utcOffset: utcOffset,
           packageCustomerService: {
             packageCustomer: {
-              id: packageCustomerId, // Package Customer ID, can be null if no package is being used
+              id: packageCustomerId,
             },
           },
         },
       ],
-      bookingStart: formattedBookingStart, // Starting time for the booking
-      timeZone: timeZone // Add user's time zone to the request
+      bookingStart: formattedBookingStart,
+      timeZone: timeZone,
     };
-
-    // Check if Cordova is available and use the appropriate method
+  
     this.platform.ready().then(() => {
-      // Fallback to Angular HttpClient if Cordova is not available
       const body = JSON.stringify(enrollData);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
         headers: {
@@ -729,35 +733,25 @@ export class TrainingsPage implements AfterViewInit {
         },
       }).subscribe(
         (response: any) => {
-          
-
-          // Handle the time slot unavailable or already booked cases
           if (response.data?.timeSlotUnavailable) {
             this.presentToast(response.message || 'The time slot is unavailable', 'danger');
           } else if (response.data?.customerAlreadyBooked) {
             this.presentToast(response.message || 'You have already booked this training', 'success');
           } else if (response.message) {
-            // Enrollment was successful
             appointment.isSuccess = true;
-            console.log("responsemessage: ", response.message);
             if (!appointment.current_participants) {
               appointment.current_participants = [];
             }
-
-            // Update participants and booked count immediately after success
             appointment.booked += 1;
             const userFullName = `${this.authService.getUserFullName()}`;
             appointment.current_participants.push(userFullName);
-
-            // Mark the user as booked so the button changes
             appointment.isUserBooked = true;
           } else {
-            appointment.isSuccess = true; // Fallback to success if no error conditions
+            appointment.isSuccess = true;
           }
-
+  
           appointment.isLoading = false;
-
-          // Reset the button after 2 seconds
+  
           setTimeout(() => {
             appointment.isSuccess = false;
           }, 2000);
@@ -765,10 +759,17 @@ export class TrainingsPage implements AfterViewInit {
         (error) => {
           console.error('Enrollment failed', JSON.stringify(error));
           appointment.isLoading = false;
-          this.presentToast('שגיאה', 'danger');
+  
+          // Check for specific error related to packageCustomerId
+          if (error.error && error.error.includes('"packageCustomerId" is required for booking')) {
+            this.presentToast('לא נמצאה חבילה זמינה', 'danger');
+          } else {
+            this.presentToast('שגיאה', 'danger');
+          }
         }
       );
     });
   }
+  
 
 }
