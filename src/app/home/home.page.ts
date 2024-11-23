@@ -35,7 +35,7 @@ export class HomePage implements OnInit {
   constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
-    //this.setupOneSignal();
+    this.setupOneSignal();
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width

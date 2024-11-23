@@ -202,7 +202,7 @@ export class TrainingsPage implements AfterViewInit {
             return this.httpA.get(url, {}, {
               'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
             }).then(response => {
-
+              console.log("Available Time Slots:", response);
               return JSON.parse(response.data);
             }).catch(error => {
               reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
@@ -213,6 +213,7 @@ export class TrainingsPage implements AfterViewInit {
                 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
               }
             }).toPromise().then(response => {
+              console.log("Available Time Slots:", response);
               return response;
             }).catch(error => {
               reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
@@ -275,57 +276,32 @@ export class TrainingsPage implements AfterViewInit {
           const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(today)},${formatDate(next30Days)}`;
   
           const loggedInCustomerId = this.authService.getCustomerID();  
-          if (this.platform.is('cordova')) {
-            this.httpA.get(url, {}, {
-              'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
-            }).then(async (response) => {
-              const parsedResponse = JSON.parse(response.data);
-              const appointmentData = parsedResponse.data.appointments;
+          const processAppointments = (appointmentData: any) => {
+            const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
+              appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
   
-              const now = new Date();
-              const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
+                // Ensure both IDs are numbers for comparison
+                const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
   
-                  // Log the type of customerId for debugging
+                // Check if the user is booked
+                const isUserBooked = app.bookings.some((booking: any) => 
+                  booking.customerId === normalizedCustomerId && booking.status === 'approved'
+                );
   
+                // Ignore appointments where all bookings are canceled
+                const hasActiveBookings = app.bookings.some((booking: any) => booking.status === 'approved');
   
-                  // Ensure both IDs are numbers for comparison
-                  const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
+                if (!hasActiveBookings) {
+                  return []; // Skip this appointment entirely
+                }
   
-                  // Check if the user is booked
-                  // Check if the user is booked and the status is 'approved'
-                  console.log("Mobile");
-                  console.log('Normalized Customer ID:', normalizedCustomerId);
-                  console.log('Booking Data:', app.bookings);
-
-                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
-
+                let appointmentTempTitle;
+                const appointmentStartDate = new Date(app.bookingStart);
   
-                  let appointmentTempTitle;
-                  const appointmentStartDate = new Date(app.bookingStart);
-  
-                  if (appointmentStartDate <= next7Days) {
-                    return this.getAppointmentTitleByAppointment(app).then((appointmentTitle: any) => {
-                      appointmentTempTitle = appointmentTitle;
-                      return {
-                        id: app.id,
-                        start_time: app.bookingStart,
-                        end_time: app.bookingEnd,
-                        type: 'appointment',
-                        title: { name: appointmentTempTitle },
-                        serviceID: app.serviceId,
-                        favorite: false,
-                        current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                          .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                        total_participants: 8,
-                        booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                        providerId: app.providerId,
-                        isUserBooked: isUserBooked, // Updated field
-                      };
-                    });
-                  } else {
-                    appointmentTempTitle = 'אימון קבוצתי';
-                    return Promise.resolve({
+                if (appointmentStartDate <= next7Days) {
+                  return this.getAppointmentTitleByAppointment(app).then((appointmentTitle: any) => {
+                    appointmentTempTitle = appointmentTitle;
+                    return {
                       id: app.id,
                       start_time: app.bookingStart,
                       end_time: app.bookingEnd,
@@ -339,12 +315,39 @@ export class TrainingsPage implements AfterViewInit {
                       booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
                       providerId: app.providerId,
                       isUserBooked: isUserBooked, // Updated field
-                    });
-                  }
-                })
-              );
+                    };
+                  });
+                } else {
+                  appointmentTempTitle = 'אימון קבוצתי';
+                  return Promise.resolve({
+                    id: app.id,
+                    start_time: app.bookingStart,
+                    end_time: app.bookingEnd,
+                    type: 'appointment',
+                    title: { name: appointmentTempTitle },
+                    serviceID: app.serviceId,
+                    favorite: false,
+                    current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
+                      .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
+                    total_participants: 8,
+                    booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+                    providerId: app.providerId,
+                    isUserBooked: isUserBooked, // Updated field
+                  });
+                }
+              })
+            );
   
-              this.bookedAppointments = await Promise.all(appointmentsPromises);
+            return Promise.all(appointmentsPromises);
+          };
+  
+          if (this.platform.is('cordova')) {
+            this.httpA.get(url, {}, {
+              'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
+            }).then(async (response) => {
+              const parsedResponse = JSON.parse(response.data);
+              const appointmentData = parsedResponse.data.appointments;
+              this.bookedAppointments = await processAppointments(appointmentData);
               resolve();
             }).catch(error => {
               reject(`Error fetching appointments: ${error}`);
@@ -355,63 +358,8 @@ export class TrainingsPage implements AfterViewInit {
                 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
               }
             }).toPromise().then(async (response: any) => {
-              const appointmentData = response.data.appointments;              
-  
-              const now = new Date();
-              const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-                appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
-  
-                  // Ensure both IDs are numbers for comparison
-                  const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
-  
-                  // Check if the user is booked
-                  console.log("Computer");
-                  const isUserBooked = app.bookings.some((booking: any) => booking.customerId === normalizedCustomerId && booking.status === 'approved');
-  
-                  let appointmentTempTitle;
-                  const appointmentStartDate = new Date(app.bookingStart);
-  
-                  if (appointmentStartDate <= next7Days) {
-                    return this.getAppointmentTitleByAppointment(app).then((appointmentTitle: any) => {
-                      appointmentTempTitle = appointmentTitle;
-                      return {
-                        id: app.id,
-                        start_time: app.bookingStart,
-                        end_time: app.bookingEnd,
-                        type: 'appointment',
-                        title: { name: appointmentTempTitle },
-                        serviceID: app.serviceId,
-                        favorite: false,
-                        current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                          .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                        total_participants: 8,
-                        booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                        providerId: app.providerId,
-                        isUserBooked: isUserBooked, // Updated field
-                      };
-                    });
-                  } else {
-                    appointmentTempTitle = 'אימון קבוצתי';
-                    return Promise.resolve({
-                      id: app.id,
-                      start_time: app.bookingStart,
-                      end_time: app.bookingEnd,
-                      type: 'appointment',
-                      title: { name: appointmentTempTitle },
-                      serviceID: app.serviceId,
-                      favorite: false,
-                      current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                        .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                      total_participants: 8,
-                      booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                      providerId: app.providerId,
-                      isUserBooked: isUserBooked, // Updated field
-                    });
-                  }
-                })
-              );
-  
-              this.bookedAppointments = await Promise.all(appointmentsPromises);
+              const appointmentData = response.data.appointments;
+              this.bookedAppointments = await processAppointments(appointmentData);
               resolve();
             }).catch(error => {
               reject(`Error fetching appointments: ${error}`);
@@ -421,6 +369,7 @@ export class TrainingsPage implements AfterViewInit {
       });
     });
   }
+  
   
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
