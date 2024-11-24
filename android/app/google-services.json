@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "867070484360",
+    "firebase_url": "https://test-project-79f5b.firebaseio.com",
+    "project_id": "test-project-79f5b",
+    "storage_bucket": "test-project-79f5b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:867070484360:android:1230afe379732eb824e43d",
+        "android_client_info": {
+          "package_name": "io.kstudio.os"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "867070484360-vi14nqnaip6ktu3c87bmhjkk4p1a3grq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIk0jXvLsc2z7udZ8seiSNRocw7xIPc_0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "867070484360-vi14nqnaip6ktu3c87bmhjkk4p1a3grq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

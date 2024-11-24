@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="modal-title">האימונים הקרובים</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()">סגור</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="calendar-table-wrapper">
+    <div class="calendar-table">
+      <!-- Table Header -->
+      <div class="table-header">
+        <div class="day-header" *ngFor="let day of days">
+          <h3 class="dayName">{{ getDayInHebrew(day.name) }}</h3>
+          <p class="dayDate">{{ day.date }}</p>
+        </div>
+      </div>
+
+      <!-- Table Body -->
+      <div class="table-row" *ngFor="let i of getRange(getMaxTrainingsLength())">
+        <div class="table-cell training-cell" *ngFor="let day of days">
+          <div *ngIf="day.trainings[i]">
+            <p class="training-time">{{ day.trainings[i].time }}</p>
+            <p class="training-title">{{ day.trainings[i].title }}</p>
+          </div>
+          <div *ngIf="!day.trainings[i]">
+            <p class="empty-slot">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

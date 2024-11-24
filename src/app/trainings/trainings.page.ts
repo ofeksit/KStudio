@@ -12,6 +12,7 @@ import { ToastController  } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
+import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 
 
 @Component({
@@ -57,7 +58,9 @@ export class TrainingsPage implements AfterViewInit {
 
 //#endregion
   
-  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP) {
+  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,
+    private modalCalendar: ModalController)
+    {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerID = this.authService.getCustomerID();
@@ -85,6 +88,11 @@ export class TrainingsPage implements AfterViewInit {
       this.errorMessage = 'לא ניתן לטעון אימונים, משתמש ניסיון';
       this.presentToast(this.errorMessage, 'danger');
     }
+
+        // Fetch data when entering the training component
+        this.ameliaService.fetchTitleTrainings().catch((error) => {
+          console.error('Error fetching initial trainings:', error);
+        });
 
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
@@ -119,6 +127,9 @@ export class TrainingsPage implements AfterViewInit {
         this.isLoading = false; // Ensure loading is disabled even in case of errors
       });
   }
+
+
+  
 
   async presentToast (message: string, color: string){
     const toast = await this.toastController.create({
@@ -720,5 +731,19 @@ export class TrainingsPage implements AfterViewInit {
     });
   }
   
+  async openCalendarPopup() {
+    const modalCalendar = await this.modalCalendar.create({
+      component: CalendarPopupComponent,
+      componentProps: {
+        weeklyData: this.getWeeklyTrainings(),
+      },
+    });
+    await modalCalendar.present();
+  }
+
+  getWeeklyTrainings() {
+    // Replace with real API or service to fetch weekly training data
+    return [];
+  }
 
 }

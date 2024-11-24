@@ -1,0 +1,102 @@
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  
+}
+
+.modal-content {
+  --background: #f8f9fa; /* Light modal background */
+  padding: 16px;
+}
+
+/* Wrapper for horizontal scrolling */
+.calendar-table-wrapper {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 8px;
+}
+
+/* Calendar Table */
+.calendar-table {
+  display: grid;  
+  gap: 1px; /* Space between cells */
+  min-width: 700px; /* Ensures table is scrollable on small screens */
+  background-color: #ddd; /* Separator color */
+}
+
+/* Table Header */
+.table-header {
+  display: contents; /* Ensures it aligns with grid */
+}
+
+.day-header {
+  background: #ff6600;
+  color: #fff;
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px 6px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Table Row */
+.table-row {
+  display: contents; /* Align rows with the table grid */
+}
+
+/* Table Cell */
+.table-cell {
+  background: #ffffff;
+  text-align: center;
+  padding: 8px;
+  font-size: 14px;
+  min-height: 60px;
+  
+}
+
+/* Training Details */
+.training-time {
+  font-weight: bold;
+  font-size: 14px;
+  margin: 0;
+  color: #333;
+}
+
+.training-title {
+  font-size: 12px;
+  margin: 4px 0 0;
+  color: #555;
+}
+
+/* Empty Slot */
+.empty-slot {
+  color: #ccc;
+  font-size: 14px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .calendar-table {
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
+  }
+
+  .day-header {
+    font-size: 12px;
+  }
+
+  .training-time {
+    font-size: 12px;
+  }
+}
+
+.dayName {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dayDate {
+  font-size: 12px;
+  margin-top: -20px;
+  text-decoration: none;
+  font-weight: 200;
+}

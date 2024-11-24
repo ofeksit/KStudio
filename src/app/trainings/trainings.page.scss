@@ -14,6 +14,26 @@
   overflow-y: auto; /* Allow only the list to scroll */
 }
 
+.filter-header {
+  display: flex;
+  align-items: center; /* Vertically align items */
+  justify-content: center; /* Center the filter button */
+  position: relative; /* Allows for absolute positioning of the calendar icon */
+}
+
+.calendar-icon {
+  position: absolute;
+  left: 16px; /* Adjust the left spacing as needed */
+  font-size: 24px; /* Adjust the icon size if necessary */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%); /* Align to the middle of the row */
+}
+
+.filter-button {
+  font-size: 16px; /* Optional: Adjust the button font size */
+  padding: 8px 16px; /* Optional: Adjust padding for better aesthetics */
+}
+
 
 /* Full-width card styling */
 .training-card {

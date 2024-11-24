@@ -1,4 +1,4 @@
-<ion-content class="notification-popup-content">
+<ion-content  #popup class="notification-popup-content">
   <!-- Notifications List -->
   <p class="no-notifications" *ngIf="!notifications || notifications.length === 0">לא נמצאו התראות</p>
   <ion-list *ngIf="notifications && notifications.length > 0">
