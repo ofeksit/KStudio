@@ -8,6 +8,7 @@ import { DayTrainings } from '../Models/day-trainings';
   providedIn: 'root'
 })
 export class AmeliaService {
+  private apiURL = 'https://k-studio.co.il/wp-json/gym/v1/trainings';
   trainingsByDay: { [key: string]: DayTrainings[] } = {
     Sunday: [],
     Monday: [], 
@@ -19,6 +20,10 @@ export class AmeliaService {
   };
 
   constructor(private http: HttpClient) { }
+
+  fetchCombinedTrainings(): Observable<any> {
+    return this.http.get<any>(this.apiURL);
+  }
 
   async fetchTitleTrainings(): Promise<void> {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

@@ -119,6 +119,10 @@ ion-button {
   color: red;
 }
 
+ion-segment-button {
+  --color-checked: #000;
+}
+
 ion-segment-button ion-label {
   font-size: 1em;
   font-weight: bold;
