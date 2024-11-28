@@ -5,8 +5,7 @@ import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs';
-import { of } from 'rxjs';
-import { DayTrainings } from '../Models/day-trainings';
+import { switchMap } from 'rxjs';
 import { AmeliaService } from '../services/amelia-api.service';
 import { ToastController  } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
@@ -268,11 +267,11 @@ export class TrainingsPage implements AfterViewInit {
   }
   
   fetchBookedAppointments(): Promise<void> {
-    const today = new Date();
-    const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 30);
-    const next7Days = new Date(today);
-    next7Days.setDate(today.getDate() + 7);
+    const now = new Date();
+    const next30Days = new Date();
+    next30Days.setDate(now.getDate() + 30);
+    const next7Days = new Date();
+    next7Days.setDate(now.getDate() + 7);
   
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
@@ -283,105 +282,73 @@ export class TrainingsPage implements AfterViewInit {
   
     return new Promise((resolve, reject) => {
       this.platform.ready().then(() => {
-        this.getServicesByRole().subscribe((serviceIDs: number[]) => {
-          const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(today)},${formatDate(next30Days)}`;
+        this.getServicesByRole()
+          .pipe(
+            switchMap((serviceIDs: number[]) => {
+              const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(now)},${formatDate(next30Days)}`;
+              const headers = { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' };
   
-          const loggedInCustomerId = this.authService.getCustomerID();  
-          const processAppointments = (appointmentData: any) => {
-            const appointmentsPromises = Object.values(appointmentData).flatMap((appointment: any) =>
-              appointment.appointments.flatMap((app: any) => {  // Iterate through appointments                  
+              const request = this.platform.is('cordova')
+                ? this.httpA.get(url, {}, headers).then((res) => JSON.parse(res.data))
+                : this.http.get(url, { headers }).toPromise();
   
-                // Ensure both IDs are numbers for comparison
-                const normalizedCustomerId = typeof loggedInCustomerId === 'string' ? parseInt(loggedInCustomerId) : loggedInCustomerId;
+              return request.then((response: any) => {
+                const appointmentData = response.data.appointments;
+                return { appointmentData, serviceIDs };
+              });
+            })
+          )
+          .subscribe({
+            next: async ({ appointmentData, serviceIDs }) => {
+              const loggedInCustomerId = parseInt(this.authService.getCustomerID() || '0', 10);
   
-                // Check if the user is booked
-                const isUserBooked = app.bookings.some((booking: any) => 
-                  booking.customerId === normalizedCustomerId && booking.status === 'approved'
+              // Filter and process appointments
+              const filteredAppointments = Object.values(appointmentData)
+                .flatMap((appointment: any) => appointment.appointments)
+                .filter((app: any) => 
+                  serviceIDs.includes(app.serviceId) && 
+                  new Date(app.bookingStart) >= now &&
+                  app.bookings.some((booking: any) => booking.status === 'approved') // Ensure active bookings
                 );
   
-                // Ignore appointments where all bookings are canceled
-                const hasActiveBookings = app.bookings.some((booking: any) => booking.status === 'approved');
-  
-                if (!hasActiveBookings) {
-                  return []; // Skip this appointment entirely
-                }
-  
-                let appointmentTempTitle;
+              const appointmentsPromises = filteredAppointments.map(async (app: any) => {
                 const appointmentStartDate = new Date(app.bookingStart);
+                const isUserBooked = app.bookings.some(
+                  (booking: any) => booking.customerId === loggedInCustomerId && booking.status === 'approved'
+                );
+                const appointmentTempTitle =
+                  appointmentStartDate <= next7Days
+                    ? await this.getAppointmentTitleByAppointment(app)
+                    : 'אימון קבוצתי';
   
-                if (appointmentStartDate <= next7Days) {
-                  return this.getAppointmentTitleByAppointment(app).then((appointmentTitle: any) => {
-                    appointmentTempTitle = appointmentTitle;
-                    return {
-                      id: app.id,
-                      start_time: app.bookingStart,
-                      end_time: app.bookingEnd,
-                      type: 'appointment',
-                      title: { name: appointmentTempTitle },
-                      serviceID: app.serviceId,
-                      favorite: false,
-                      current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                        .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                      total_participants: 8,
-                      booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                      providerId: app.providerId,
-                      isUserBooked: isUserBooked, // Updated field
-                    };
-                  });
-                } else {
-                  appointmentTempTitle = 'אימון קבוצתי';
-                  return Promise.resolve({
-                    id: app.id,
-                    start_time: app.bookingStart,
-                    end_time: app.bookingEnd,
-                    type: 'appointment',
-                    title: { name: appointmentTempTitle },
-                    serviceID: app.serviceId,
-                    favorite: false,
-                    current_participants: app.bookings.filter((booking: any) => booking.status === 'approved')
-                      .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                    total_participants: 8,
-                    booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                    providerId: app.providerId,
-                    isUserBooked: isUserBooked, // Updated field
-                  });
-                }
-              })
-            );
+                return {
+                  id: app.id,
+                  start_time: app.bookingStart,
+                  end_time: app.bookingEnd,
+                  type: 'appointment',
+                  title: { name: appointmentTempTitle },
+                  serviceID: app.serviceId,
+                  favorite: false,
+                  current_participants: app.bookings
+                    .filter((booking: any) => booking.status === 'approved')
+                    .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
+                  total_participants: 8,
+                  booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
+                  providerId: app.providerId,
+                  isUserBooked: isUserBooked,
+                };
+              });
   
-            return Promise.all(appointmentsPromises);
-          };
-  
-          if (this.platform.is('cordova')) {
-            this.httpA.get(url, {}, {
-              'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
-            }).then(async (response) => {
-              const parsedResponse = JSON.parse(response.data);
-              const appointmentData = parsedResponse.data.appointments;
-              this.bookedAppointments = await processAppointments(appointmentData);
+              // Wait for all promises to resolve
+              this.bookedAppointments = await Promise.all(appointmentsPromises);
               resolve();
-            }).catch(error => {
-              reject(`Error fetching appointments: ${error}`);
-            });
-          } else {
-            this.http.get(url, {
-              headers: {
-                'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk'
-              }
-            }).toPromise().then(async (response: any) => {
-              const appointmentData = response.data.appointments;
-              this.bookedAppointments = await processAppointments(appointmentData);
-              resolve();
-            }).catch(error => {
-              reject(`Error fetching appointments: ${error}`);
-            });
-          }
-        }, (error) => reject(error));
+            },
+            error: (error) => reject(`Error fetching appointments: ${error}`),
+          });
       });
     });
   }
-  
-  
+        
   //Combine between appointments and timeslots
   combineTimeslotsAndAppointments() {
     this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
@@ -740,6 +707,8 @@ export class TrainingsPage implements AfterViewInit {
     });
     await modalCalendar.present();
   }
+
+  
 
   getWeeklyTrainings() {
     // Replace with real API or service to fetch weekly training data
