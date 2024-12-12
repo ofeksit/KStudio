@@ -200,17 +200,73 @@ ion-item {
   color: black;
 }
 
+/* General checked style */
 .segment-button-checked::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%); /* Adjust the position to center the element */
+  transform: translateX(-50%);
   width: 80%;
-  height: 4px; /* This is the border height */
+  height: 4px;
   background: #59c7cd;
-  border-radius: 12px; /* Set this to match your button's border-radius */
+  border-radius: 12px;
   transition: all 0.3s ease;
+}
+
+/* Default underline color */
+.custom-underline-default.segment-button-checked::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: #59c7cd; /* Default color */
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+
+
+/* Shalom underline color */
+.custom-underline-shalom.segment-button-checked::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: #ff8366; /* Shalom color */
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+/* Favorites (מועדפים) underline color */
+.custom-underline-favorites.segment-button-checked::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: #373737; /* Favorites color */
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+
+/* שלום עליכם specific style */
+.segment-button-checked-shalom::after {
+  background: #ff8366; /* Use the desired color for the שלום עליכם tab */
+}
+
+/* Favorites specific style */
+.segment-button-checked-fav::after {
+  background: #373737; /* Use the desired color for the שלום עליכם tab */
 }
 
 .filter-button {
@@ -358,6 +414,16 @@ ion-tab-button {
   background-color: #E0E0E0;
   border-radius: 8px;
   height: 6px;
+}
+
+/* Default progress bar color */
+.progress-default {
+  background-color: #59c7cd;
+}
+
+/* Color for שלום עליכם tab */
+.progress-shalom {
+  background-color: #ff8366;
 }
 
 .progress-bar .progress {

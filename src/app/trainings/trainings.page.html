@@ -7,9 +7,12 @@
       <div class="header-tabs">
         <ion-segment mode="md" [(ngModel)]="selectedFilterAllFav" class="segment-tab" (ionChange)="filterFavAll($event)">
           <ion-segment-button value="all" class="header-tab">
-            <ion-label>הכל</ion-label>
+            <ion-label>בן יהודה</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="favorites" class="header-tab">
+          <ion-segment-button value="shalom" class="header-tab segment-button-checked-shalom">
+            <ion-label>שלום עליכם</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="favorites" class="header-tab segment-button-checked-fav">
             <ion-label>מועדפים</ion-label>
           </ion-segment-button>
         </ion-segment>
@@ -42,11 +45,16 @@
       <div *ngIf="!isLoading">
         <!-- Scrolling Tabs for Days -->
         <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" (ionChange)="onDayChange()">
-          <ion-segment-button *ngFor="let day of days" value="{{ day.date }}" class="custom-tabs">
+          <ion-segment-button 
+            *ngFor="let day of days" 
+            value="{{ day.date }}" 
+            class="custom-tabs" 
+            [ngClass]="selectedFilterAllFav === 'shalom' ? 'custom-underline-shalom' : selectedFilterAllFav === 'favorites' ? 'custom-underline-favorites' : 'custom-underline-default'">
             <ion-label>{{ day.day }}</ion-label>
             <ion-note>{{ day.formattedDate }}</ion-note>
           </ion-segment-button>
         </ion-segment>
+        
 
         <div class="filter-header">
           <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
@@ -97,8 +105,15 @@
       
           <div class="progress-bar-container">
             <div class="progress-bar">
-              <div class="progress" [style.width]="calculateProgress(appointment) + '%'"></div>
+              <div
+                class="progress"
+                [style.width]="calculateProgress(appointment) + '%'"
+                [ngStyle]="{
+                  'background-color': selectedFilterAllFav === 'shalom' ? '#ff8366' : '#59c7cd'
+                }"
+              ></div>
             </div>
+          
             
             <div class="participants-container">
               <div class="participants" (mouseenter)="showParticipantsPopup(appointment)" (mouseleave)="hideParticipantsPopup()">
