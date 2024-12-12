@@ -157,6 +157,41 @@ ion-item {
   box-shadow: none;
   padding: none;
   --indicator-color: transparent; /* Remove the default active indicator */
+
+  segment-tab {
+    .tab-container {
+      display: flex;
+      width: 100%;
+    }
+
+    .header-tab {
+      transition: all 0.3s ease;
+      
+      &.dragging-mode {
+        cursor: move;
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+
+      .hide-tab-btn {
+        margin-left: 10px;
+        color: red;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+// Drag placeholder styling
+.cdk-drag-placeholder {
+  opacity: 0.3;
+  background-color: #f0f0f0;
 }
 
 /* Header Tabs Styling */

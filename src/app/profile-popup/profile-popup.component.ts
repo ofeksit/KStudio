@@ -42,7 +42,8 @@ export class ProfilePopupComponent implements AfterViewInit {
   userPurchases: any[] = [];
   gravatarUrl: string = '';
   locationEnabled = false; // Track the toggle state
-  favLocation: string | null;
+  favLocation: string | null = "";
+  selectedLocation: string = 'שלום עליכם'; // Default location
   
   
   constructor(
@@ -61,12 +62,17 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.userEmail = this.authService.getUserEmail();
     
     this.setGravatarUrl();
-    this.authService.fetchUserFavLocation()
-    
-    this.favLocation = this.authService.getUserFavLocation();
-    
-    console.log("location", this.favLocation)
-    
+
+    this.authService.fetchUserFavLocation().subscribe({
+      next: (response) => {
+        console.log("response", response.favorite_location);
+        this.favLocation = response.favorite_location;
+      },
+      error: (error) => {
+        console.error("Error fetching user fav location", error);
+      }
+    })
+            
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
       next: (packageResponse) => {
         
@@ -411,19 +417,35 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
 
   toggleLocation(event: any) {
-    const location = event.detail.checked ? "שלום עליכם" : "בן יהודה";
 
-    // Call your service to update the favorite location
-    this.profileService.updateFavoriteLocation(location).subscribe({
-        next: (response) => {
-            console.log('Favorite location updated:', response);
-            this.authService.storeFavLocation(location); // Store the location in localStorage
-        },
-        error: (error) => {
-            console.error('Error updating favorite location:', error);
-        }
-    });
 }
 
-  
+
+
+updateToggleColor(position: string) {
+  const location = position === "right" 
+    ? "הכל" 
+    : position === "left" 
+        ? "בן יהודה" 
+        : position === "center" 
+            ? "שלום עליכם" 
+            : "Unknown"; // Optional fallback
+    
+  // Call your service to update the favorite location
+  this.profileService.updateFavoriteLocation(location).subscribe({
+      next: (response) => {
+          console.log('Favorite location updated:', response);
+          this.authService.storeFavLocation(location); // Store the location in localStorage
+      },
+      error: (error) => {
+          console.error('Error updating favorite location:', error);
+      }
+  });
+  this.favLocation = location;
+}
+
+updateFavLocation(location: string) {
+  this.favLocation = location;
+  console.log('Favorite location updated to:', this.favLocation);
+}
 }

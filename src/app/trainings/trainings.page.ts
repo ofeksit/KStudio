@@ -715,5 +715,4 @@ export class TrainingsPage implements AfterViewInit {
     return [];
   }
 
-
 }

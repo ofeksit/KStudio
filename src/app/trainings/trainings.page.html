@@ -81,10 +81,10 @@
           <ion-item>
             <ion-label style="text-indent: 8px;">זמינות</ion-label>
             <ion-segment [(ngModel)]="availabilityFilter" (ionChange)="onFilterChange()">
-              <ion-segment-button value="all" [ngClass]="selectedFilterAllFav === 'shalom' ? 'custom-underline-shalom' : selectedFilterAllFav === 'favorites' ? 'custom-underline-favorites' : 'custom-underline-default'">
+              <ion-segment-button value="all">
                 <ion-label>הכל</ion-label>
               </ion-segment-button>
-              <ion-segment-button value="available" [ngClass]="selectedFilterAllFav === 'shalom' ? 'custom-underline-shalom' : selectedFilterAllFav === 'favorites' ? 'custom-underline-favorites' : 'custom-underline-default'">
+              <ion-segment-button value="available">
                 <ion-label>זמין בלבד</ion-label>
               </ion-segment-button>
             </ion-segment>

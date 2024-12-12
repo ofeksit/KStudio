@@ -271,7 +271,7 @@ ion-segment-button {
 
 /* Popover enhancements */
 ion-popover {
-  --width: 250px; /* Set fixed width for better layout */
+  --width: 85%; /* Set fixed width for better layout */
   --border-radius: 12px; /* Add smooth rounded corners */
   --box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for a modern look */
   overflow-y: hidden !important; /* Ensure no overflow from the popover itself */
@@ -395,4 +395,69 @@ ion-item {
   color: var(--ion-color-medium); /* Subtle muted color */
   line-height: 1.2; /* Keep compact spacing */
   margin: 0; /* Reset any margin */
+}
+
+.custom-three-way-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 300px;
+}
+
+.custom-three-way-toggle input {
+  display: none;
+}
+
+.custom-three-way-toggle label {
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+  color: #050505;
+  font-size: 14px;
+  line-height: 40px;
+}
+
+.custom-three-way-toggle .slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 33.33%; /* Each step occupies one-third of the width */
+  height: 100%;
+  background-color: #ff8366; /* Default color */
+  transition: all 0.3s ease;
+  z-index: 0;
+  border-radius: 20px;
+}
+
+.custom-three-way-toggle input#left:checked ~ .slider {
+  color: #fff;
+  background-color: #ff8366; /* Color for 'left' */
+  transform: translateX(0);
+}
+
+.custom-three-way-toggle input#center:checked ~ .slider {
+  color: #fff;
+  background-color: #ffa500; /* Color for 'center' */
+  transform: translateX(100%);
+}
+
+.custom-three-way-toggle input#right:checked ~ .slider {
+  color: #fff;
+  background-color: #66c2ff; /* Color for 'right' */
+  transform: translateX(200%);
+}
+
+.custom-three-way-toggle input#left:checked + label {
+  color: #fff; /* Text color when selected */
+}
+
+.custom-three-way-toggle input#center:checked + label {
+  color: #fff; /* Text color when selected */
+}
+
+.custom-three-way-toggle input#right:checked + label {
+  color: #fff; /* Text color when selected */
 }

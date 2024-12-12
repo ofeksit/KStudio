@@ -15,12 +15,59 @@
           <ion-list>
             <ion-item>
               <ion-icon slot="start" name="location-outline"></ion-icon>
-              <ion-label>
-                <div class="title">בחירת מיקום</div>
-                <div class="description">{{ favLocation }}</div>
-              </ion-label>
-              <ion-toggle [checked]="locationEnabled" (ionChange)="toggleLocation($event)"></ion-toggle>
+              <div class="custom-three-way-toggle">
+                <!-- Left -->
+                <input
+                  type="radio"
+                  id="left"
+                  name="location"
+                  value="הכל"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('הכל')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'הכל'}" 
+                  for="left"
+                >
+                  הכל
+                </label>
+            
+                <!-- Center -->
+                <input
+                  type="radio"
+                  id="center"
+                  name="location"
+                  value="שלום עליכם"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('שלום עליכם')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'שלום עליכם'}" 
+                  for="center"
+                >
+                  שלום עליכם
+                </label>
+            
+                <!-- Right -->
+                <input
+                  type="radio"
+                  id="right"
+                  name="location"
+                  value="בן יהודה"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('בן יהודה')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'בן יהודה'}" 
+                  for="right"
+                >
+                  בן יהודה
+                </label>
+            
+                <div class="slider"></div>
+              </div>
             </ion-item>
+            
             <ion-item button (click)="logout()">
               <ion-icon slot="start" name="log-out-outline"></ion-icon>
               <ion-label>התנתק</ion-label>
