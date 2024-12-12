@@ -51,6 +51,10 @@ export class AuthService {
     localStorage.setItem('user_gami', userGamiPts);
   }
 
+  storeFavLocation(userFavLocation: string) {
+    localStorage.setItem('user_fav_location', userFavLocation);
+  }
+
 
   getToken(): string | null {
     return localStorage.getItem('auth_token');
@@ -66,6 +70,10 @@ export class AuthService {
 
   getUserEmail(): string | null {
     return localStorage.getItem('user_email');
+  }
+  
+  getUserFavLocation(): string | null {
+    return localStorage.getItem('user_fav_location');
   }
 
   getUserRole(): string | null{
@@ -110,12 +118,21 @@ export class AuthService {
     return this.http.get(url, { headers: headers });
   }
 
+  fetchUserFavLocation(): Observable<any> {
+    const url = 'https://k-studio.co.il/wp-json/custom-api/v1/get-favorite-location?user_id='+this.getUserID();
+
+    return this.http.get(url).pipe(
+      tap((locationResponse: any) => {
+        this.storeFavLocation(locationResponse);
+      })
+    )
+  }
+
   // New standalone function to fetch packageCustomerId
   fetchPackageCustomerId(customerId: string | null): Observable<any> {
     const packageApiUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
     return this.http.get(packageApiUrl).pipe(
       tap((packageResponse: any) => {
-
         // Extract the packageCustomerId and store it in local storage
         if (
           packageResponse && 

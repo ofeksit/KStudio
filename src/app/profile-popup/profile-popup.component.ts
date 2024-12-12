@@ -9,6 +9,8 @@ import * as moment from 'moment';
 import { Md5 } from 'ts-md5';
 
 
+
+
 @Component({
   selector: 'app-profile-popup',
   templateUrl: './profile-popup.component.html',
@@ -16,6 +18,7 @@ import { Md5 } from 'ts-md5';
 })
 export class ProfilePopupComponent implements AfterViewInit {
   @ViewChild('popup') popup!: ElementRef;
+  
 
   userName: string | null;  // Fetched dynamically
   userRole: string | null = '';  // Fetched dynamically
@@ -38,6 +41,8 @@ export class ProfilePopupComponent implements AfterViewInit {
   unfilteredAppointments: Booking[] = [];
   userPurchases: any[] = [];
   gravatarUrl: string = '';
+  locationEnabled = false; // Track the toggle state
+  favLocation: string | null;
   
   
   constructor(
@@ -47,17 +52,24 @@ export class ProfilePopupComponent implements AfterViewInit {
     private profileService: ProfileService,
     private authService: AuthService,
     private toastController: ToastController,
-    private ameliaService: AmeliaService
+    private ameliaService: AmeliaService,
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.translateUserRole(this.authService.getUserRole());
     this.customerID = this.authService.getCustomerID();
     this.userID = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
+    
     this.setGravatarUrl();
+    this.authService.fetchUserFavLocation()
+    
+    this.favLocation = this.authService.getUserFavLocation();
+    
+    console.log("location", this.favLocation)
+    
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
       next: (packageResponse) => {
-
+        
       },
       error: (error) => {
         console.error("Error fetching package id", error);
@@ -220,6 +232,16 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+  // Wait until the DOM is fully rendered
+  const scrollElements = document.querySelectorAll('.scroll-y');
+
+  scrollElements.forEach((scrollElement) => {
+    if (scrollElement instanceof HTMLElement) {
+      // Override the overflow-y style dynamically
+      scrollElement.style.overflowY = 'hidden';
+    }
+  });
+
     const gesture = this.gestureCtrl.create({
       el: this.popup.nativeElement,
       gestureName: 'swipe-to-close',
@@ -342,31 +364,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     );
   }
 
-  async showSettings() {
-  const actionSheet = await this.actionSheetCtrl.create({
-    header: 'הגדרות',
-    buttons: [
-      {
-        text: 'התנתק',
-        role: 'destructive',
-        icon: 'log-out-outline',
-        handler: () => {
-          this.authService.logout();  // Implement this in your AuthService
-          this.modalCtrl.dismiss();  // Close the modal after logging out
-          window.location.reload();  // Refresh the application
-          console.log('Logged out');
-        }
-      },
-      {
-        text: 'סגור',
-        icon: 'close',
-        role: 'cancel',
-      }
-    ]
-  });
-  await actionSheet.present();
-}
-
   loadUserPurchases() {
   this.profileService.fetchUserPurchases(this.userID).subscribe((purchases: any[]) => {
     this.userPurchases = purchases;
@@ -407,6 +404,26 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.filteredAppointments = tempAppointments;
   }
 
+  logout() {
+    this.authService.logout();
+    window.location.reload();
+    console.log('Logged out');
+  }
+
+  toggleLocation(event: any) {
+    const location = event.detail.checked ? "שלום עליכם" : "בן יהודה";
+
+    // Call your service to update the favorite location
+    this.profileService.updateFavoriteLocation(location).subscribe({
+        next: (response) => {
+            console.log('Favorite location updated:', response);
+            this.authService.storeFavLocation(location); // Store the location in localStorage
+        },
+        error: (error) => {
+            console.error('Error updating favorite location:', error);
+        }
+    });
+}
 
   
 }

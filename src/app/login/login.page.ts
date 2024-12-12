@@ -66,7 +66,7 @@ export class LoginPage {
     this.isLoading = true;
 
     this.authService.login(this.username, this.password).pipe(
-        switchMap((response: any) => {            
+        switchMap((response: any) => {
 
             // Store token, ID, and email in local storage
             this.authService.storeToken(response.data.token);
@@ -93,7 +93,7 @@ export class LoginPage {
             // Second request: Get user role
             return this.http.get(`https://k-studio.co.il/wp-json/custom-api/v1/user-role/${userDetails.id}`, { headers });
         }),
-        switchMap((userRoleResponse: any) => {            
+        switchMap((userRoleResponse: any) => {
 
             // Store user role in local storage
             this.authService.storeUserRole(userRoleResponse.roles[0]);
@@ -115,8 +115,8 @@ export class LoginPage {
             const packageApiUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${ameliaResponse.customerId}`;
             return this.http.get(packageApiUrl);
         }),
-        tap((packageResponse: any) => {
-            
+        switchMap((packageResponse: any) => {
+
             // Extract the packageCustomerId and store it in local storage
             if (packageResponse && packageResponse.data && packageResponse.data[0] && 
                 packageResponse.data[0].packages[0] && 
@@ -124,6 +124,18 @@ export class LoginPage {
                 packageResponse.data[0].packages[0].purchases[0].packageCustomerId) {
                 const packageCustomerId = packageResponse.data[0].packages[0].purchases[0].packageCustomerId;
                 this.authService.storePackageCustomerID(packageCustomerId);
+            }
+
+            // Fetch favorite location
+            const favLocationApiUrl = `https://k-studio.co.il/wp-json/custom-api/v1/get-favorite-location?user_id=${this.authService.getUserID()}`;
+            return this.http.get(favLocationApiUrl);
+        }),
+        tap((favLocationResponse: any) => {
+          console.log("favlocation", favLocationResponse)
+          console.log("favlocation", favLocationResponse.favorite_location)
+            // Store favorite location in local storage
+            if (favLocationResponse && favLocationResponse.favorite_location) {
+                this.authService.storeFavLocation(favLocationResponse.favorite_location);
             }
         }),
         catchError(error => {
@@ -167,6 +179,7 @@ export class LoginPage {
         }
     );
 }
+
 
 
   // Toggle password visibility

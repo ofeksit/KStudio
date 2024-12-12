@@ -93,4 +93,6 @@ button {
     transform: translateY(-4px);
   }
 
-
+  .scroll-y {
+    overflow-y: hidden !important; /* Force hiding of vertical overflow */
+  }

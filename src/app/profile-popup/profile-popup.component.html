@@ -1,4 +1,4 @@
-<ion-content class="popup-modal" #popup>
+<ion-content class="popup-modal" #popup #mainContentProfile>
   <!-- Drag handle -->
   <div class="drag-handle"></div>
 
@@ -8,7 +8,32 @@
     <h2>{{ userName }}</h2>
     
     <!-- Settings button -->
-    <ion-icon name="settings-outline" class="settings-icon" (click)="showSettings()"></ion-icon>
+    <ion-icon name="settings-outline" class="settings-icon" id="settings-trigger"></ion-icon>
+    <ion-popover trigger="settings-trigger" triggerAction="click" dismissOnSelect="false" class="profilePopover">
+      <ng-template>
+        <ion-content class="scroll-y-hidden ion-padding">
+          <ion-list>
+            <ion-item>
+              <ion-icon slot="start" name="location-outline"></ion-icon>
+              <ion-label>
+                <div class="title">בחירת מיקום</div>
+                <div class="description">{{ favLocation }}</div>
+              </ion-label>
+              <ion-toggle [checked]="locationEnabled" (ionChange)="toggleLocation($event)"></ion-toggle>
+            </ion-item>
+            <ion-item button (click)="logout()">
+              <ion-icon slot="start" name="log-out-outline"></ion-icon>
+              <ion-label>התנתק</ion-label>
+            </ion-item>
+
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
+    
+    
+    
+
   
 
   <!-- Show subscription details if available -->
