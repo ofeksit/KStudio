@@ -65,8 +65,8 @@ export class ProfilePopupComponent implements AfterViewInit {
 
     this.authService.fetchUserFavLocation().subscribe({
       next: (response) => {
-        console.log("response", response.favorite_location);
         this.favLocation = response.favorite_location;
+        this.selectedLocation = response.favorite_location;
       },
       error: (error) => {
         console.error("Error fetching user fav location", error);
@@ -231,10 +231,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     else if (role === 'personal')
       return 'מתאמנת אישית';
     return '';
-  }
-
-  checksUserPackage () {
-    
   }
 
   ngAfterViewInit() {
@@ -416,36 +412,14 @@ export class ProfilePopupComponent implements AfterViewInit {
     console.log('Logged out');
   }
 
-  toggleLocation(event: any) {
-
-}
-
-
-
-updateToggleColor(position: string) {
-  const location = position === "right" 
-    ? "הכל" 
-    : position === "left" 
-        ? "בן יהודה" 
-        : position === "center" 
-            ? "שלום עליכם" 
-            : "Unknown"; // Optional fallback
-    
-  // Call your service to update the favorite location
-  this.profileService.updateFavoriteLocation(location).subscribe({
-      next: (response) => {
-          console.log('Favorite location updated:', response);
-          this.authService.storeFavLocation(location); // Store the location in localStorage
+  updateFavLocation(location: string) {
+    this.favLocation = location;
+    this.selectedLocation = location;
+    this.profileService.updateFavoriteLocation(location).subscribe(
+      (response) => {
       },
-      error: (error) => {
-          console.error('Error updating favorite location:', error);
-      }
-  });
-  this.favLocation = location;
-}
-
-updateFavLocation(location: string) {
-  this.favLocation = location;
-  console.log('Favorite location updated to:', this.favLocation);
-}
+      (error) => {
+        console.error("Error:", error)
+      });
+  }
 }

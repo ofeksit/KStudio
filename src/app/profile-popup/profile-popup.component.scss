@@ -218,10 +218,6 @@ ion-segment-button.ion-activated {
   flex-direction: column;
 }
 
-.inside-container {
-  
-}
-
 //Each ion Segment
 .filter-segment {
   color: red;
@@ -271,7 +267,7 @@ ion-segment-button {
 
 /* Popover enhancements */
 ion-popover {
-  --width: 85%; /* Set fixed width for better layout */
+  --width: 95%; /* Set fixed width for better layout */
   --border-radius: 12px; /* Add smooth rounded corners */
   --box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for a modern look */
   overflow-y: hidden !important; /* Ensure no overflow from the popover itself */
@@ -291,15 +287,37 @@ ion-toggle {
 }
 
 ion-popover {
-  --box-shadow: none; /* Removes shadows */
-  --border-width: 0px; /* Ensures no borders */
+  --background: #ffffff; /* White background */
+  --border-radius: 12px; /* Smooth rounded corners */
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  --padding: 16px; /* Inner padding */
 }
 
-ion-popover .popover-content {
-  box-shadow: none !important; /* Removes content shadows */
-  border: none !important; /* Ensures no internal borders */
+.popover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Space between elements */
 }
 
+.popover-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px; /* Smooth corners for items */
+  transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+}
+
+.popover-item:hover {
+  background-color: #f5f5f5; /* Light gray on hover */
+}
+
+.popover-button {
+  color: #ffffff;
+  background-color: #ffa500; /* Orange color */
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: bold;
+}
 
 ion-popover ion-content {
   overflow: hidden !important; /* Completely disables overflow */
@@ -376,9 +394,10 @@ ion-item h3 {
 
 /* Adjust overall item styling */
 ion-item {
-  --padding-start: 16px; /* Add more padding for spacing */
-  --inner-padding-end: 16px;
-  align-items: center; /* Vertically align all items */
+  --border-width: 0; /* Removes the border */
+  --inner-border-width: 0; /* Ensures inner borders are also removed */
+  border: none; /* Ensures no other borders */
+  box-shadow: none; /* Removes shadow effects */
 }
 
 /* Title styling */

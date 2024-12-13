@@ -102,6 +102,7 @@ export class AuthService {
     localStorage.removeItem('user_email');
     localStorage.removeItem('packageCustomerId');
     localStorage.removeItem('userFilterChoice');
+
   }
 
   isLoggedIn(): boolean {
@@ -123,7 +124,7 @@ export class AuthService {
 
     return this.http.get(url).pipe(
       tap((locationResponse: any) => {
-        this.storeFavLocation(locationResponse);
+        this.storeFavLocation(locationResponse.favorite_location);
       })
     )
   }

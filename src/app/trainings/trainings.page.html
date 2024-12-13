@@ -6,16 +6,25 @@
       <!-- Header Tabs for "All" and "Favorites" -->
       <div class="header-tabs">
         <ion-segment mode="md" [(ngModel)]="selectedFilterAllFav" class="segment-tab" (ionChange)="filterFavAll($event)">
-          <ion-segment-button value="all" class="header-tab">
+          <ion-segment-button 
+            value="all" 
+            class="header-tab" 
+            *ngIf="userFavLocation == 'בן יהודה' || userFavLocation == 'הכל'">
             <ion-label>בן יהודה</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="shalom" class="header-tab segment-button-checked-shalom">
+          <ion-segment-button 
+            value="shalom" 
+            class="header-tab segment-button-checked-shalom" 
+            *ngIf="userFavLocation == 'שלום עליכם' || userFavLocation == 'הכל'">
             <ion-label>שלום עליכם</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="favorites" class="header-tab segment-button-checked-fav">
+          <ion-segment-button 
+            value="favorites" 
+            class="header-tab segment-button-checked-fav">
             <ion-label>מועדפים</ion-label>
           </ion-segment-button>
         </ion-segment>
+        
       </div>
 
       <!--Skeleton Section-->

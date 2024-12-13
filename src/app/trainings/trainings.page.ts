@@ -54,15 +54,15 @@ export class TrainingsPage implements AfterViewInit {
   isEnrollSuccess: boolean = false;
   customerID: string | null = "";
   userRole: string | null = "";
-
+  userFavLocation: string | null = "";
 //#endregion
   
-  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,
-    private modalCalendar: ModalController)
+  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
     {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerID = this.authService.getCustomerID();
+    this.userFavLocation = this.authService.getUserFavLocation();
 
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
       next: (packageResponse) => {
@@ -125,6 +125,15 @@ export class TrainingsPage implements AfterViewInit {
       .catch(() => {
         this.isLoading = false; // Ensure loading is disabled even in case of errors
       });
+
+          // Set the default selected tab based on userFavLocation
+    if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+      this.selectedFilterAllFav = 'all';
+    } else if (this.userFavLocation === 'שלום עליכם') {
+      this.selectedFilterAllFav = 'shalom';
+    } else {
+      this.selectedFilterAllFav = 'favorites'; // Default to "מועדפים" if no other condition matches
+    }
   }
 
 

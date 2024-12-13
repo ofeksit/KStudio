@@ -16,10 +16,10 @@
             <ion-item>
               <ion-icon slot="start" name="location-outline"></ion-icon>
               <div class="custom-three-way-toggle">
-                <!-- Left -->
+                <!-- Right -->
                 <input
                   type="radio"
-                  id="left"
+                  id="right"
                   name="location"
                   value="הכל"
                   [(ngModel)]="selectedLocation"
@@ -27,7 +27,7 @@
                 >
                 <label 
                   [ngClass]="{'active': favLocation === 'הכל'}" 
-                  for="left"
+                  for="right"
                 >
                   הכל
                 </label>
@@ -45,13 +45,13 @@
                   [ngClass]="{'active': favLocation === 'שלום עליכם'}" 
                   for="center"
                 >
-                  שלום עליכם
+                  ש.עליכם
                 </label>
             
-                <!-- Right -->
+                <!-- Left -->
                 <input
                   type="radio"
-                  id="right"
+                  id="left"
                   name="location"
                   value="בן יהודה"
                   [(ngModel)]="selectedLocation"
@@ -59,7 +59,7 @@
                 >
                 <label 
                   [ngClass]="{'active': favLocation === 'בן יהודה'}" 
-                  for="right"
+                  for="left"
                 >
                   בן יהודה
                 </label>

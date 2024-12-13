@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Appointment } from '../Models/appointment';
 import { environment } from 'src/environments/environment';
@@ -207,20 +207,26 @@ export class ProfileService {
   }
 
   updateFavoriteLocation(location: string): Observable<any> {
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/set-favorite-location`;
-    const userId = localStorage.getItem('user_id'); // Replace with your method of fetching the current user ID
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${localStorage.getItem('token')}`, // Replace with your token management method
-    });
-
-    const body = {
-      user_id: userId,
+    const userID = this.authService.getUserID();
+    const url = 'https://k-studio.co.il/wp-json/custom-api/v1/set-favorite-location?user_id=' + userID;
+      const body = {
       favorite_location: location,
     };
-
-    return this.http.post(url, body, { headers });
+  
+    
+    return this.http.post(url, body).pipe(
+      tap(() => console.log("HTTP request sent")),
+      map((response: any) => {
+        this.authService.storeFavLocation(location);
+        return response;
+      }),
+      catchError((error) => {
+        console.error("HTTP Error:", error);
+        return throwError(() => new Error("Failed to update favorite location"));
+      })
+    );
   }
-
+  
   cancelBooking(bookingId: string): Observable<any> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/cancel-booking/${bookingId}`;
 
