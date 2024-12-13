@@ -453,19 +453,19 @@ ion-item {
 
 .custom-three-way-toggle input#left:checked ~ .slider {
   color: #fff;
-  background-color: #ff8366; /* Color for 'left' */
+  background-color: #59c7cd; /* Color for 'left' */
   transform: translateX(0);
 }
 
 .custom-three-way-toggle input#center:checked ~ .slider {
   color: #fff;
-  background-color: #ffa500; /* Color for 'center' */
+  background-color: #ff8366; /* Color for 'center' */
   transform: translateX(100%);
 }
 
 .custom-three-way-toggle input#right:checked ~ .slider {
   color: #fff;
-  background-color: #66c2ff; /* Color for 'right' */
+  background-color: #ffa500; /* Color for 'right' */
   transform: translateX(200%);
 }
 

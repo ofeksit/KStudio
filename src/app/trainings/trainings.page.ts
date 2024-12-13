@@ -607,10 +607,6 @@ export class TrainingsPage implements AfterViewInit {
       this.isStandbyLoading = false;
       this.isStandbySuccess = true;
   
-      // Reset the button after a delay
-      setTimeout(() => {
-        this.isStandbySuccess = false;
-      }, 2000);
   
     }, error => {
       console.error('Error adding user to standby list', error);
