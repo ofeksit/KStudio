@@ -1,11 +1,12 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GestureController, ModalController } from '@ionic/angular';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { AmeliaService } from '../services/amelia-api.service';
 import { ToastController  } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
@@ -55,6 +56,8 @@ export class TrainingsPage implements AfterViewInit {
   customerID: string | null = "";
   userRole: string | null = "";
   userFavLocation: string | null = "";
+  
+
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
@@ -200,13 +203,13 @@ export class TrainingsPage implements AfterViewInit {
     const next7Days = new Date(today);
     next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
   
-  // Updated formatDate function to format the date as yyyy-mm-dd
-  const formatDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+    // Updated formatDate function to format the date as yyyy-mm-dd
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     
     return new Promise((resolve, reject) => {
       this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
@@ -325,6 +328,7 @@ export class TrainingsPage implements AfterViewInit {
                 const isUserBooked = app.bookings.some(
                   (booking: any) => booking.customerId === loggedInCustomerId && booking.status === 'approved'
                 );
+              
                 const appointmentTempTitle =
                   appointmentStartDate <= next7Days
                     ? await this.getAppointmentTitleByAppointment(app)
@@ -359,12 +363,45 @@ export class TrainingsPage implements AfterViewInit {
   }
         
   //Combine between appointments and timeslots
-  combineTimeslotsAndAppointments() {
-    this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-    this.unfilteredList = [...this.combinedList];
-    this.extractAvailableDays();
-    this.combinedList.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  async combineTimeslotsAndAppointments() {
+    try {
+      this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+      this.unfilteredList = [...this.combinedList];
+      this.extractAvailableDays();
+  
+      const promises = this.combinedList.map(async (training) => {
+        // Check if the training is full and has a valid ID
+        if (training.booked >= training.total_participants && training.id !== undefined) {
+          console.log('Processing full training:', training);
+          training.isStandbyEnrolled = await this.checkStandbyEnrollment(
+            this.userEmail!,
+            training.id
+          );
+          console.log(
+            `Checked enrollment for training ID: ${training.id}, isStandbyEnrolled: ${training.isStandbyEnrolled}`
+          );
+        } else {
+          training.isStandbyEnrolled = false;
+          console.log(
+            `Training ID: ${training.id} is not full or ID is invalid. Skipping enrollment check.`
+          );
+        }
+      });
+  
+      await Promise.all(promises);
+  
+      this.combinedList.sort(
+        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+      );
+  
+      this.updateFilteredAppointments();
+      console.log('Final combined list with standby status:', this.combinedList);
+    } catch (error) {
+      console.error('Error combining timeslots and appointments:', error);
+    }
   }
+  
+  
 
   //Extract 
   extractAvailableDays() {
@@ -613,6 +650,20 @@ export class TrainingsPage implements AfterViewInit {
       this.isStandbyLoading = false;
       this.presentToast('שגיאה', 'danger');
     });
+  }
+
+  checkStandbyEnrollment(email: string, trainingId: number): Promise<boolean> {
+    const url = 'https://k-studio.co.il/wp-json/standby-list/v1/check';
+    const params = new HttpParams().set('email', email).set('trainingId', trainingId.toString());
+  
+    return firstValueFrom(
+      this.http.get<{ isEnrolled: boolean }>(url, { params })
+    )
+      .then((response) => response.isEnrolled)
+      .catch((error) => {
+        console.error('Error checking standby enrollment', error);
+        return false;
+      });
   }
 
   // Method to enroll the user in a training session

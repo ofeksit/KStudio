@@ -15,4 +15,5 @@ export interface Appointment {
   isLoading?: boolean; //Enrolling Animation
   isSuccess?: boolean; //Enrolling Animation
   isUserBooked?: boolean;
+  isStandbyEnrolled?: boolean; // Add this property
 }
