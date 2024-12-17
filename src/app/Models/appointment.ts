@@ -14,6 +14,7 @@ export interface Appointment {
   providerId?: number;
   isLoading?: boolean; //Enrolling Animation
   isSuccess?: boolean; //Enrolling Animation
+  isError?: boolean; //Enrolling animation
   isUserBooked?: boolean;
   isStandbyEnrolled?: boolean; // Add this property
 }

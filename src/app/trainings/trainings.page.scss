@@ -537,16 +537,19 @@ ion-spinner {
   top: -10px;
   left: 60px;
   background-color: white;
-  border: none; /* Removed border for a cleaner look */
-  padding: 12px; /* Slightly increased padding for a more open, spacious feel */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Larger shadow for a floating effect */
-  width: 180px; /* Increased width for better readability */
+  border: none;
+  padding: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  width: 180px;
   z-index: 10;
-  border-radius: 12px; /* Increased border-radius for a more polished look */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animation for popup appearance */
+  border-radius: 12px;
+  max-height: 200px; /* Restrict maximum height */
+  overflow-y: auto; /* Make it scrollable if content overflows */
+  transition: opacity 0.3s ease, transform 0.3s ease;
   opacity: 0;
-  transform: translateY(-10px); /* Initial transform for the animation */
+  transform: translateY(-10px);
 }
+
 
 .participant-popup h4 {
   margin: 0 0 10px 0;
@@ -583,4 +586,14 @@ ion-spinner {
   background-color: #e0e0e0; /* Light gray */
   color: #757575; /* Dark gray text */
   cursor: not-allowed; /* Show disabled cursor */
+}
+
+.action-button.error {
+  background-color: #ff4d4d; /* Red background */
+  color: white;
+}
+
+.action-button .error-icon {
+  font-size: 14px;
+  color: white;
 }

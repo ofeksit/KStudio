@@ -666,93 +666,105 @@ export class TrainingsPage implements AfterViewInit {
       });
   }
 
-  // Method to enroll the user in a training session
-  enrollUser(appointment: Appointment) {
-    appointment.isLoading = true;
-    appointment.isSuccess = false; // Reset success state
+// Method to enroll the user in a training session
+enrollUser(appointment: Appointment) {
+  appointment.isLoading = true;
+  appointment.isSuccess = false; // Reset success state
+  appointment.isError = false; // Add an error state
   
-    let serviceID = appointment.serviceID;
-    let bookingStart = appointment.start_time;
-    const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
+  let serviceID = appointment.serviceID;
+  let bookingStart = appointment.start_time;
+  const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
   
-    let providerId = appointment.providerId;
-    let customerID = this.authService.getCustomerID();
-    let packageCustomerId = this.authService.getPackageCustomerId();
+  let providerId = appointment.providerId;
+  let customerID = this.authService.getCustomerID();
+  let packageCustomerId = this.authService.getPackageCustomerId();
   
-    const utcOffset = -(new Date().getTimezoneOffset());
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const utcOffset = -(new Date().getTimezoneOffset());
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
-    const enrollData = {
-      type: 'appointment',
-      serviceId: serviceID,
-      providerId: providerId,
-      locationId: null,
-      notifyParticipants: 0,
-      bookings: [
-        {
-          customerId: customerID,
-          status: 'approved',
-          duration: 3600,
-          persons: 1,
-          extras: [],
-          customFields: {},
-          utcOffset: utcOffset,
-          packageCustomerService: {
-            packageCustomer: {
-              id: packageCustomerId,
-            },
+  const enrollData = {
+    type: 'appointment',
+    serviceId: serviceID,
+    providerId: providerId,
+    locationId: null,
+    notifyParticipants: 0,
+    bookings: [
+      {
+        customerId: customerID,
+        status: 'approved',
+        duration: 3600,
+        persons: 1,
+        extras: [],
+        customFields: {},
+        utcOffset: utcOffset,
+        packageCustomerService: {
+          packageCustomer: {
+            id: packageCustomerId,
           },
         },
-      ],
-      bookingStart: formattedBookingStart,
-      timeZone: timeZone,
-    };
-  
-    this.platform.ready().then(() => {
-      const body = JSON.stringify(enrollData);
-      this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }).subscribe(
-        (response: any) => {
-          if (response.data?.timeSlotUnavailable) {
-            this.presentToast(response.message || 'The time slot is unavailable', 'danger');
-          } else if (response.data?.customerAlreadyBooked) {
-            this.presentToast(response.message || 'You have already booked this training', 'success');
-          } else if (response.message) {
-            appointment.isSuccess = true;
-            if (!appointment.current_participants) {
-              appointment.current_participants = [];
-            }
-            appointment.booked += 1;
-            const userFullName = `${this.authService.getUserFullName()}`;
-            appointment.current_participants.push(userFullName);
-            appointment.isUserBooked = true;
-          } else {
-            appointment.isSuccess = true;
-          }
-  
+      },
+    ],
+    bookingStart: formattedBookingStart,
+    timeZone: timeZone,
+  };
+
+  this.platform.ready().then(() => {
+    const body = JSON.stringify(enrollData);
+    this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).subscribe(
+      (response: any) => {
+        // Handle null responses
+        if (response.message === null || response.data === null) {
+          this.presentToast('שגיאה: לא נמצאה חבילה זמינה', 'danger');
+          appointment.isError = true; // Mark error state
           appointment.isLoading = false;
-  
-          setTimeout(() => {
-            appointment.isSuccess = false;
-          }, 2000);
-        },
-        (error) => {
-          console.error('Enrollment failed', JSON.stringify(error));
-          appointment.isLoading = false;
-  
-          // Check for specific error related to packageCustomerId
-          if (error.error && error.error.includes('"packageCustomerId" is required for booking')) {
-            this.presentToast('לא נמצאה חבילה זמינה', 'danger');
-          } else {
-            this.presentToast('שגיאה', 'danger');
-          }
+          return;
         }
-      );
-    });
-  }
+
+        // Handle specific error cases
+        if (response.data?.timeSlotUnavailable) {
+          this.presentToast(response.message || 'The time slot is unavailable', 'danger');
+        } else if (response.data?.customerAlreadyBooked) {
+          this.presentToast(response.message || 'You have already booked this training', 'success');
+        } else if (response.message) {
+          appointment.isSuccess = true;
+          if (!appointment.current_participants) {
+            appointment.current_participants = [];
+          }
+          appointment.booked += 1;
+          const userFullName = `${this.authService.getUserFullName()}`;
+          appointment.current_participants.push(userFullName);
+          appointment.isUserBooked = true;
+        } else {
+          appointment.isSuccess = true;
+        }
+
+        appointment.isLoading = false;
+
+        setTimeout(() => {
+          appointment.isSuccess = false;
+        }, 2000);
+      },
+      (error) => {
+        console.error('Enrollment failed', JSON.stringify(error));
+        appointment.isLoading = false;
+
+        // Check for specific error related to packageCustomerId
+        if (error.error && error.error.includes('"packageCustomerId" is required for booking')) {
+          this.presentToast('לא נמצאה חבילה זמינה', 'danger');
+        } else {
+          this.presentToast('שגיאה', 'danger');
+        }
+        appointment.isError = true; // Mark error state
+      }
+    );
+  });
+}
+
   
   async openCalendarPopup() {
     const modalCalendar = await this.modalCalendar.create({
