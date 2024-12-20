@@ -43,7 +43,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   gravatarUrl: string = '';
   locationEnabled = false; // Track the toggle state
   favLocation: string | null = "";
-  selectedLocation: string = 'שלום עליכם'; // Default location
+  selectedLocation: string = ""; // Default location
   
   
   constructor(
@@ -74,9 +74,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     })
             
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      next: (packageResponse) => {
-        
-      },
       error: (error) => {
         console.error("Error fetching package id", error);
       }
@@ -110,7 +107,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     );
   
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
-    this.profileService.getUserPackageCustomerID();
+    //this.profileService.getUserPackageCustomerID(); - SHOULD CHECK IF WORKS WITHOUT IT, FETCHING USER PACKAGECUSTOMERID
     
     // Check if the titles have already been fetched
     if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
@@ -128,8 +125,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.loadUserAppointmentsLast60Days();
     // Apply the filter after loading appointments
     this.updateFilteredAppointments();
-
-    
   }
 
   async presentToast(message: string, color: string) {
@@ -409,15 +404,12 @@ export class ProfilePopupComponent implements AfterViewInit {
   logout() {
     this.authService.logout();
     window.location.reload();
-    console.log('Logged out');
   }
 
   updateFavLocation(location: string) {
     this.favLocation = location;
     this.selectedLocation = location;
     this.profileService.updateFavoriteLocation(location).subscribe(
-      (response) => {
-      },
       (error) => {
         console.error("Error:", error)
       });

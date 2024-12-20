@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { Observable} from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = 'https://k-studio.co.il/wp-json/jwt-auth/v1/token';
-  private apiUrlExtended = 'https://k-studio.co.il/wp-json/wp/v2/users/me'
-  private getAmeliaUserIDURL = '/api/users/customers&page=1&search=';
+  private apiCustomURL = 'https://k-studio.co.il/wp-json/custom-api/v1';
   
   constructor(private http: HttpClient) {}
 
@@ -54,7 +53,6 @@ export class AuthService {
   storeFavLocation(userFavLocation: string) {
     localStorage.setItem('user_fav_location', userFavLocation);
   }
-
 
   getToken(): string | null {
     return localStorage.getItem('auth_token');
@@ -111,7 +109,7 @@ export class AuthService {
   }
   
   fetchUserRole(): Observable<any> {
-    const url = 'https://k-studio.co.il/wp-json/custom-api/v1/user-role/'+this.getUserID();
+    const url = this.apiCustomURL+'/user-role/'+this.getUserID();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.getToken()}`
     });
@@ -120,13 +118,19 @@ export class AuthService {
   }
 
   fetchUserFavLocation(): Observable<any> {
-    const url = 'https://k-studio.co.il/wp-json/custom-api/v1/get-favorite-location?user_id='+this.getUserID();
+    const url = this.apiCustomURL+'/get-favorite-location?user_id='+this.getUserID();
 
     return this.http.get(url).pipe(
       tap((locationResponse: any) => {
         this.storeFavLocation(locationResponse.favorite_location);
       })
     )
+  }
+
+  getServiceIDbyUserRole(): Observable<any> {
+    const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
+    const userRole = localStorage.getItem('user_role') || 'guest';
+    return this.http.get<number[]>(`${apiUrl}${userRole}`);
   }
 
   // New standalone function to fetch packageCustomerId
@@ -152,5 +156,7 @@ export class AuthService {
       })
     );
   }
+
+
 
 }

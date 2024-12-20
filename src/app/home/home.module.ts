@@ -11,7 +11,6 @@ import { HomePage } from './home.page';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
-import { PurchaseComponent } from '../purchase/purchase.component';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 
 
@@ -27,7 +26,7 @@ import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.compone
     MatToolbarModule,
     MatCardModule,
   ],
-  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, PurchaseComponent, CalendarPopupComponent],
+  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

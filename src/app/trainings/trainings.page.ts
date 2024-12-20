@@ -24,40 +24,51 @@ export class TrainingsPage implements AfterViewInit {
   
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
-  
-  selectedFilterAllFav: string = 'all';  // Default to "All" tab
+
+  //Variables which defines in constructor from other services
+  customerID: string | null = ""; //Define customerID from userID | Constructor
+  userId: string | null; //Define active user ID | Constructor
+  userEmail: string | null = ""; //Define active user email | Constructor
+  userFavLocation: string | null = ""; //Define what's the user's favorite location | Constructor
+  userRole: string | null = ""; //Define user's role | Constructor
+
+  //Participants popup variables
+  showingParticipants = false; //Popup to show participants
+  isPopupVisible = false; // Participants Popup
+  activeAppointment: Appointment | null = null; // Track the active appointment for popup
+
+  //List Filtetr Variables
+  selectedFilterAllFav: string = 'all'; //Default filter, shows "all" tab  
   selectedType: string = '';  // Default: no type filter
   availabilityFilter: string = 'all';  // Default: show all
   showDropdown: boolean = false;  // Controls the visibility of the filter dropdown
   availableTypes: string[] = [];  // Array of available training types
-  availableTimeslots: Appointment[] = []; //Timeslots list
+  
+  filteredAppointments: Appointment[] = [];
+  
+  //Fetching List Variables
   bookedAppointments: Appointment[] = []; //Appointments List
   combinedList: Appointment[] = []; //Final list of timeslots and appointments
   days: { formattedDate: any; date: string; day: string }[] = [];
   selectedDay: string | undefined;  // Default selected day
-  showingParticipants = false; //Popup to show participants
-  isPopupVisible = false; // Participants Popup
-  activeAppointment: Appointment | null = null; // Track the active appointment for popup
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
-  userId: string | null; //Define active user ID
-  userEmail: string | null = ""; //Define active user email
-  isLoading: boolean = true; // Set loading to true initially
-  filteredAppointments: Appointment[] = [];
+  availableTimeslots: Appointment[] = []; //Timeslots list
   unfilteredList: Appointment[] = [];
   trainingsByDay: any;
-  showToast: boolean = false;
-  toastMessage: string = '';
-  toastColor: string = 'success';
-  errorMessage: string = '';
+
+  //Enrolling Variables
+  isLoading: boolean = true; // Set loading to true initially
   isStandbyLoading: boolean = false;
   isStandbySuccess: boolean = false;
   isEnrollLoading: boolean = false;
   isEnrollSuccess: boolean = false;
-  customerID: string | null = "";
-  userRole: string | null = "";
-  userFavLocation: string | null = "";
-  
 
+  //Toast alerts variables
+  showToast: boolean = false;
+  toastMessage: string = '';
+  toastColor: string = 'success';
+  errorMessage: string = '';
+ 
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
@@ -68,20 +79,28 @@ export class TrainingsPage implements AfterViewInit {
     this.userFavLocation = this.authService.getUserFavLocation();
 
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      next: (packageResponse) => {
-
-      },
       error: (error) => {
         console.error("Error fetching package id", error);
       }
     })
 
   }
-
+  //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
+
+    // Set the default selected tab based on userFavLocation
+    if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+      this.selectedFilterAllFav = 'all';
+    } else if (this.userFavLocation === 'שלום עליכם') {
+      this.selectedFilterAllFav = 'shalom';
+    } else {
+      this.selectedFilterAllFav = 'favorites'; // Default to "מועדפים" if no other condition matches
+    }
+
+    //Refreshing user role fetching to localstorage
     this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = (data.roles[0]);});
 
-    // Set loading to true when API call starts
+    //Checks if user's inactive or trial-user
     if (this.authService.getUserRole() == 'inactive'){
       this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל'
       this.presentToast(this.errorMessage, 'danger');
@@ -91,11 +110,14 @@ export class TrainingsPage implements AfterViewInit {
       this.presentToast(this.errorMessage, 'danger');
     }
 
-        // Fetch data when entering the training component
-        this.ameliaService.fetchTitleTrainings().catch((error) => {
-          console.error('Error fetching initial trainings:', error);
-        });
+    //Fetching trainings titles
+    this.ameliaService.fetchTitleTrainings().catch((error) => {
+      console.error('Error fetching initial trainings:', error);
+    });
 
+    /***************CHECKS WHY THERE'S TWO GETTRAININGSTITLE */
+
+    //Making the skeletion active
     this.isLoading = true;
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     
@@ -125,33 +147,13 @@ export class TrainingsPage implements AfterViewInit {
         // Set loading to false when data is ready
         this.isLoading = false;
       })
-      .catch(() => {
+      .catch((error) => {
         this.isLoading = false; // Ensure loading is disabled even in case of errors
+        this.presentToast(error, 'danger');
       });
-
-          // Set the default selected tab based on userFavLocation
-    if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-      this.selectedFilterAllFav = 'all';
-    } else if (this.userFavLocation === 'שלום עליכם') {
-      this.selectedFilterAllFav = 'shalom';
-    } else {
-      this.selectedFilterAllFav = 'favorites'; // Default to "מועדפים" if no other condition matches
-    }
   }
 
-
-  
-
-  async presentToast (message: string, color: string){
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 3000, 
-      color: color,
-      position: 'bottom',
-    });
-    await toast.present();
-  }
-
+  //afterViewInit function - Defines the modal controller
   ngAfterViewInit() {
     setTimeout(() => {
       const gesture = this.gestureCtrl.create({
@@ -166,14 +168,19 @@ export class TrainingsPage implements AfterViewInit {
       gesture.enable(true); 
     });
   }
-  
-  //Get Services ID by loggedin role user
-  getServicesByRole(): Observable<number[]> {
-    const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
-    const userRole = localStorage.getItem('user_role') || 'guest';
-    return this.http.get<number[]>(`${apiUrl}${userRole}`);
-  }
 
+  //Define the toast popup messages controller
+  async presentToast (message: string, color: string){
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000, 
+      color: color,
+      position: 'bottom',
+    });
+    await toast.present();
+  }
+  
+  //Format date time format to israel format
   formatDateTimeInIsraelTime(dateString: string, timeString: string): string {
     const localDate = new Date(`${dateString}T${timeString}`);
     const options: Intl.DateTimeFormatOptions = {
@@ -196,6 +203,9 @@ export class TrainingsPage implements AfterViewInit {
     return `${formattedDate} ${timePart}`;
   }
 
+  //Function to fetch all available timeslots, only timeslots.
+  //1. Defines dates (today and 30 days forward), 2. formatting dates according to israel format.
+  //3. Gets user relevant serviceID from authService, 4. Sending the api request.
   async fetchAvailableTimeslots(): Promise<void> {
     const today = new Date();
     const next30Days = new Date(today);
@@ -212,11 +222,12 @@ export class TrainingsPage implements AfterViewInit {
     };
     
     return new Promise((resolve, reject) => {
-      this.getServicesByRole().subscribe(async (serviceIDs: number[]) => {
+      this.authService.getServiceIDbyUserRole().subscribe(async (serviceIDs: number[]) => {
         if (serviceIDs.length === 0) {
           return reject('No service IDs found');
         }
   
+        //API Request for mobiles and non-mobiles
         const timeslotRequests = serviceIDs.map(serviceID => {
           const url = `${environment.apiBaseUrl}/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
   
@@ -263,7 +274,7 @@ export class TrainingsPage implements AfterViewInit {
                     title,
                     favorite: false,
                     current_participants: [],
-                    serviceID: 12, 
+                    serviceID: serviceIDs[0], 
                     providerId: 169,
                     total_participants: 8,
                     booked: 0,
@@ -278,6 +289,9 @@ export class TrainingsPage implements AfterViewInit {
     });
   }
   
+  //Function to fetch all all appointments with at least one booking already.
+  //1. Defines dates (today and 30 days forward), 2. formatting dates according to israel format.
+  //3. Gets user relevant serviceID from authService, 4. Sending the api request.
   fetchBookedAppointments(): Promise<void> {
     const now = new Date();
     const next30Days = new Date();
@@ -294,7 +308,7 @@ export class TrainingsPage implements AfterViewInit {
   
     return new Promise((resolve, reject) => {
       this.platform.ready().then(() => {
-        this.getServicesByRole()
+        this.authService.getServiceIDbyUserRole()
           .pipe(
             switchMap((serviceIDs: number[]) => {
               const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(now)},${formatDate(next30Days)}`;

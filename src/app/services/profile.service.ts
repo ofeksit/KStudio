@@ -132,6 +132,8 @@ export class ProfileService {
 
         if (packages && packages.length > 0) {
           const purchases = packages[0].purchases;
+          const packageCustomerId = packages[0].purchases[0].packageCustomerId;
+          this.authService.storePackageCustomerID(packageCustomerId); // CHECK IF IT WORKS
 
           if (purchases && purchases.length > 0) {
             const availableSlots = purchases[0].purchase[0].available;
@@ -148,7 +150,8 @@ export class ProfileService {
 
             return {
               availableSlots: availableSlots,  // Return the available slots
-              expiryDate: formattedExpiryDate  // Return the formatted expiry date
+              expiryDate: formattedExpiryDate,  // Return the formatted expiry date
+              customerPackageID: packageCustomerId 
             };
           }
         }

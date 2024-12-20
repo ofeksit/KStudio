@@ -7,7 +7,6 @@ import { TrainingsPage } from '../trainings/trainings.page';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
 import { AuthService } from '../services/auth.service';
 import { BlocksService, Block } from '../services/blocks.service';
-import { PurchaseComponent } from '../purchase/purchase.component';
 import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
 
@@ -185,21 +184,4 @@ export class HomePage implements OnInit {
     }
   }
   
-
-
-  async openPurchase() {
-    if (this.authService.isLoggedIn()){
-      const modal = await this.modalCtrl2.create({
-        component: PurchaseComponent,
-        cssClass: 'app-purchase',  // Custom class for styling      
-        presentingElement: await this.modalCtrl2.getTop(),  // Ensure it's treated as a sheet
-        breakpoints: [0, 0.85, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
-        initialBreakpoint: 0.85,  // Start the modal at 50% of screen height
-      });
-      return await modal.present();
-    }
-    else {
-      console.log("User Not Logged In!");
-    }
-  }
 }

@@ -116,13 +116,14 @@ export class LoginPage {
             return this.http.get(packageApiUrl);
         }),
         switchMap((packageResponse: any) => {
-
+            console.log("package response:", packageResponse);
             // Extract the packageCustomerId and store it in local storage
             if (packageResponse && packageResponse.data && packageResponse.data[0] && 
                 packageResponse.data[0].packages[0] && 
                 packageResponse.data[0].packages[0].purchases[0] && 
                 packageResponse.data[0].packages[0].purchases[0].packageCustomerId) {
                 const packageCustomerId = packageResponse.data[0].packages[0].purchases[0].packageCustomerId;
+                console.log("packageID:", packageResponse.data[0].packages[0].purchases[0].packageCustomerId);
                 this.authService.storePackageCustomerID(packageCustomerId);
             }
 
@@ -165,7 +166,7 @@ export class LoginPage {
             setTimeout(() => {
                 this.router.navigate(['/home']);
                 this.showProgressBar = false;
-            }, 3000);
+            }, 1500);
 
             // Set loading state back to false after success
             this.isLoading = false;
