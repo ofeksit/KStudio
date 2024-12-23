@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { GestureController, ModalController } from '@ionic/angular';
+import { GestureController, ModalController, SegmentValue } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
@@ -354,14 +354,11 @@ async combineTimeslotsAndAppointments(response: any[]) {
   // Method to handle day change and update available types
   // Modified day change handler for lazy loading
 // Modified onDayChange to properly handle async operations
-onDayChange(selectedDay: string | undefined) {
-  if (!selectedDay) {
-    console.warn('Selected day is undefined');
-    return;
-  }
-  this.selectedDay = selectedDay;
-  this.updateFilteredAppointments();
+onDayChange(selectedDay: SegmentValue) {
+  this.selectedDay = String(selectedDay || ''); // Convert to a string and handle undefined
+  this.updateFilteredAppointments(); // Update appointments based on the selected day
 }
+
 
 
   // Modify the filter function to work on unfilteredList and populate filteredAppointments
