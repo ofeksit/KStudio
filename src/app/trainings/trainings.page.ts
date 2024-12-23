@@ -4,16 +4,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { AmeliaService } from '../services/amelia-api.service';
 import { ToastController  } from '@ionic/angular';
-import { environment } from 'src/environments/environment';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
-import { Training } from '../Models/training';
 
 
 @Component({
@@ -72,7 +68,6 @@ export class TrainingsPage implements AfterViewInit {
  
   // New variables for lazy loading
   private currentDateRange: { start: Date; end: Date } | null = null;
-  private isLoadingMore: boolean = false;
   userServiceID: any;
 
   loadedStartDate: Date = new Date(); // Defaults to the current date
@@ -96,6 +91,7 @@ export class TrainingsPage implements AfterViewInit {
     })
 
   }
+  
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
     // Initial setup remains the same
@@ -225,141 +221,93 @@ export class TrainingsPage implements AfterViewInit {
   }
 
   // New method to load initial data
-// Improved loadInitialData with better error handling
-private async loadInitialData() {
-  this.isLoading = true;
-  try {
-      const today = new Date();
-      const endDate = new Date(today);
-      endDate.setDate(today.getDate() + 7);
-      
-      this.currentDateRange = {
-          start: today,
-          end: endDate
-      };
-
-      await this.fetchTrainingsForDateRange(today, endDate);
-  } catch (error) {
-      console.error('Error loading initial data:', error);
-      await this.presentToast('Error loading trainings', 'danger');
-  } finally {
-      this.isLoading = false;
-  }
-}
-
-private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
-  const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
-
-  const startDateFormatted = formatDate(startDate);
-  const endDateFormatted = formatDate(endDate);
-
-  try {
-    const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
-
-    const response = await firstValueFrom(this.http.get<any[]>(url));
-
-    // Add new days to allAvailableDays
-    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dayStr = formatDate(new Date(d));
-      if (!this.allAvailableDays.includes(dayStr)) {
-        this.allAvailableDays.push(dayStr);
-      }
-    }
-
-    // Process the response
-    await this.combineTimeslotsAndAppointments(response);
-  } catch (error) {
-    console.error('Error fetching trainings:', error);
-  }
-}
-
-
-
-  
-  // New method to process trainings response
-  private async processTrainingsResponse(response: any) {
-    // First, create the base training objects
-    const trainingsWithoutStandby = response.trainings.map((training: any) => ({
-        id: training.id,
-        start_time: training.startTime,
-        end_time: training.endTime,
-        type: 'appointment',
-        title: { name: training.title },
-        serviceID: training.serviceId,
-        favorite: this.getFavoriteTrainings().includes(training.id),
-        current_participants: training.participants,
-        total_participants: training.maxParticipants,
-        booked: training.currentParticipants,
-        providerId: training.providerId,
-        isUserBooked: training.participants.includes(this.userEmail),
-        isStandbyEnrolled: false // Default value
-    }));
-
-    // Then check standby enrollments in parallel
-    const standbyChecks = trainingsWithoutStandby.map(async (training: Appointment) => {
-        const isStandby = await this.checkStandbyEnrollment(this.userEmail!, training.id);
-        return {
-            ...training,
-            isStandbyEnrolled: isStandby
+  // Improved loadInitialData with better error handling
+  private async loadInitialData() {
+    this.isLoading = true;
+    try {
+        const today = new Date();
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + 7);
+        
+        this.currentDateRange = {
+            start: today,
+            end: endDate
         };
-    });
 
-    // Wait for all standby checks to complete
-    const newTrainings = await Promise.all(standbyChecks);
-
-    // Update lists
-    this.combinedList = [...this.combinedList, ...newTrainings];
-    this.unfilteredList = [...this.combinedList];
-    
-    // Extract days and update filtered appointments
-    this.extractAvailableDays();
-    this.updateFilteredAppointments();
-}
-
-async combineTimeslotsAndAppointments(response: any[]) {
-  try {
-    // Split the response into timeslots and appointments
-    this.availableTimeslots = response.filter(item => item.type === 'timeslot');
-    this.bookedAppointments = response.filter(item => item.type === 'appointment');
-    
-    // Combine the lists
-    this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-    this.unfilteredList = [...this.combinedList];
-
-    this.extractAvailableDays();
-
-    const promises = this.combinedList.map(async (training) => {
-      // Check if the training is full and has a valid ID
-      if (training.booked >= training.total_participants && training.id !== undefined) {
-        training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
-      } else {
-        training.isStandbyEnrolled = false;
-      }
-    });
-
-    await Promise.all(promises);
-
-    this.combinedList.sort(
-      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
-
-    this.updateFilteredAppointments();
-  } catch (error) {
-    console.error('Error combining timeslots and appointments:', error);
+        await this.fetchTrainingsForDateRange(today, endDate);
+    } catch (error) {
+        console.error('Error loading initial data:', error);
+        await this.presentToast('Error loading trainings', 'danger');
+    } finally {
+        this.isLoading = false;
+    }
   }
-}
 
+  private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
+    const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
 
-  // Method to handle day change and update available types
-  // Modified day change handler for lazy loading
-// Modified onDayChange to properly handle async operations
-onDayChange(selectedDay: SegmentValue) {
-  this.selectedDay = String(selectedDay || ''); // Convert to a string and handle undefined
-  this.updateFilteredAppointments(); // Update appointments based on the selected day
-}
+    const startDateFormatted = formatDate(startDate);
+    const endDateFormatted = formatDate(endDate);
 
+    try {
+      const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
+      const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
 
+      const response = await firstValueFrom(this.http.get<any[]>(url));
+
+      // Add new days to allAvailableDays
+      for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dayStr = formatDate(new Date(d));
+        if (!this.allAvailableDays.includes(dayStr)) {
+          this.allAvailableDays.push(dayStr);
+        }
+      }
+
+      // Process the response
+      await this.combineTimeslotsAndAppointments(response);
+    } catch (error) {
+      console.error('Error fetching trainings:', error);
+    }
+  }
+
+  async combineTimeslotsAndAppointments(response: any[]) {
+    try {
+      // Split the response into timeslots and appointments
+      this.availableTimeslots = response.filter(item => item.type === 'timeslot');
+      this.bookedAppointments = response.filter(item => item.type === 'appointment');
+      
+      // Combine the lists
+      this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+      this.unfilteredList = [...this.combinedList];
+
+      this.extractAvailableDays();
+
+      const promises = this.combinedList.map(async (training) => {
+        // Check if the training is full and has a valid ID
+        if (training.booked >= training.total_participants && training.id !== undefined) {
+          training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
+        } else {
+          training.isStandbyEnrolled = false;
+        }
+      });
+
+      await Promise.all(promises);
+
+      this.combinedList.sort(
+        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+      );
+
+      this.updateFilteredAppointments();
+    } catch (error) {
+      console.error('Error combining timeslots and appointments:', error);
+    }
+  }
+
+  // Modified onDayChange to properly handle async operations
+  onDayChange(selectedDay: SegmentValue) {
+    this.selectedDay = String(selectedDay || ''); // Convert to a string and handle undefined
+    this.updateFilteredAppointments(); // Update appointments based on the selected day
+  }
 
   // Modify the filter function to work on unfilteredList and populate filteredAppointments
   filterFavAll(event: any) {
@@ -399,7 +347,6 @@ onDayChange(selectedDay: SegmentValue) {
     this.extractAvailableTypes();
   }
   
-
   // Call this method when availability or type filters change
   onFilterChange() {
     this.updateFilteredAppointments();
@@ -478,11 +425,6 @@ onDayChange(selectedDay: SegmentValue) {
     return progress > 100 ? 100 : progress; // Ensure the progress doesn't exceed 100%
   }
 
-  //Checks if training is full
-  isFull(appointment: any): boolean {
-    return appointment.current_participants >= appointment.total_participants;
-  }
-
   // Method to show the popup
   showParticipantsPopup(appointment: Appointment) {
     this.activeAppointment = appointment;
@@ -493,51 +435,6 @@ onDayChange(selectedDay: SegmentValue) {
   hideParticipantsPopup() {
     this.activeAppointment = null;
     this.isPopupVisible = false;
-  }
-
-  async getAppointmentTitleByAppointment(appointment: any): Promise<string> {
-    // Parse the date and time using the correct format "YYYY-MM-DD HH:mm:ss"
-    const date = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('DD/MM/YYYY');    
-    const formattedDay = this.getDayFromDate(date.trim());
-    const formattedTime = moment(appointment.bookingStart, "YYYY-MM-DD HH:mm:ss").format('HH:mm');
-
-    // Check if the day exists in trainingsByDay
-    if (this.trainingsByDay[formattedDay]) {
-      // Find the training by matching the time
-      const training = this.trainingsByDay[formattedDay].find((t: { time: string; }) => t.time === formattedTime);      
-      // Return the title if found, or null if no match
-      if (training) {
-        return training.title;
-      }
-    }
-    return 'כללי'; // Return null if no match found
-  }
-
-  getDayFromDate(dateString: string): string {
-        // Parse the date in DD/MM/YYYY format using Moment.js
-    const date = moment(dateString, "DD/MM/YYYY").toDate();
-    // Array of day names
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    // Get the day of the week (0-6)
-    const dayIndex = date.getDay();
-    // Return the corresponding day name
-    return daysOfWeek[dayIndex];
-  }
-
-  // Your original function modified to use the initialized data
-  async getAppointmentTitleByDateTime(date: string, time: string): Promise<string> {
-    const formattedDate = moment(date, "YYYY-MM-DD").format('DD/MM/YYYY');
-    const day = this.getDayFromDate(formattedDate);
-    // Check if the day exists in trainingsByDay
-    if (this.trainingsByDay[day]) {
-      // Find the training by matching the time
-      const training = this.trainingsByDay[day].find((t: { time: string; }) => t.time === time);      
-      // Return the title if found, or null if no match
-      if (training) {
-        return training.title;
-      }
-    }
-    return 'כללי'; // Return null if no match found
   }
 
   // Function to add user to standby list
@@ -580,105 +477,104 @@ onDayChange(selectedDay: SegmentValue) {
       });
   }
 
-// Method to enroll the user in a training session
-enrollUser(appointment: Appointment) {
-  appointment.isLoading = true;
-  appointment.isSuccess = false; // Reset success state
-  appointment.isError = false; // Add an error state
-  
-  let serviceID = appointment.serviceID;
-  let bookingStart = appointment.start_time;
-  const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
-  
-  let providerId = appointment.providerId;
-  let customerID = this.authService.getCustomerID();
-  let packageCustomerId = this.authService.getPackageCustomerId();
-  
-  const utcOffset = -(new Date().getTimezoneOffset());
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  
-  const enrollData = {
-    type: 'appointment',
-    serviceId: serviceID,
-    providerId: providerId,
-    locationId: null,
-    notifyParticipants: 0,
-    bookings: [
-      {
-        customerId: customerID,
-        status: 'approved',
-        duration: 3600,
-        persons: 1,
-        extras: [],
-        customFields: {},
-        utcOffset: utcOffset,
-        packageCustomerService: {
-          packageCustomer: {
-            id: packageCustomerId,
+  // Method to enroll the user in a training session
+  enrollUser(appointment: Appointment) {
+    appointment.isLoading = true;
+    appointment.isSuccess = false; // Reset success state
+    appointment.isError = false; // Add an error state
+    
+    let serviceID = appointment.serviceID;
+    let bookingStart = appointment.start_time;
+    const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
+    
+    let providerId = appointment.providerId;
+    let customerID = this.authService.getCustomerID();
+    let packageCustomerId = this.authService.getPackageCustomerId();
+    
+    const utcOffset = -(new Date().getTimezoneOffset());
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    const enrollData = {
+      type: 'appointment',
+      serviceId: serviceID,
+      providerId: providerId,
+      locationId: null,
+      notifyParticipants: 0,
+      bookings: [
+        {
+          customerId: customerID,
+          status: 'approved',
+          duration: 3600,
+          persons: 1,
+          extras: [],
+          customFields: {},
+          utcOffset: utcOffset,
+          packageCustomerService: {
+            packageCustomer: {
+              id: packageCustomerId,
+            },
           },
         },
-      },
-    ],
-    bookingStart: formattedBookingStart,
-    timeZone: timeZone,
-  };
+      ],
+      bookingStart: formattedBookingStart,
+      timeZone: timeZone,
+    };
 
-  this.platform.ready().then(() => {
-    const body = JSON.stringify(enrollData);
-    this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).subscribe(
-      (response: any) => {
-        // Handle null responses
-        if (response.message === null || response.data === null) {
-          this.presentToast('שגיאה: לא נמצאה חבילה זמינה', 'danger');
-          appointment.isError = true; // Mark error state
-          appointment.isLoading = false;
-          return;
-        }
-
-        // Handle specific error cases
-        if (response.data?.timeSlotUnavailable) {
-          this.presentToast(response.message || 'The time slot is unavailable', 'danger');
-        } else if (response.data?.customerAlreadyBooked) {
-          this.presentToast(response.message || 'You have already booked this training', 'success');
-        } else if (response.message) {
-          appointment.isSuccess = true;
-          if (!appointment.current_participants) {
-            appointment.current_participants = [];
+    this.platform.ready().then(() => {
+      const body = JSON.stringify(enrollData);
+      this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).subscribe(
+        (response: any) => {
+          // Handle null responses
+          if (response.message === null || response.data === null) {
+            this.presentToast('שגיאה: לא נמצאה חבילה זמינה', 'danger');
+            appointment.isError = true; // Mark error state
+            appointment.isLoading = false;
+            return;
           }
-          appointment.booked += 1;
-          const userFullName = `${this.authService.getUserFullName()}`;
-          appointment.current_participants.push(userFullName);
-          appointment.isUserBooked = true;
-        } else {
-          appointment.isSuccess = true;
+
+          // Handle specific error cases
+          if (response.data?.timeSlotUnavailable) {
+            this.presentToast(response.message || 'The time slot is unavailable', 'danger');
+          } else if (response.data?.customerAlreadyBooked) {
+            this.presentToast(response.message || 'You have already booked this training', 'success');
+          } else if (response.message) {
+            appointment.isSuccess = true;
+            if (!appointment.current_participants) {
+              appointment.current_participants = [];
+            }
+            appointment.booked += 1;
+            const userFullName = `${this.authService.getUserFullName()}`;
+            appointment.current_participants.push(userFullName);
+            appointment.isUserBooked = true;
+          } else {
+            appointment.isSuccess = true;
+          }
+
+          appointment.isLoading = false;
+
+          setTimeout(() => {
+            appointment.isSuccess = false;
+          }, 2000);
+        },
+        (error) => {
+          console.error('Enrollment failed', JSON.stringify(error));
+          appointment.isLoading = false;
+
+          // Check for specific error related to packageCustomerId
+          if (error.error && error.error.includes('"packageCustomerId" is required for booking')) {
+            this.presentToast('לא נמצאה חבילה זמינה', 'danger');
+          } else {
+            this.presentToast('שגיאה', 'danger');
+          }
+          appointment.isError = true; // Mark error state
         }
-
-        appointment.isLoading = false;
-
-        setTimeout(() => {
-          appointment.isSuccess = false;
-        }, 2000);
-      },
-      (error) => {
-        console.error('Enrollment failed', JSON.stringify(error));
-        appointment.isLoading = false;
-
-        // Check for specific error related to packageCustomerId
-        if (error.error && error.error.includes('"packageCustomerId" is required for booking')) {
-          this.presentToast('לא נמצאה חבילה זמינה', 'danger');
-        } else {
-          this.presentToast('שגיאה', 'danger');
-        }
-        appointment.isError = true; // Mark error state
-      }
-    );
-  });
-}
-
+      );
+    });
+  }
   
   async openCalendarPopup() {
     const modalCalendar = await this.modalCalendar.create({
@@ -689,8 +585,6 @@ enrollUser(appointment: Appointment) {
     });
     await modalCalendar.present();
   }
-
-  
 
   getWeeklyTrainings() {
     // Replace with real API or service to fetch weekly training data
