@@ -13,6 +13,7 @@ import { environment } from 'src/environments/environment';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
+import { Training } from '../Models/training';
 
 
 @Component({
@@ -69,6 +70,16 @@ export class TrainingsPage implements AfterViewInit {
   toastColor: string = 'success';
   errorMessage: string = '';
  
+  // New variables for lazy loading
+  private currentDateRange: { start: Date; end: Date } | null = null;
+  private isLoadingMore: boolean = false;
+  userServiceID: any;
+
+  loadedStartDate: Date = new Date(); // Defaults to the current date
+  loadedEndDate: Date = new Date();   // Defaults to the current date
+
+  allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
+
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
@@ -76,7 +87,7 @@ export class TrainingsPage implements AfterViewInit {
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerID = this.authService.getCustomerID();
-    this.userFavLocation = this.authService.getUserFavLocation();
+    this.userFavLocation = this.authService.getUserFavLocation();    
 
     this.authService.fetchPackageCustomerId(this.customerID).subscribe({
       error: (error) => {
@@ -87,70 +98,38 @@ export class TrainingsPage implements AfterViewInit {
   }
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
-
-    // Set the default selected tab based on userFavLocation
+    // Initial setup remains the same
     if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
       this.selectedFilterAllFav = 'all';
     } else if (this.userFavLocation === 'שלום עליכם') {
       this.selectedFilterAllFav = 'shalom';
     } else {
-      this.selectedFilterAllFav = 'favorites'; // Default to "מועדפים" if no other condition matches
+      this.selectedFilterAllFav = 'favorites';
     }
 
-    //Refreshing user role fetching to localstorage
-    this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = (data.roles[0]);});
+    this.authService.fetchUserRole().subscribe(data => {
+      this.authService.storeUserRole(data.roles[0]);
+      this.userRole = (data.roles[0]);
+    });
 
-    //Checks if user's inactive or trial-user
-    if (this.authService.getUserRole() == 'inactive'){
-      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל'
+    if (this.authService.getUserRole() == 'inactive') {
+      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל';
       this.presentToast(this.errorMessage, 'danger');
     }
-    else if (this.authService.getUserRole() == 'trial-users'){
+    else if (this.authService.getUserRole() == 'trial-users') {
       this.errorMessage = 'לא ניתן לטעון אימונים, משתמש ניסיון';
       this.presentToast(this.errorMessage, 'danger');
     }
 
-    //Fetching trainings titles
-    this.ameliaService.fetchTitleTrainings().catch((error) => {
-      console.error('Error fetching initial trainings:', error);
-    });
-
-    /***************CHECKS WHY THERE'S TWO GETTRAININGSTITLE */
-
-    //Making the skeletion active
-    this.isLoading = true;
-    this.trainingsByDay = this.ameliaService.getTrainingsTitles();
-    
-    // Check if the titles have already been fetched
-    if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
-      // Fetch the training titles if not already available
-      await this.ameliaService.fetchTitleTrainings();
-      this.trainingsByDay = this.ameliaService.getTrainingsTitles();
-    }
+    // Initialize with current week's data
+    await this.loadInitialData();
+    const today = new Date();
+    const endDate = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000); // Next 7 days
   
-    // Once titles are fetched, proceed to load the rest of the data
-    Promise.all([this.fetchAvailableTimeslots(), this.fetchBookedAppointments()])
-      .then(() => {
-        this.combineTimeslotsAndAppointments();
-        this.unfilteredList = [...this.combinedList];
-        this.selectedDay = this.days.length > 0 ? this.days[0].date : ''; // Ensure selectedDay is set
-        this.updateFilteredAppointments(); // Apply initial filters (including day filter)
+    this.loadedStartDate = today;
+    this.loadedEndDate = endDate;
   
-        // Load favorite trainings from localStorage
-        const favoriteTrainingIds = this.getFavoriteTrainings();
-        this.combinedList.forEach((training) => {
-          if (training.id && favoriteTrainingIds.includes(training.id)) {
-            training.favorite = true;
-          }
-        });
-  
-        // Set loading to false when data is ready
-        this.isLoading = false;
-      })
-      .catch((error) => {
-        this.isLoading = false; // Ensure loading is disabled even in case of errors
-        this.presentToast(error, 'danger');
-      });
+    this.fetchTrainingsForDateRange(today, endDate);
   }
 
   //afterViewInit function - Defines the modal controller
@@ -203,220 +182,6 @@ export class TrainingsPage implements AfterViewInit {
     return `${formattedDate} ${timePart}`;
   }
 
-  //Function to fetch all available timeslots, only timeslots.
-  //1. Defines dates (today and 30 days forward), 2. formatting dates according to israel format.
-  //3. Gets user relevant serviceID from authService, 4. Sending the api request.
-  async fetchAvailableTimeslots(): Promise<void> {
-    const today = new Date();
-    const next30Days = new Date(today);
-    next30Days.setDate(today.getDate() + 20); // Fetch for 20 days
-    const next7Days = new Date(today);
-    next7Days.setDate(today.getDate() + 7); // Limit title fetching for the next 7 days
-  
-    // Updated formatDate function to format the date as yyyy-mm-dd
-    const formatDate = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-    
-    return new Promise((resolve, reject) => {
-      this.authService.getServiceIDbyUserRole().subscribe(async (serviceIDs: number[]) => {
-        if (serviceIDs.length === 0) {
-          return reject('No service IDs found');
-        }
-  
-        //API Request for mobiles and non-mobiles
-        const timeslotRequests = serviceIDs.map(serviceID => {
-          const url = `${environment.apiBaseUrl}/slots&serviceId=${serviceID}&page=booking&startDateTime=${formatDate(today)}&endDateTime=${formatDate(next30Days)}`;
-  
-          if (this.platform.is('cordova')) {
-            return this.httpA.get(url, {}, {
-              'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
-            }).then(response => {
-              console.log("Available Time Slots:", response);
-              return JSON.parse(response.data);
-            }).catch(error => {
-              reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
-            });
-          } else {
-            return this.http.get(url, {
-              headers: {
-                'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' // Headers
-              }
-            }).toPromise().then(response => {
-              console.log("Available Time Slots:", response);
-              return response;
-            }).catch(error => {
-              reject(`Error fetching timeslots for service ID ${serviceID}: ${error}`);
-            });
-          }
-        });
-  
-        Promise.all(timeslotRequests).then(async (responses) => {
-          this.availableTimeslots = [];
-  
-          for (const response of responses) {
-            if (response && response.data && response.data.slots) {
-              const timeslotsData = response.data.slots;
-  
-              for (const date of Object.keys(timeslotsData)) {
-                const formattedDate = formatDate(new Date(date));
-
-                for (const time of Object.keys(timeslotsData[date])) {
-                  const start_time = this.formatDateTimeInIsraelTime(formattedDate, time);                  
-  
-                  let title = { name: await this.getAppointmentTitleByDateTime(date, time) };
-                  this.availableTimeslots.push({
-                    start_time,
-                    type: 'timeslot',
-                    title,
-                    favorite: false,
-                    current_participants: [],
-                    serviceID: serviceIDs[0], 
-                    providerId: 169,
-                    total_participants: 8,
-                    booked: 0,
-                  });
-                }
-              }
-            }
-          }
-          resolve();
-        }).catch(error => reject(error));
-      }, error => reject(error));
-    });
-  }
-  
-  //Function to fetch all all appointments with at least one booking already.
-  //1. Defines dates (today and 30 days forward), 2. formatting dates according to israel format.
-  //3. Gets user relevant serviceID from authService, 4. Sending the api request.
-  fetchBookedAppointments(): Promise<void> {
-    const now = new Date();
-    const next30Days = new Date();
-    next30Days.setDate(now.getDate() + 30);
-    const next7Days = new Date();
-    next7Days.setDate(now.getDate() + 7);
-  
-    const formatDate = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-  
-    return new Promise((resolve, reject) => {
-      this.platform.ready().then(() => {
-        this.authService.getServiceIDbyUserRole()
-          .pipe(
-            switchMap((serviceIDs: number[]) => {
-              const url = `${environment.apiBaseUrl}/appointments&dates=${formatDate(now)},${formatDate(next30Days)}`;
-              const headers = { 'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' };
-  
-              const request = this.platform.is('cordova')
-                ? this.httpA.get(url, {}, headers).then((res) => JSON.parse(res.data))
-                : this.http.get(url, { headers }).toPromise();
-  
-              return request.then((response: any) => {
-                const appointmentData = response.data.appointments;
-                return { appointmentData, serviceIDs };
-              });
-            })
-          )
-          .subscribe({
-            next: async ({ appointmentData, serviceIDs }) => {
-              const loggedInCustomerId = parseInt(this.authService.getCustomerID() || '0', 10);
-  
-              // Filter and process appointments
-              const filteredAppointments = Object.values(appointmentData)
-                .flatMap((appointment: any) => appointment.appointments)
-                .filter((app: any) => 
-                  serviceIDs.includes(app.serviceId) && 
-                  new Date(app.bookingStart) >= now &&
-                  app.bookings.some((booking: any) => booking.status === 'approved') // Ensure active bookings
-                );
-  
-              const appointmentsPromises = filteredAppointments.map(async (app: any) => {
-                const appointmentStartDate = new Date(app.bookingStart);
-                const isUserBooked = app.bookings.some(
-                  (booking: any) => booking.customerId === loggedInCustomerId && booking.status === 'approved'
-                );
-              
-                const appointmentTempTitle =
-                  appointmentStartDate <= next7Days
-                    ? await this.getAppointmentTitleByAppointment(app)
-                    : 'אימון קבוצתי';
-  
-                return {
-                  id: app.id,
-                  start_time: app.bookingStart,
-                  end_time: app.bookingEnd,
-                  type: 'appointment',
-                  title: { name: appointmentTempTitle },
-                  serviceID: app.serviceId,
-                  favorite: false,
-                  current_participants: app.bookings
-                    .filter((booking: any) => booking.status === 'approved')
-                    .map((booking: any) => `${booking.customer.firstName} ${booking.customer.lastName}`),
-                  total_participants: 8,
-                  booked: app.bookings.filter((booking: any) => booking.status === 'approved').length,
-                  providerId: app.providerId,
-                  isUserBooked: isUserBooked,
-                };
-              });
-  
-              // Wait for all promises to resolve
-              this.bookedAppointments = await Promise.all(appointmentsPromises);
-              resolve();
-            },
-            error: (error) => reject(`Error fetching appointments: ${error}`),
-          });
-      });
-    });
-  }
-        
-  //Combine between appointments and timeslots
-  async combineTimeslotsAndAppointments() {
-    try {
-      this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-      this.unfilteredList = [...this.combinedList];
-      this.extractAvailableDays();
-  
-      const promises = this.combinedList.map(async (training) => {
-        // Check if the training is full and has a valid ID
-        if (training.booked >= training.total_participants && training.id !== undefined) {
-          console.log('Processing full training:', training);
-          training.isStandbyEnrolled = await this.checkStandbyEnrollment(
-            this.userEmail!,
-            training.id
-          );
-          console.log(
-            `Checked enrollment for training ID: ${training.id}, isStandbyEnrolled: ${training.isStandbyEnrolled}`
-          );
-        } else {
-          training.isStandbyEnrolled = false;
-          console.log(
-            `Training ID: ${training.id} is not full or ID is invalid. Skipping enrollment check.`
-          );
-        }
-      });
-  
-      await Promise.all(promises);
-  
-      this.combinedList.sort(
-        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-      );
-  
-      this.updateFilteredAppointments();
-      console.log('Final combined list with standby status:', this.combinedList);
-    } catch (error) {
-      console.error('Error combining timeslots and appointments:', error);
-    }
-  }
-  
-  
-
   //Extract 
   extractAvailableDays() {
     const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -459,10 +224,145 @@ export class TrainingsPage implements AfterViewInit {
     });    
   }
 
-  // Method to handle day change and update available types
-  onDayChange() {
-    this.updateFilteredAppointments();  // Update available types based on selected day
+  // New method to load initial data
+// Improved loadInitialData with better error handling
+private async loadInitialData() {
+  this.isLoading = true;
+  try {
+      const today = new Date();
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 7);
+      
+      this.currentDateRange = {
+          start: today,
+          end: endDate
+      };
+
+      await this.fetchTrainingsForDateRange(today, endDate);
+  } catch (error) {
+      console.error('Error loading initial data:', error);
+      await this.presentToast('Error loading trainings', 'danger');
+  } finally {
+      this.isLoading = false;
   }
+}
+
+private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
+  const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
+
+  const startDateFormatted = formatDate(startDate);
+  const endDateFormatted = formatDate(endDate);
+
+  try {
+    const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
+    const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
+
+    const response = await firstValueFrom(this.http.get<any[]>(url));
+
+    // Add new days to allAvailableDays
+    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dayStr = formatDate(new Date(d));
+      if (!this.allAvailableDays.includes(dayStr)) {
+        this.allAvailableDays.push(dayStr);
+      }
+    }
+
+    // Process the response
+    await this.combineTimeslotsAndAppointments(response);
+  } catch (error) {
+    console.error('Error fetching trainings:', error);
+  }
+}
+
+
+
+  
+  // New method to process trainings response
+  private async processTrainingsResponse(response: any) {
+    // First, create the base training objects
+    const trainingsWithoutStandby = response.trainings.map((training: any) => ({
+        id: training.id,
+        start_time: training.startTime,
+        end_time: training.endTime,
+        type: 'appointment',
+        title: { name: training.title },
+        serviceID: training.serviceId,
+        favorite: this.getFavoriteTrainings().includes(training.id),
+        current_participants: training.participants,
+        total_participants: training.maxParticipants,
+        booked: training.currentParticipants,
+        providerId: training.providerId,
+        isUserBooked: training.participants.includes(this.userEmail),
+        isStandbyEnrolled: false // Default value
+    }));
+
+    // Then check standby enrollments in parallel
+    const standbyChecks = trainingsWithoutStandby.map(async (training: Appointment) => {
+        const isStandby = await this.checkStandbyEnrollment(this.userEmail!, training.id);
+        return {
+            ...training,
+            isStandbyEnrolled: isStandby
+        };
+    });
+
+    // Wait for all standby checks to complete
+    const newTrainings = await Promise.all(standbyChecks);
+
+    // Update lists
+    this.combinedList = [...this.combinedList, ...newTrainings];
+    this.unfilteredList = [...this.combinedList];
+    
+    // Extract days and update filtered appointments
+    this.extractAvailableDays();
+    this.updateFilteredAppointments();
+}
+
+async combineTimeslotsAndAppointments(response: any[]) {
+  try {
+    // Split the response into timeslots and appointments
+    this.availableTimeslots = response.filter(item => item.type === 'timeslot');
+    this.bookedAppointments = response.filter(item => item.type === 'appointment');
+    
+    // Combine the lists
+    this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+    this.unfilteredList = [...this.combinedList];
+
+    this.extractAvailableDays();
+
+    const promises = this.combinedList.map(async (training) => {
+      // Check if the training is full and has a valid ID
+      if (training.booked >= training.total_participants && training.id !== undefined) {
+        training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
+      } else {
+        training.isStandbyEnrolled = false;
+      }
+    });
+
+    await Promise.all(promises);
+
+    this.combinedList.sort(
+      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+
+    this.updateFilteredAppointments();
+  } catch (error) {
+    console.error('Error combining timeslots and appointments:', error);
+  }
+}
+
+
+  // Method to handle day change and update available types
+  // Modified day change handler for lazy loading
+// Modified onDayChange to properly handle async operations
+onDayChange(selectedDay: string | undefined) {
+  if (!selectedDay) {
+    console.warn('Selected day is undefined');
+    return;
+  }
+  this.selectedDay = selectedDay;
+  this.updateFilteredAppointments();
+}
+
 
   // Modify the filter function to work on unfilteredList and populate filteredAppointments
   filterFavAll(event: any) {
@@ -479,26 +379,29 @@ export class TrainingsPage implements AfterViewInit {
   //Updates list according the conditions
   updateFilteredAppointments() {
     let tempAppointments = [...this.unfilteredList];
-
+  
     if (this.selectedDay) {
-      tempAppointments = tempAppointments.filter(appointment => moment(appointment.start_time).format('YYYY-MM-DD') === this.selectedDay);
+      tempAppointments = tempAppointments.filter(appointment =>
+        moment(appointment.start_time).format('YYYY-MM-DD') === this.selectedDay
+      );
     }
-
+  
     if (this.availabilityFilter === 'available') {
       tempAppointments = tempAppointments.filter(appointment => appointment.booked < appointment.total_participants);
     }
-
+  
     if (this.selectedType) {
       tempAppointments = tempAppointments.filter(appointment => appointment.title.name === this.selectedType);
     }
-
+  
     if (this.selectedFilterAllFav === 'favorites') {
       tempAppointments = tempAppointments.filter(appointment => appointment.favorite);
     }
-
+  
     this.filteredAppointments = tempAppointments;
     this.extractAvailableTypes();
   }
+  
 
   // Call this method when availability or type filters change
   onFilterChange() {

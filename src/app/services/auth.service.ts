@@ -127,10 +127,10 @@ export class AuthService {
     )
   }
 
-  getServiceIDbyUserRole(): Observable<any> {
+  getServiceIDbyUserRole(): Observable<number> {
     const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-services/';
     const userRole = localStorage.getItem('user_role') || 'guest';
-    return this.http.get<number[]>(`${apiUrl}${userRole}`);
+    return this.http.get<number>(`${apiUrl}${userRole}`);
   }
 
   // New standalone function to fetch packageCustomerId

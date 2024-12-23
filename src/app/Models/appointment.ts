@@ -1,5 +1,5 @@
 export interface Appointment {
-  id?: number;
+  id: number;
   type: string;
   title: { name: string }; // Optional for timeslots
   serviceID?: number;

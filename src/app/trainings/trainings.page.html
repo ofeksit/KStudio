@@ -53,7 +53,7 @@
 
       <div *ngIf="!isLoading">
         <!-- Scrolling Tabs for Days -->
-        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" (ionChange)="onDayChange()">
+        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" (ionChange)="onDayChange($event.detail.value)">
           <ion-segment-button 
             *ngFor="let day of days" 
             value="{{ day.date }}" 
