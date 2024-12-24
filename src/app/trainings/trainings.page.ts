@@ -125,7 +125,7 @@ export class TrainingsPage implements AfterViewInit {
     this.loadedStartDate = today;
     this.loadedEndDate = endDate;
   
-    this.fetchTrainingsForDateRange(today, endDate);
+//    this.fetchTrainingsForDateRange(today, endDate);
   }
 
   //afterViewInit function - Defines the modal controller
@@ -227,7 +227,7 @@ export class TrainingsPage implements AfterViewInit {
     try {
         const today = new Date();
         const endDate = new Date(today);
-        endDate.setDate(today.getDate() + 7);
+        endDate.setDate(today.getDate() + 20);
         
         this.currentDateRange = {
             start: today,
@@ -244,6 +244,7 @@ export class TrainingsPage implements AfterViewInit {
   }
 
   private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
+    
     const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
 
     const startDateFormatted = formatDate(startDate);
@@ -262,7 +263,6 @@ export class TrainingsPage implements AfterViewInit {
           this.allAvailableDays.push(dayStr);
         }
       }
-
       // Process the response
       await this.combineTimeslotsAndAppointments(response);
     } catch (error) {
@@ -272,36 +272,61 @@ export class TrainingsPage implements AfterViewInit {
 
   async combineTimeslotsAndAppointments(response: any[]) {
     try {
-      // Split the response into timeslots and appointments
-      this.availableTimeslots = response.filter(item => item.type === 'timeslot');
-      this.bookedAppointments = response.filter(item => item.type === 'appointment');
-      
-      // Combine the lists
-      this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
-      this.unfilteredList = [...this.combinedList];
+        // Split the response into timeslots and appointments
+        this.availableTimeslots = response.filter(item => item.type === 'timeslot');
+        this.bookedAppointments = response.filter(item => item.type === 'appointment');
+        
+        // Combine the lists
+        this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+        
+        // Sort the combined list by start_time
+        this.combinedList.sort((a, b) => {
+            const timeA = new Date(a.start_time).getTime();
+            const timeB = new Date(b.start_time).getTime();
+            return timeA - timeB;
+        });
 
-      this.extractAvailableDays();
+        // Create a fresh copy of the sorted list for unfiltered
+        this.unfilteredList = [...this.combinedList];
 
-      const promises = this.combinedList.map(async (training) => {
-        // Check if the training is full and has a valid ID
-        if (training.booked >= training.total_participants && training.id !== undefined) {
-          training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
-        } else {
-          training.isStandbyEnrolled = false;
-        }
-      });
+        // Extract available days for filtering
+        this.extractAvailableDays();
 
-      await Promise.all(promises);
+        // Get the logged-in customer's full name
+        const loggedInCustomerFN = this.authService.getUserFullName();
 
-      this.combinedList.sort(
-        (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-      );
+        const promises = this.combinedList.map(async (training) => {
+            if (!training.start_time || isNaN(Date.parse(training.start_time))) {
+                console.error(`Invalid start_time for training:`, training);
+                return;
+            }
 
-      this.updateFilteredAppointments();
+            if (training.booked >= training.total_participants && training.id !== undefined) {
+                training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
+            } else {
+                training.isStandbyEnrolled = false;
+            }
+
+            training.isUserBooked = training.current_participants?.some(
+                (booking: any) => booking === loggedInCustomerFN
+            );
+        });
+
+        await Promise.all(promises);
+
+        // Make sure filteredAppointments is also sorted
+        this.filteredAppointments = [...this.combinedList];
+
+        // Force a change detection cycle by creating a new reference
+        this.filteredAppointments = [...this.filteredAppointments];
+        
+        // Update filtered appointments
+        this.updateFilteredAppointments();
+
     } catch (error) {
-      console.error('Error combining timeslots and appointments:', error);
+        console.error('Error combining timeslots and appointments:', error);
     }
-  }
+}
 
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
@@ -326,26 +351,40 @@ export class TrainingsPage implements AfterViewInit {
     let tempAppointments = [...this.unfilteredList];
   
     if (this.selectedDay) {
-      tempAppointments = tempAppointments.filter(appointment =>
-        moment(appointment.start_time).format('YYYY-MM-DD') === this.selectedDay
-      );
+        tempAppointments = tempAppointments.filter(appointment =>
+            moment(appointment.start_time).format('YYYY-MM-DD') === this.selectedDay
+        );
     }
   
     if (this.availabilityFilter === 'available') {
-      tempAppointments = tempAppointments.filter(appointment => appointment.booked < appointment.total_participants);
+        tempAppointments = tempAppointments.filter(appointment => 
+            appointment.booked < appointment.total_participants
+        );
     }
   
     if (this.selectedType) {
-      tempAppointments = tempAppointments.filter(appointment => appointment.title.name === this.selectedType);
+        tempAppointments = tempAppointments.filter(appointment => 
+            appointment.title.name === this.selectedType
+        );
     }
   
     if (this.selectedFilterAllFav === 'favorites') {
-      tempAppointments = tempAppointments.filter(appointment => appointment.favorite);
+        tempAppointments = tempAppointments.filter(appointment => 
+            appointment.favorite
+        );
     }
   
-    this.filteredAppointments = tempAppointments;
+    // Ensure the filtered list maintains the sort order
+    tempAppointments.sort((a, b) => {
+        const timeA = new Date(a.start_time).getTime();
+        const timeB = new Date(b.start_time).getTime();
+        return timeA - timeB;
+    });
+  
+    // Create a new reference to trigger change detection
+    this.filteredAppointments = [...tempAppointments];
     this.extractAvailableTypes();
-  }
+}
   
   // Call this method when availability or type filters change
   onFilterChange() {
@@ -479,6 +518,7 @@ export class TrainingsPage implements AfterViewInit {
 
   // Method to enroll the user in a training session
   enrollUser(appointment: Appointment) {
+    console.log("appointment requested", appointment)
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
     appointment.isError = false; // Add an error state
@@ -488,6 +528,7 @@ export class TrainingsPage implements AfterViewInit {
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
     
     let providerId = appointment.providerId;
+    console.log("providerID", providerId)
     let customerID = this.authService.getCustomerID();
     let packageCustomerId = this.authService.getPackageCustomerId();
     
@@ -519,7 +560,7 @@ export class TrainingsPage implements AfterViewInit {
       bookingStart: formattedBookingStart,
       timeZone: timeZone,
     };
-
+    console.log("enrollData", enrollData)
     this.platform.ready().then(() => {
       const body = JSON.stringify(enrollData);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
