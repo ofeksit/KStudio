@@ -53,6 +53,11 @@ export class HomePage implements OnInit {
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
     );
+
+    this.authService.fetchUserFavLocation().subscribe(
+      (data) => { console.log("test"); this.authService.storeFavLocation(data); },
+      (error) => { console.error ("Error fetching user favorite location", error); }
+    )
   }
   
   setupOneSignal() {

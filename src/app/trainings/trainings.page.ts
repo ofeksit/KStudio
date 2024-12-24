@@ -91,10 +91,18 @@ export class TrainingsPage implements AfterViewInit {
     })
 
   }
-  
+
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
-    // Initial setup remains the same
+    this.authService.fetchUserFavLocation().subscribe({
+      next: (response) => {
+        this.userFavLocation = response.favorite_location;
+      },
+      error: (error) => {
+        console.error("Error fetching user fav location", error);
+      }
+    })
+
     if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
       this.selectedFilterAllFav = 'all';
     } else if (this.userFavLocation === 'שלום עליכם') {
