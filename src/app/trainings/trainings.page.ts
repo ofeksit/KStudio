@@ -252,31 +252,32 @@ export class TrainingsPage implements AfterViewInit {
   }
 
   private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
-    
+    const userID = this.authService.getUserID();
     const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
 
     const startDateFormatted = formatDate(startDate);
     const endDateFormatted = formatDate(endDate);
 
     try {
-      const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
-      const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
+        const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
+        const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
 
-      const response = await firstValueFrom(this.http.get<any[]>(url));
+        const response = await firstValueFrom(this.http.get<any[]>(url));
 
-      // Add new days to allAvailableDays
-      for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dayStr = formatDate(new Date(d));
-        if (!this.allAvailableDays.includes(dayStr)) {
-          this.allAvailableDays.push(dayStr);
+        // Add new days to allAvailableDays
+        for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dayStr = formatDate(new Date(d));
+            if (!this.allAvailableDays.includes(dayStr)) {
+                this.allAvailableDays.push(dayStr);
+            }
         }
-      }
-      // Process the response
-      await this.combineTimeslotsAndAppointments(response);
+        // Process the response
+        await this.combineTimeslotsAndAppointments(response);
     } catch (error) {
-      console.error('Error fetching trainings:', error);
+        console.error('Error fetching trainings:', error);
     }
-  }
+}
+
 
   async combineTimeslotsAndAppointments(response: any[]) {
     try {

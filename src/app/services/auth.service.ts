@@ -133,6 +133,13 @@ export class AuthService {
     return this.http.get<number>(`${apiUrl}${userRole}`);
   }
 
+  getProviderIDbyUserRole(): Observable<number> {
+    const apiUrl = 'https://k-studio.co.il/wp-json/angular/v1/get-provider/'
+    const userRole = localStorage.getItem('user_role') || 'guest';
+    return this.http.get<number>(`${apiUrl}${userRole}`);
+  }
+
+
   // New standalone function to fetch packageCustomerId
   fetchPackageCustomerId(customerId: string | null): Observable<any> {
     const packageApiUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;

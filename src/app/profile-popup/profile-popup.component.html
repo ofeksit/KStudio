@@ -13,7 +13,60 @@
       <ng-template>
         <ion-content class="scroll-y-hidden ion-padding">
           <ion-list>
-
+            <ion-item>
+              <ion-icon slot="start" name="location-outline"></ion-icon>
+              <div class="custom-three-way-toggle">
+                <!-- Right -->
+                <input
+                  type="radio"
+                  id="right"
+                  name="location"
+                  value="הכל"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('הכל')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'הכל'}" 
+                  for="right"
+                >
+                  הכל
+                </label>
+            
+                <!-- Center -->
+                <input
+                  type="radio"
+                  id="center"
+                  name="location"
+                  value="שלום עליכם"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('שלום עליכם')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'שלום עליכם'}" 
+                  for="center"
+                >
+                  ש.עליכם
+                </label>
+            
+                <!-- Left -->
+                <input
+                  type="radio"
+                  id="left"
+                  name="location"
+                  value="בן יהודה"
+                  [(ngModel)]="selectedLocation"
+                  (change)="updateFavLocation('בן יהודה')"
+                >
+                <label 
+                  [ngClass]="{'active': favLocation === 'בן יהודה'}" 
+                  for="left"
+                >
+                  בן יהודה
+                </label>
+            
+                <div class="slider"></div>
+              </div>
+            </ion-item>
             
             <ion-item button (click)="logout()">
               <ion-icon slot="start" name="log-out-outline"></ion-icon>
