@@ -133,7 +133,6 @@ export class TrainingsPage implements AfterViewInit {
     this.loadedStartDate = today;
     this.loadedEndDate = endDate;
   
-//    this.fetchTrainingsForDateRange(today, endDate);
   }
 
   //afterViewInit function - Defines the modal controller
@@ -236,22 +235,26 @@ export class TrainingsPage implements AfterViewInit {
         const today = new Date();
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + 20);
-        
+
         this.currentDateRange = {
             start: today,
             end: endDate
         };
 
-        await this.fetchTrainingsForDateRange(today, endDate);
+        // Set a default location or determine dynamically if needed
+        const defaultLocation = 'בן יהודה'; // Replace with dynamic logic if applicable
+
+        await this.fetchTrainingsForDateRange(today, endDate, defaultLocation);
     } catch (error) {
         console.error('Error loading initial data:', error);
         await this.presentToast('Error loading trainings', 'danger');
     } finally {
         this.isLoading = false;
     }
-  }
+}
 
-  private async fetchTrainingsForDateRange(startDate: Date, endDate: Date) {
+
+  private async fetchTrainingsForDateRangeOLD(startDate: Date, endDate: Date) {
     const userID = this.authService.getUserID();
     const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
 
@@ -276,15 +279,49 @@ export class TrainingsPage implements AfterViewInit {
     } catch (error) {
         console.error('Error fetching trainings:', error);
     }
-}
+  }
+
+  private async fetchTrainingsForDateRange(startDate: Date, endDate: Date, selectedLocation: string) {
+    const userID = this.authService.getUserID();
+    const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
+
+    const startDateFormatted = formatDate(startDate);
+    const endDateFormatted = formatDate(endDate);
+    const encodedLocation = encodeURIComponent(selectedLocation); // Encode the location
+
+    try {
+        const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
+
+        const response = await firstValueFrom(this.http.get<any[]>(url));
+        console.log("first response", response);
+
+        // Add new days to allAvailableDays
+        for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dayStr = formatDate(new Date(d));
+            if (!this.allAvailableDays.includes(dayStr)) {
+                this.allAvailableDays.push(dayStr);
+            }
+        }
+        // Process the response
+        await this.combineTimeslotsAndAppointments(response);
+    } catch (error) {
+        console.error('Error fetching trainings:', error);
+    }
+  }
+
+
 
 
   async combineTimeslotsAndAppointments(response: any[]) {
+    console.log("response", response);
     try {
         // Split the response into timeslots and appointments
         this.availableTimeslots = response.filter(item => item.type === 'timeslot');
         this.bookedAppointments = response.filter(item => item.type === 'appointment');
         
+        console.log("available timeslots:", this.availableTimeslots);
+        console.log("bookedappointments:", this.bookedAppointments);
+
         // Combine the lists
         this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
         
@@ -345,9 +382,22 @@ export class TrainingsPage implements AfterViewInit {
 
   // Modify the filter function to work on unfilteredList and populate filteredAppointments
   filterFavAll(event: any) {
-    this.selectedFilterAllFav = event.detail.value;
-    this.updateFilteredAppointments();  // Reapply all filters when switching tabs
+    const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value; // Define the type of selectedTab
+    const locationMap: { [key: string]: string } = {
+      all: 'בן יהודה',
+      shalom: 'שלום עליכם',
+      favorites: 'favorites',
+    };
+  
+    const selectedLocation = locationMap[selectedTab] || 'בן יהודה'; // Type-safe lookup
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(startDate.getDate() + 30);
+  
+    this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
   }
+  
+  
 
   // Add this function to trigger on availability filter change
   toggleAvailabilityFilter() {
