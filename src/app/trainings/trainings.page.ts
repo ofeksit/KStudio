@@ -254,12 +254,11 @@ export class TrainingsPage implements AfterViewInit {
     const startDateFormatted = formatDate(startDate);
     const endDateFormatted = formatDate(endDate);
     const encodedLocation = encodeURIComponent(selectedLocation); // Encode the location
-    console.log("encodedLocation:", encodedLocation);
+    
     try {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
 
         const response = await firstValueFrom(this.http.get<any[]>(url));
-        console.log("first response", response);
 
         // Add new days to allAvailableDays
         for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -276,7 +275,6 @@ export class TrainingsPage implements AfterViewInit {
   }
 
   async combineTimeslotsAndAppointments(response: any[]) {
-    console.log("response", response);
     try {
         // Split the response into timeslots and appointments
         this.availableTimeslots = response.filter(item => item.type === 'timeslot');
@@ -316,9 +314,15 @@ export class TrainingsPage implements AfterViewInit {
                 training.isStandbyEnrolled = false;
             }
 
-            training.isUserBooked = training.current_participants?.some(
-                (booking: any) => booking === loggedInCustomerFN
-            );
+
+            if (Array.isArray(training.current_participants)) {
+              training.isUserBooked = training.current_participants.some(
+                  (booking: any) => booking === loggedInCustomerFN
+              );
+          } else {
+              console.warn(`current_participants is not an array for training:`, training);
+              training.isUserBooked = false;
+          }
         });
 
         await Promise.all(promises);
