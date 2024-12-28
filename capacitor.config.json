@@ -5,7 +5,7 @@
   "plugins": {
     "LiveUpdates": {
       "appId": "51618994",
-      "channel": "Productiomn",
+      "channel": "Production",
       "autoUpdateMethod": "background",
       "maxVersions": 2
     }
