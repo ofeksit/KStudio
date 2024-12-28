@@ -74,6 +74,11 @@ export class TrainingsPage implements AfterViewInit {
   loadedEndDate: Date = new Date();   // Defaults to the current date
 
   allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
+  tabLoadingState: boolean = false;
+
+  get showSkeleton(): boolean {
+    return this.isLoading || this.tabLoadingState
+  }
 
 //#endregion
   
@@ -137,18 +142,7 @@ export class TrainingsPage implements AfterViewInit {
 
   //afterViewInit function - Defines the modal controller
   ngAfterViewInit() {
-    setTimeout(() => {
-      const gesture = this.gestureCtrl.create({
-        el: this.popup.nativeElement,
-        gestureName: 'swipe-to-close',
-        onMove: (ev) => {
-          if (ev.deltaY > 100) {
-            this.modalCtrl.dismiss();
-          }
-        },
-      });
-      gesture.enable(true); 
-    });
+
   }
 
   //Define the toast popup messages controller
@@ -251,34 +245,6 @@ export class TrainingsPage implements AfterViewInit {
     } finally {
         this.isLoading = false;
     }
-}
-
-
-  private async fetchTrainingsForDateRangeOLD(startDate: Date, endDate: Date) {
-    const userID = this.authService.getUserID();
-    const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
-
-    const startDateFormatted = formatDate(startDate);
-    const endDateFormatted = formatDate(endDate);
-
-    try {
-        const serviceID = await firstValueFrom(this.authService.getServiceIDbyUserRole());
-        const url = `https://k-studio.co.il/wp-json/custom-api/v1/trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&serviceIds=${serviceID}`;
-
-        const response = await firstValueFrom(this.http.get<any[]>(url));
-
-        // Add new days to allAvailableDays
-        for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dayStr = formatDate(new Date(d));
-            if (!this.allAvailableDays.includes(dayStr)) {
-                this.allAvailableDays.push(dayStr);
-            }
-        }
-        // Process the response
-        await this.combineTimeslotsAndAppointments(response);
-    } catch (error) {
-        console.error('Error fetching trainings:', error);
-    }
   }
 
   private async fetchTrainingsForDateRange(startDate: Date, endDate: Date, selectedLocation: string) {
@@ -288,7 +254,7 @@ export class TrainingsPage implements AfterViewInit {
     const startDateFormatted = formatDate(startDate);
     const endDateFormatted = formatDate(endDate);
     const encodedLocation = encodeURIComponent(selectedLocation); // Encode the location
-
+    console.log("encodedLocation:", encodedLocation);
     try {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
 
@@ -308,9 +274,6 @@ export class TrainingsPage implements AfterViewInit {
         console.error('Error fetching trainings:', error);
     }
   }
-
-
-
 
   async combineTimeslotsAndAppointments(response: any[]) {
     console.log("response", response);
@@ -372,7 +335,7 @@ export class TrainingsPage implements AfterViewInit {
     } catch (error) {
         console.error('Error combining timeslots and appointments:', error);
     }
-}
+  }
 
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
@@ -380,25 +343,30 @@ export class TrainingsPage implements AfterViewInit {
     this.updateFilteredAppointments(); // Update appointments based on the selected day
   }
 
-  // Modify the filter function to work on unfilteredList and populate filteredAppointments
-  filterFavAll(event: any) {
-    const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value; // Define the type of selectedTab
+  // Modify the filterFavAll method
+  async filterFavAll(event: any) {
+    this.tabLoadingState = true; // Show loading state
+    this.filteredAppointments = []; // Clear current appointments while loading
+    
+    const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value;
     const locationMap: { [key: string]: string } = {
       all: 'בן יהודה',
       shalom: 'שלום עליכם',
       favorites: 'favorites',
     };
-  
-    const selectedLocation = locationMap[selectedTab] || 'בן יהודה'; // Type-safe lookup
+
+    const selectedLocation = locationMap[selectedTab] || 'בן יהודה';
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(startDate.getDate() + 30);
-  
-    this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
+
+    try {
+      await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
+    } finally {
+      this.tabLoadingState = false; // Hide loading state when done
+    }
   }
   
-  
-
   // Add this function to trigger on availability filter change
   toggleAvailabilityFilter() {
     this.availabilityFilter = this.availabilityFilter === 'all' ? 'available' : 'all';
@@ -443,7 +411,7 @@ export class TrainingsPage implements AfterViewInit {
     // Create a new reference to trigger change detection
     this.filteredAppointments = [...tempAppointments];
     this.extractAvailableTypes();
-}
+  }
   
   // Call this method when availability or type filters change
   onFilterChange() {

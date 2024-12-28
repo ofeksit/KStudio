@@ -240,18 +240,6 @@ export class ProfilePopupComponent implements AfterViewInit {
       scrollElement.style.overflowY = 'hidden';
     }
   });
-
-    const gesture = this.gestureCtrl.create({
-      el: this.popup.nativeElement,
-      gestureName: 'swipe-to-close',
-      onMove: (ev) => {
-        if (ev.deltaY > 100) {
-          this.modalCtrl.dismiss();
-        }
-      },
-    });
-    gesture.enable(true);
-
   }
 
   closePopup() {

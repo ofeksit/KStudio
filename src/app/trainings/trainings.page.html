@@ -28,7 +28,7 @@
       </div>
 
       <!--Skeleton Section-->
-      <ion-list *ngIf="isLoading">
+      <ion-list *ngIf="showSkeleton">
         <ion-list-header>
           <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
         </ion-list-header>
@@ -51,7 +51,7 @@
       </ion-list>
 
 
-      <div *ngIf="!isLoading">
+      <div *ngIf="!showSkeleton">
         <!-- Scrolling Tabs for Days -->
         <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" 
     (ionChange)="onDayChange($event.detail.value ?? '')">

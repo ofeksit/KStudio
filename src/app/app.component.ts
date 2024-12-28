@@ -22,10 +22,6 @@ export class AppComponent implements OnInit{
     private platform: Platform,
       ) {
     
-    this.platform.ready().then(() => {
-      //this.setupOneSignal();
-      
-    })
     // Force light theme on app startup
     document.body.setAttribute('data-theme', 'light');
   }
