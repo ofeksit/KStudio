@@ -649,10 +649,20 @@ export class TrainingsPage implements AfterViewInit {
   }
   
   async openCalendarPopup() {
+
+    let branch = "";
+    if (this.selectedFilterAllFav === 'all'){
+      branch = "main";
+    } else if (this.selectedFilterAllFav === 'shalom') {
+      branch = "second";
+    }
+
+    console.log("branch:", branch);
+    
     const modalCalendar = await this.modalCalendar.create({
       component: CalendarPopupComponent,
       componentProps: {
-        weeklyData: this.getWeeklyTrainings(),
+        branch: branch
       },
     });
     await modalCalendar.present();

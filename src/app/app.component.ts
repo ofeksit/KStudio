@@ -29,10 +29,16 @@ export class AppComponent implements OnInit{
   
   ngOnInit() {
     this.checkLoginStatus();
-    this.ameliaService.fetchTitleTrainings().then(
+    this.ameliaService.fetchTitleTrainings("main").then(
       (data) => {},
       (error) => {
-        console.log("Failed to fetch training data on startup!");
+        console.log("Failed to fetch training data on startup!", error);
+      }
+    );
+    this.ameliaService.fetchTitleTrainings("second").then(
+      (data) => {},
+      (error) => {
+        console.log("Failed to fetch training data on startup!", error);
       }
     );
   }

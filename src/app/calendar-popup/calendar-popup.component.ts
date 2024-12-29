@@ -4,17 +4,24 @@ import { DayTrainings } from '../Models/day-trainings';
 import { AmeliaService } from '../services/amelia-api.service';
 import * as moment from 'moment';
 
+interface DayInfo {
+  name: string;
+  date: string;
+  trainings: DayTrainings[];
+}
+
 @Component({
   selector: 'app-calendar-popup',
   templateUrl: './calendar-popup.component.html',
   styleUrls: ['./calendar-popup.component.scss'],
 })
 export class CalendarPopupComponent implements OnInit {
-  @Input() weeklyData?: any[]; // Weekly training data
-  
-  days: { name: string; date: string; trainings: DayTrainings[] }[] = [];
-  // Explicitly define the type for hebrewDaysMap
-  hebrewDaysMap: { [key in 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday']: string } = {
+  @Input() weeklyData?: any[];
+  @Input() branch: 'main' | 'second' = 'main'; // Add branch input
+
+  days: DayInfo[] = [];
+
+  readonly hebrewDaysMap: { [key in 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday']: string } = {
     Sunday: 'ראשון',
     Monday: 'שני',
     Tuesday: 'שלישי',
@@ -24,30 +31,48 @@ export class CalendarPopupComponent implements OnInit {
     Saturday: 'שבת',
   };
 
+  readonly daysOfWeekEnglish = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  constructor(private modalCtrl: ModalController, private ameliaService: AmeliaService) {}
+  constructor(
+    private modalCtrl: ModalController, 
+    private ameliaService: AmeliaService
+  ) {}
 
   ngOnInit(): void {
     this.loadWeeklyTrainings();
   }
   
   loadWeeklyTrainings(): void {
-    // Load data from local storage (set by the training component)
-    this.ameliaService.loadTrainingsFromLocalStorage();
+    // Load branch-specific data from local storage
+    // this.ameliaService.loadTrainingsFromLocalStorage(this.branch);
+    const branchTrainings = this.ameliaService.getTrainingsTitles(this.branch);
 
-    const daysOfWeekEnglish = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    this.days = []; // Clear any previous data
+    this.days = this.daysOfWeekEnglish.map((dayNameEnglish, index) => {
+      const targetDate = moment().day(index).format('DD/MM/YYYY');
+      const trainings = branchTrainings[dayNameEnglish] || [];
 
-    for (let i = 0; i < daysOfWeekEnglish.length; i++) {
-      const dayNameEnglish = daysOfWeekEnglish[i];
-      const targetDate = moment().day(i + 1).format('DD/MM/YYYY'); // Adjust `moment` index for Sunday start
-      const trainings = this.ameliaService.trainingsByDay[dayNameEnglish] || [];
-
-      this.days.push({
-        name: dayNameEnglish, // English day name for logic
+      return {
+        name: dayNameEnglish,
         date: targetDate,
         trainings,
-      });
+      };
+    });
+  }
+
+  async refreshTrainings(): Promise<void> {
+    try {
+      await this.ameliaService.fetchTitleTrainings("main");
+      this.loadWeeklyTrainings();
+    } catch (error) {
+      console.error('Error refreshing trainings:', error);
+      // Here you might want to show a toast or alert to the user
+    }
+    try {
+      await this.ameliaService.fetchTitleTrainings("second");
+      this.loadWeeklyTrainings();
+    } catch (error) {
+      console.error('Error refreshing trainings:', error);
+      // Here you might want to show a toast or alert to the user
     }
   }
 
@@ -60,18 +85,19 @@ export class CalendarPopupComponent implements OnInit {
   }
 
   getRange(length: number): number[] {
-    return Array.from({ length }, (_, i) => i); // Create a range [0, 1, 2, ..., length-1]
+    return Array.from({ length }, (_, i) => i);
   }
 
   getDayName(index: number): string {
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayNames[index % 7];
+    return this.daysOfWeekEnglish[index % 7];
   }
 
   getDateByOffset(offset: number): string {
-    const today = new Date();
-    const targetDate = new Date(today.setDate(today.getDate() + offset));
-    return targetDate.toLocaleDateString('en-GB'); // Format: DD.MM.YYYY
+    return moment().add(offset, 'days').format('DD/MM/YYYY');
+  }
+
+  getBranchTitle(): string {
+    return this.branch === 'main' ? 'סניף ראשי' : 'סניף משני';
   }
 
   dismiss() {

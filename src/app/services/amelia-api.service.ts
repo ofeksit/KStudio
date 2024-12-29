@@ -1,65 +1,95 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
 import { DayTrainings } from '../Models/day-trainings';
+
+interface BranchTrainings {
+  [key: string]: DayTrainings[];
+}
+
+type BranchType = 'main' | 'second';
+
+interface ApiResponse {
+  branch: string;
+  day: string;
+  events: string[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AmeliaService {
-  private apiURL = 'https://k-studio.co.il/wp-json/gym/v1/trainings';
-  trainingsByDay: { [key: string]: DayTrainings[] } = {
-    Sunday: [],
-    Monday: [], 
-    Tuesday: [], 
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: []
+  private readonly DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  private readonly API_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/get-appointment-title';
+
+  trainingsByBranch: Record<BranchType, BranchTrainings> = {
+    main: this.initializeEmptyDays(),
+    second: this.initializeEmptyDays()
   };
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  fetchCombinedTrainings(): Observable<any> {
-    return this.http.get<any>(this.apiURL);
+  private initializeEmptyDays(): BranchTrainings {
+    return this.DAYS.reduce((acc, day) => ({ ...acc, [day]: [] }), {});
   }
 
-  async fetchTitleTrainings(): Promise<void> {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const trainingsData: { [key: string]: any[] } = {}; // Temporary object to store fetched data
+  async fetchTitleTrainings(branch: BranchType = 'main'): Promise<void> {
+    console.log("branchaaa:", branch);
+    const trainingsData: BranchTrainings = this.initializeEmptyDays();
 
-    for (const day of days) {
+    for (const day of this.DAYS) {
       const targetDate = moment().day(day).format('DD/MM/YYYY');
       try {
-        const response: string[] = (await this.http
-          .get<string[]>(`https://k-studio.co.il/wp-json/custom-api/v1/appointment-title/?date=${targetDate}`)
-          .toPromise()) || [];
+        const response = await this.http
+          .get<ApiResponse>(`${this.API_URL}/?date=${targetDate}&branch=${branch}`)
+          .toPromise();
 
-        if (response.length > 0) {
-          trainingsData[day] = response.map((event) => {
-            const [time, title] = event.split(' - ').map((part) => part.trim());
-            return { time, title }; // Return as a DayTrainings object
+        if (response && response.events && response.events.length > 0) {
+          trainingsData[day] = response.events.map((event) => {
+            const [time, title] = event.split(' - ').map(part => part.trim());
+            return { time, title };
           });
         }
       } catch (error) {
-        console.error(`Error fetching trainings for ${day}:`, error);
+        console.error(`Error fetching trainings for ${day} (${branch}):`, error);
+        trainingsData[day] = [];
       }
     }
 
-    this.trainingsByDay = trainingsData; // Update service data
-    localStorage.setItem('weeklyTrainings', JSON.stringify(trainingsData)); // Save to local storage
+    this.trainingsByBranch[branch] = trainingsData;
+    this.saveToLocalStorage(branch, trainingsData);
   }
 
-  loadTrainingsFromLocalStorage(): void {
-    const storedData = localStorage.getItem('weeklyTrainings');
+  async fetchAllBranchTrainings(): Promise<void> {
+    await Promise.all([
+      this.fetchTitleTrainings('main'),
+      this.fetchTitleTrainings('second')
+    ]);
+  }
+
+  private saveToLocalStorage(branch: BranchType, data: BranchTrainings): void {
+    localStorage.setItem(`weeklyTrainings_${branch}`, JSON.stringify(data));
+  }
+
+  loadTrainingsFromLocalStorage(branch: BranchType): void {
+    const storedData = localStorage.getItem(`weeklyTrainings_${branch}`);
     if (storedData) {
-      this.trainingsByDay = JSON.parse(storedData);
+      this.trainingsByBranch[branch] = JSON.parse(storedData);
+    } else {
+      this.trainingsByBranch[branch] = this.initializeEmptyDays();
     }
   }
-  
-  
-  getTrainingsTitles(): any {
-    return this.trainingsByDay;
+
+  loadAllTrainingsFromLocalStorage(): void {
+    this.loadTrainingsFromLocalStorage('main');
+    this.loadTrainingsFromLocalStorage('second');
+  }
+
+  getTrainingsTitles(branch: BranchType = 'main'): BranchTrainings {
+    return this.trainingsByBranch[branch];
+  }
+
+  getAllTrainingsTitles(): Record<BranchType, BranchTrainings> {
+    return this.trainingsByBranch;
   }
 }
