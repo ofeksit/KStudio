@@ -34,7 +34,7 @@ export class AmeliaService {
   }
 
   async fetchTitleTrainings(branch: BranchType = 'main'): Promise<void> {
-    console.log("branchaaa:", branch);
+    
     const trainingsData: BranchTrainings = this.initializeEmptyDays();
 
     for (const day of this.DAYS) {

@@ -257,7 +257,7 @@ export class TrainingsPage implements AfterViewInit {
     
     try {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
-
+        
         const response = await firstValueFrom(this.http.get<any[]>(url));
 
         // Add new days to allAvailableDays
@@ -280,9 +280,6 @@ export class TrainingsPage implements AfterViewInit {
         this.availableTimeslots = response.filter(item => item.type === 'timeslot');
         this.bookedAppointments = response.filter(item => item.type === 'appointment');
         
-        console.log("available timeslots:", this.availableTimeslots);
-        console.log("bookedappointments:", this.bookedAppointments);
-
         // Combine the lists
         this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
         
