@@ -591,7 +591,7 @@ export class TrainingsPage implements AfterViewInit {
     console.log("enrollData", enrollData)
     this.platform.ready().then(() => {
       const body = JSON.stringify(enrollData);
-      this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTraining', body, {
+      this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', body, {
         headers: {
           'Content-Type': 'application/json',
         },
