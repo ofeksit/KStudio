@@ -302,3 +302,60 @@ ion-card {
 .nav-item:active ion-label {
   color: #2980b9; /* Slightly darker blue on active state */
 }
+
+// Upcoming Trainings Card
+
+.upcoming-trainings-card {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #4b6cb7, #182848);
+  color: white;
+  margin: 20px 0;
+
+  ion-card-title {
+    color: white;
+  }
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  ion-item {
+    --background: rgba(255, 255, 255, 0.1);
+    --border-radius: 10px;
+    margin-bottom: 10px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+      
+      ion-icon {
+        margin-right: 5px;
+        margin-left: 8px;
+        
+        &.time-icon {
+          margin-left: 8px;
+        }
+      }
+    }
+  }
+
+  .no-trainings {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+  }
+}

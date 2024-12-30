@@ -9,6 +9,8 @@ import { AuthService } from '../services/auth.service';
 import { BlocksService, Block } from '../services/blocks.service';
 import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
+import { Appointment } from '../Models/appointment';
+import { AmeliaService } from '../services/amelia-api.service';
 
 register();
 
@@ -24,14 +26,15 @@ export class HomePage implements OnInit {
   // User data
   userName: string = 'Ruth Black';
   userMembershipType: string = 'Premium Member';
+  upcomingTrainings: Appointment[] = [];
+  isLoadingTrainings: boolean = true;
 
   // Lesson and Fitness Tips data
   nextLesson: any;
-  upcomingLessons: any[] = [];
   fitnessTips: Block[] = [];
   isLoading: boolean = true; // Loading state
 
-  constructor(private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
+  constructor(private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
     this.setupOneSignal();
@@ -57,7 +60,9 @@ export class HomePage implements OnInit {
     this.authService.fetchUserFavLocation().subscribe(
       (data) => { console.log("test"); this.authService.storeFavLocation(data); },
       (error) => { console.error ("Error fetching user favorite location", error); }
-    )
+    );
+
+    this.loadUpcomingTrainings();
   }
   
   setupOneSignal() {
@@ -87,9 +92,20 @@ export class HomePage implements OnInit {
       console.log("Notification permission granted " + success);
     })
   }
-
   
-
+  private loadUpcomingTrainings() {
+    this.isLoadingTrainings = true;
+    this.ameliaService.getUpcomingTrainings().subscribe(
+      (trainings) => {
+        this.upcomingTrainings = trainings;
+        this.isLoadingTrainings = false;
+      },
+      (error) => {
+        console.error ('Error loading upcoming trainings: ', error);
+        this.isLoadingTrainings = false;
+      }
+    );
+  }
   
   storeNotification(notificationData: any) {
     console.log("store notifications:", notificationData);

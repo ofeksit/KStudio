@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
 import { DayTrainings } from '../Models/day-trainings';
+import { Observable } from 'rxjs';
+import { Appointment } from '../Models/appointment';
+import { AuthService } from './auth.service';
 
 interface BranchTrainings {
   [key: string]: DayTrainings[];
@@ -21,13 +24,14 @@ interface ApiResponse {
 export class AmeliaService {
   private readonly DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   private readonly API_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/get-appointment-title';
+  private readonly API_Appointment_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/user-appointments/';
 
   trainingsByBranch: Record<BranchType, BranchTrainings> = {
     main: this.initializeEmptyDays(),
     second: this.initializeEmptyDays()
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   private initializeEmptyDays(): BranchTrainings {
     return this.DAYS.reduce((acc, day) => ({ ...acc, [day]: [] }), {});
@@ -91,5 +95,10 @@ export class AmeliaService {
 
   getAllTrainingsTitles(): Record<BranchType, BranchTrainings> {
     return this.trainingsByBranch;
+  }
+
+  getUpcomingTrainings(): Observable<Appointment[]> {
+    let userID = this.authService.getCustomerID();
+    return this.http.get<Appointment[]>(`${this.API_Appointment_URL}/${userID}`);
   }
 }
