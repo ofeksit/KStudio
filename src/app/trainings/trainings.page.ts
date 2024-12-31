@@ -10,6 +10,7 @@ import { ToastController  } from '@ionic/angular';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
+import { ChangeDetectorRef } from '@angular/core';
 
 
 @Component({
@@ -89,20 +90,21 @@ export class TrainingsPage implements AfterViewInit {
   private shalomLoaded: boolean = false;
 
   private isShalomLoading: boolean = false;
-  private isBenYehudaLoading: boolean = false;
-
+  private isBenYehudaLoading: boolean = true;
+  isTrainer: boolean = false;
   // Modify the loading getter
   get showSkeleton(): boolean {
-    console.log("first Condition:", this.selectedFilterAllFav === 'shalom' && this.isShalomLoading)
-    console.log("second condition:", )
-    return (this.selectedFilterAllFav === 'shalom' && this.isShalomLoading) || 
-           (this.selectedFilterAllFav === 'all' && this.isBenYehudaLoading);
+    const isLoading = (this.selectedFilterAllFav === 'shalom' && this.isShalomLoading) || 
+                      (this.selectedFilterAllFav === 'all' && this.isBenYehudaLoading);    
+    return isLoading;
   }
 
 //#endregion
   
   constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
     {
+      if (this.authService.getUserRole() === 'trainer')
+        this.isTrainer = true;
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerID = this.authService.getCustomerID();
@@ -118,42 +120,52 @@ export class TrainingsPage implements AfterViewInit {
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
+    console.time('ngOnInit'); // Start timing the entire function
+    console.time('Fetch user favorite location'); // Timing fetching user favorite location
     this.isLoading = true; // Show loading state initially
-    
+
     try {
-      // Wait for the favorite location to be fetched before proceeding
-      const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
-      this.userFavLocation = locationResponse.favorite_location;
-      
-      // Set the initial tab based on userFavLocation
-      if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-        this.selectedFilterAllFav = 'all';
-      } else if (this.userFavLocation === 'שלום עליכם') {
-        this.selectedFilterAllFav = 'shalom';
-      }
-      // Note: We don't set 'favorites' as default anymore since we want the location-based tab
-  
-      // Continue with other initializations
-      const roleData = await firstValueFrom(this.authService.fetchUserRole());
-      this.authService.storeUserRole(roleData.roles[0]);
-      this.userRole = roleData.roles[0];
-  
-      if (this.userRole === 'inactive') {
-        this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
-      } else if (this.userRole === 'trial-users') {
-        this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
-      }
-  
-      // Load initial data only after we have the user location
-      await this.loadInitialData();
-      
+        // Wait for the favorite location to be fetched before proceeding
+        const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
+        console.timeEnd('Fetch user favorite location'); // End timing fetching user favorite location
+
+        this.userFavLocation = locationResponse.favorite_location;
+
+        // Set the initial tab based on userFavLocation
+        if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+            this.selectedFilterAllFav = 'all';
+        } else if (this.userFavLocation === 'שלום עליכם') {
+            this.selectedFilterAllFav = 'shalom';
+        }
+
+        // Timing user role fetching
+        //console.time('Fetch user role');
+        //const roleData = await firstValueFrom(this.authService.fetchUserRole());
+        //console.timeEnd('Fetch user role'); // End timing user role fetching
+
+        //this.authService.storeUserRole(roleData.roles[0]);
+        //this.userRole = roleData.roles[0];
+
+        if (this.userRole === 'inactive') {
+            this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
+        } else if (this.userRole === 'trial-users') {
+            this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
+        }
+
+        // Timing load initial data
+        console.time('Load initial data');
+        await this.loadInitialData();
+        console.timeEnd('Load initial data'); // End timing load initial data
+
     } catch (error) {
-      console.error('Error during initialization:', error);
-      this.presentToast('Error loading user data', 'danger');
+        console.error('Error during initialization:', error);
+        this.presentToast('Error loading user data', 'danger');
     } finally {
-      this.isLoading = false;
+        this.isLoading = false;
+        console.timeEnd('ngOnInit'); // End timing the entire function
     }
-  }
+}
+
 
   //afterViewInit function - Defines the modal controller
   ngAfterViewInit() {
@@ -249,6 +261,7 @@ export class TrainingsPage implements AfterViewInit {
   // Improved loadInitialData with better error handling
   private async loadInitialData() {
     this.isLoading = true;
+    this.isBenYehudaLoading = true;
     try {
         const today = new Date();
         const endDate = new Date(today);
@@ -268,6 +281,7 @@ export class TrainingsPage implements AfterViewInit {
         await this.presentToast('Error loading trainings', 'danger');
     } finally {
         this.isLoading = false;
+        this.isBenYehudaLoading = false;
     }
   }
 
@@ -416,7 +430,6 @@ export class TrainingsPage implements AfterViewInit {
     if (selectedTab === 'favorites') {
       this.tabLoadingState = true;
       try {
-        // For favorites, combine both locations' data if available
         const allAppointments = [
           ...this.benYehudaAppointments,
           ...this.shalomAppointments
@@ -433,47 +446,54 @@ export class TrainingsPage implements AfterViewInit {
       }
       return;
     }
-
+  
     const locationMap: { [key: string]: string } = {
       all: 'בן יהודה',
       shalom: 'שלום עליכם'
     };
-
+  
     const selectedLocation = locationMap[selectedTab];
     const isDataLoaded = selectedTab === 'all' ? this.benYehudaLoaded : this.shalomLoaded;
-
+  
+    // Set loading state before any data fetching
     if (selectedTab === 'all') {
-      this.days = this.benYehudaDays;
-      if (this.benYehudaLoaded) {
-        this.combinedList = [...this.benYehudaTimeslots, ...this.benYehudaAppointments];
-        this.unfilteredList = [...this.combinedList];
-        this.selectedDay = this.benYehudaDays.length > 0 ? this.benYehudaDays[0].date : '';
-        this.updateFilteredAppointments();
-      }
+      this.isBenYehudaLoading = true;
+      // Force change detection
+      setTimeout(() => {}, 0);
     } else if (selectedTab === 'shalom') {
-      this.days = this.shalomDays;
-      if (this.shalomLoaded) {
-        this.combinedList = [...this.shalomTimeslots, ...this.shalomAppointments];
-        this.unfilteredList = [...this.combinedList];
-        this.selectedDay = this.shalomDays.length > 0 ? this.shalomDays[0].date : '';
-        this.updateFilteredAppointments();
-      }
+      this.isShalomLoading = true;
     }
-
-    if (!isDataLoaded) {
+  
+    try {
       if (selectedTab === 'all') {
-        this.isBenYehudaLoading = true;
-      } else {
-        this.isShalomLoading = true;
+        this.days = this.benYehudaDays;
+        if (this.benYehudaLoaded) {
+          this.combinedList = [...this.benYehudaTimeslots, ...this.benYehudaAppointments];
+          this.unfilteredList = [...this.combinedList];
+          this.selectedDay = this.benYehudaDays.length > 0 ? this.benYehudaDays[0].date : '';
+          this.updateFilteredAppointments();
+        }
+      } else if (selectedTab === 'shalom') {
+        this.days = this.shalomDays;
+        if (this.shalomLoaded) {
+          this.combinedList = [...this.shalomTimeslots, ...this.shalomAppointments];
+          this.unfilteredList = [...this.combinedList];
+          this.selectedDay = this.shalomDays.length > 0 ? this.shalomDays[0].date : '';
+          this.updateFilteredAppointments();
+        }
       }
-
-      try {
+  
+      if (!isDataLoaded) {
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(startDate.getDate() + 30);
         await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
-      } finally {
+      }
+    } finally {
+      // Reset loading states after all operations
+      if (selectedTab === 'all') {
         this.isBenYehudaLoading = false;
+      } else {
         this.isShalomLoading = false;
       }
     }

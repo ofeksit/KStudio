@@ -40,7 +40,7 @@
           <ion-card-title class="upcoming-card-title">{{ training.serviceName }}</ion-card-title>
         </ion-card-header>
         <ion-card-content class="upcoming-card-content">
-          {{ training.startTime | date: 'dd/MM/yyyy' }}<br />
+          {{ training.startTime | date: 'dd.MM' }}<br />
           {{ training.startTime | date: 'HH:mm' }}
         </ion-card-content>
         <ion-icon
@@ -57,7 +57,7 @@
     <div class="custom-dialog" *ngIf="isConfirmDialogVisible">
       <div class="dialog-content">
         <h3>ביטול אימון</h3>
-        <p>האם את בטוחה שברצונך לבטל אימון זה?</p>
+        <p>האם הינך בטוח/ה שברצונך לבטל אימון זה?</p>
         <div class="dialog-buttons">
           <button class="cancel-button" (click)="closeConfirmDialog()">ביטול</button>
           <button class="confirm-button" (click)="confirmDelete()">אישור</button>

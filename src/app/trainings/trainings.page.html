@@ -50,7 +50,7 @@
             <ion-icon name="options-outline" slot="start"></ion-icon>
             סינון
           </ion-button>
-          <ion-icon name="calendar-outline" class="calendar-icon" (click)="openCalendarPopup()"></ion-icon>
+          <ion-icon name="calendar-outline" class="calendar-icon" (click)="openCalendarPopup()" *ngIf="!this.isTrainer"></ion-icon>
         </div>        
 
         <!-- Modern Dropdown for Filters -->

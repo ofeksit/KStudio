@@ -101,16 +101,11 @@ export class AmeliaService {
   getUpcomingTrainings(): Observable<UpcomingAppointment[]> {
     const userID = this.authService.getUserID();
     const customerID = this.authService.getCustomerID();
-    
-    console.log('Fetching upcoming trainings...');
-    console.log('UserID:', userID);
-    console.log('CustomerID:', customerID);
-  
+      
     return new Observable<UpcomingAppointment[]>((observer) => {
       try {
         this.http.get<UpcomingAppointment[]>(`${this.baseUrl}/user-appointments/${userID}/${customerID}`).subscribe(
           (response) => {
-            console.log('Upcoming trainings fetched successfully:', response);
             observer.next(response);
             observer.complete();
           },

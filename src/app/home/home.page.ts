@@ -92,7 +92,7 @@ export class HomePage implements OnInit {
     );
 
     this.authService.fetchUserFavLocation().subscribe(
-      (data) => { console.log("test"); this.authService.storeFavLocation(data); },
+      (data) => { this.authService.storeFavLocation(data); },
       (error) => { console.error ("Error fetching user favorite location", error); }
     );
 
@@ -140,7 +140,6 @@ export class HomePage implements OnInit {
       }
     );
 
-    console.log("upcoming:",this.upcomingTrainings);
   }
   
   storeNotification(notificationData: any) {
