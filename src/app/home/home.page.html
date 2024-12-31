@@ -17,48 +17,63 @@
     </ion-button>
   </div>
 
-  <ion-card class="news-card upcoming-card">
-    <ion-card-header>
-      <ion-card-title class="upcoming-title">אימונים קרובים</ion-card-title>
-    </ion-card-header>
-  </ion-card>
+  <ion-card-title class="homepage-subtitle">אימונים קרובים</ion-card-title>
 
-  <ion-card class="upcoming-trainings-card">
-    <ion-card-content *ngIf="isLoadingTrainings">
-      <ion-skeleton-text animated style="width: 100%; height: 60px; margin-bottom: 10px;"></ion-skeleton-text>
-      <ion-skeleton-text animated style="width: 100%; height: 60px;"></ion-skeleton-text>
-    </ion-card-content>
+  <div *ngIf="isLoadingTrainings">
+    <div class="skeleton-container">
+      <div class="skeleton-item" *ngFor="let i of [].constructor(3)">
+        <ion-skeleton-text animated style="width: 80%; margin-bottom: 0.5rem;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 50%;"></ion-skeleton-text><br>
+        <ion-skeleton-text animated style="width: 30%;"></ion-skeleton-text>
+      </div>
+    </div>
+  </div>
   
-    <ion-card-content *ngIf="!isLoadingTrainings && upcomingTrainings && upcomingTrainings.length > 0">
-      <ion-list>
-        <ion-item *ngFor="let training of upcomingTrainings">
-          <ion-label>
-            <h2>{{training.serviceName}}</h2>
-            <p>
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{training.date | date:'dd/MM/yyyy'}}
-              <ion-icon name="time-outline" class="time-icon"></ion-icon>
-              {{training.startTime | date:'HH:mm'}}
-            </p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-    </ion-card-content>
-    <ion-card-content *ngIf="!isLoadingTrainings && (!upcomingTrainings || upcomingTrainings.length === 0)">
-      <p class="no-trainings">אין אימונים קרובים כרגע</p>
-    </ion-card-content>
-  </ion-card>
-
+  <div class="upcoming-swiper-container">
+    <div class="swiper-wrapper">
+      <div
+        class="swiper-slide upcoming-swiper-slide"
+        *ngFor="let training of upcomingTrainings; let i = index"
+        [@fadeOutAnimation]="training.fadeOut ? 'fadeOut' : 'fadeIn'"
+      >
+        <ion-card-header class="upcoming-card-header">
+          <ion-card-title class="upcoming-card-title">{{ training.serviceName }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content class="upcoming-card-content">
+          {{ training.startTime | date: 'dd/MM/yyyy' }}<br />
+          {{ training.startTime | date: 'HH:mm' }}
+        </ion-card-content>
+        <ion-icon
+          slot="icon-only"
+          name="trash-outline"
+          class="trash-icon"
+          (click)="openConfirmDialog(training, i)"
+        ></ion-icon>
+      </div>
+    </div>
+    <div class="swiper-pagination"></div>
+  
+    <!-- Custom Confirmation Dialog -->
+    <div class="custom-dialog" *ngIf="isConfirmDialogVisible">
+      <div class="dialog-content">
+        <h3>ביטול אימון</h3>
+        <p>האם את בטוחה שברצונך לבטל אימון זה?</p>
+        <div class="dialog-buttons">
+          <button class="cancel-button" (click)="closeConfirmDialog()">ביטול</button>
+          <button class="confirm-button" (click)="confirmDelete()">אישור</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+  <ion-card-content *ngIf="!isLoadingTrainings && (!upcomingTrainings || upcomingTrainings.length === 0)">
+    <p class="no-trainings">אין אימונים קרובים כרגע</p>
+  </ion-card-content>
 
   <!-- What's New Section -->
-  <ion-card class="news-card">
-    <ion-card-header>
-      <ion-card-title class="whats-new-title">מה חדש?</ion-card-title>
-    </ion-card-header>
-    <ion-card-content class="whats-new-desc">
-      כאן תוכלי למצוא טיפים ונושאים חדשים מאיתנו אלייך.
-    </ion-card-content>
-  </ion-card>
+    <ion-card-title class="homepage-subtitle">מה חדש?</ion-card-title>
 
 
   <!-- Swiper Section for Fitness Tips with Skeleton Loader -->

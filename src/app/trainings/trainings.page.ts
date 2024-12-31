@@ -76,8 +76,27 @@ export class TrainingsPage implements AfterViewInit {
   allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
   tabLoadingState: boolean = false;
 
+  // Add scrolling days for each location
+  private benYehudaDays: { formattedDate: any; date: string; day: string }[] = [];
+  private shalomDays: { formattedDate: any; date: string; day: string }[] = [];
+
+  private benYehudaAppointments: Appointment[] = [];
+  private shalomAppointments: Appointment[] = [];
+  private benYehudaTimeslots: Appointment[] = [];
+  private shalomTimeslots: Appointment[] = [];
+
+  private benYehudaLoaded: boolean = false;
+  private shalomLoaded: boolean = false;
+
+  private isShalomLoading: boolean = false;
+  private isBenYehudaLoading: boolean = false;
+
+  // Modify the loading getter
   get showSkeleton(): boolean {
-    return this.isLoading || this.tabLoadingState
+    console.log("first Condition:", this.selectedFilterAllFav === 'shalom' && this.isShalomLoading)
+    console.log("second condition:", )
+    return (this.selectedFilterAllFav === 'shalom' && this.isShalomLoading) || 
+           (this.selectedFilterAllFav === 'all' && this.isBenYehudaLoading);
   }
 
 //#endregion
@@ -99,45 +118,41 @@ export class TrainingsPage implements AfterViewInit {
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
-    this.authService.fetchUserFavLocation().subscribe({
-      next: (response) => {
-        this.userFavLocation = response.favorite_location;
-      },
-      error: (error) => {
-        console.error("Error fetching user fav location", error);
+    this.isLoading = true; // Show loading state initially
+    
+    try {
+      // Wait for the favorite location to be fetched before proceeding
+      const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
+      this.userFavLocation = locationResponse.favorite_location;
+      
+      // Set the initial tab based on userFavLocation
+      if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+        this.selectedFilterAllFav = 'all';
+      } else if (this.userFavLocation === 'שלום עליכם') {
+        this.selectedFilterAllFav = 'shalom';
       }
-    })
-
-    if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-      this.selectedFilterAllFav = 'all';
-    } else if (this.userFavLocation === 'שלום עליכם') {
-      this.selectedFilterAllFav = 'shalom';
-    } else {
-      this.selectedFilterAllFav = 'favorites';
-    }
-
-    this.authService.fetchUserRole().subscribe(data => {
-      this.authService.storeUserRole(data.roles[0]);
-      this.userRole = (data.roles[0]);
-    });
-
-    if (this.authService.getUserRole() == 'inactive') {
-      this.errorMessage = 'לא ניתן לטעון אימונים,  המשתמש לא פעיל';
-      this.presentToast(this.errorMessage, 'danger');
-    }
-    else if (this.authService.getUserRole() == 'trial-users') {
-      this.errorMessage = 'לא ניתן לטעון אימונים, משתמש ניסיון';
-      this.presentToast(this.errorMessage, 'danger');
-    }
-
-    // Initialize with current week's data
-    await this.loadInitialData();
-    const today = new Date();
-    const endDate = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000); // Next 7 days
+      // Note: We don't set 'favorites' as default anymore since we want the location-based tab
   
-    this.loadedStartDate = today;
-    this.loadedEndDate = endDate;
+      // Continue with other initializations
+      const roleData = await firstValueFrom(this.authService.fetchUserRole());
+      this.authService.storeUserRole(roleData.roles[0]);
+      this.userRole = roleData.roles[0];
   
+      if (this.userRole === 'inactive') {
+        this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
+      } else if (this.userRole === 'trial-users') {
+        this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
+      }
+  
+      // Load initial data only after we have the user location
+      await this.loadInitialData();
+      
+    } catch (error) {
+      console.error('Error during initialization:', error);
+      this.presentToast('Error loading user data', 'danger');
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   //afterViewInit function - Defines the modal controller
@@ -188,7 +203,7 @@ export class TrainingsPage implements AfterViewInit {
       .filter(item => !isNaN(new Date(item.start_time).getTime()))
       .map(item => new Date(item.start_time).toISOString().split('T')[0]);
 
-    this.days = Array.from(new Set(allDates)).map(date => {
+    const newDays = Array.from(new Set(allDates)).map(date => {
       const parsedDate = new Date(date);
       const dayOfWeek = hebrewDays[parsedDate.getDay()];
       const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
@@ -196,12 +211,21 @@ export class TrainingsPage implements AfterViewInit {
       return { date, day: dayOfWeek, formattedDate };
     });
 
-    this.days.sort((a, b) => {
+    newDays.sort((a, b) => {
       if (a.date === today) return -1;
       if (b.date === today) return 1;
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
+    // Store days in appropriate array
+    if (this.selectedFilterAllFav === 'all') {
+      this.benYehudaDays = newDays;
+    } else if (this.selectedFilterAllFav === 'shalom') {
+      this.shalomDays = newDays;
+    }
+
+    // Set days based on current tab
+    this.days = this.selectedFilterAllFav === 'all' ? this.benYehudaDays : this.shalomDays;
     this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
   }
 
@@ -248,40 +272,80 @@ export class TrainingsPage implements AfterViewInit {
   }
 
   private async fetchTrainingsForDateRange(startDate: Date, endDate: Date, selectedLocation: string) {
+    // If data is already loaded for this location, use the cached data
+    if (selectedLocation === 'בן יהודה' && this.benYehudaLoaded) {
+      this.combinedList = [...this.benYehudaAppointments];
+      this.unfilteredList = [...this.combinedList];
+      this.updateFilteredAppointments();
+      return;
+    }
+    if (selectedLocation === 'שלום עליכם' && this.shalomLoaded) {
+      this.combinedList = [...this.shalomAppointments];
+      this.unfilteredList = [...this.combinedList];
+      this.updateFilteredAppointments();
+      return;
+    }
+
     const userID = this.authService.getUserID();
     const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
-
-    const startDateFormatted = formatDate(startDate);
-    const endDateFormatted = formatDate(endDate);
-    const encodedLocation = encodeURIComponent(selectedLocation); // Encode the location
     
     try {
-        const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
-        
-        const response = await firstValueFrom(this.http.get<any[]>(url));
+      const startDateFormatted = formatDate(startDate);
+      const endDateFormatted = formatDate(endDate);
+      const encodedLocation = encodeURIComponent(selectedLocation);
+      
+      const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
+      
+      const response = await firstValueFrom(this.http.get<any[]>(url));
 
-        // Add new days to allAvailableDays
-        for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dayStr = formatDate(new Date(d));
-            if (!this.allAvailableDays.includes(dayStr)) {
-                this.allAvailableDays.push(dayStr);
-            }
+      // Update available days
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dayStr = formatDate(new Date(d));
+        if (!this.allAvailableDays.includes(dayStr)) {
+          this.allAvailableDays.push(dayStr);
         }
-        // Process the response
-        await this.combineTimeslotsAndAppointments(response);
+      }
+
+      // Process the response and store in appropriate list
+      await this.combineTimeslotsAndAppointments(response);
+      
+      if (selectedLocation === 'בן יהודה') {
+        this.benYehudaAppointments = [...this.combinedList];
+        this.benYehudaLoaded = true;
+      } else if (selectedLocation === 'שלום עליכם') {
+        this.shalomAppointments = [...this.combinedList];
+        this.shalomLoaded = true;
+      }
+      
     } catch (error) {
-        console.error('Error fetching trainings:', error);
+      console.error('Error fetching trainings:', error);
+      throw error;
     }
   }
 
   async combineTimeslotsAndAppointments(response: any[]) {
     try {
         // Split the response into timeslots and appointments
-        this.availableTimeslots = response.filter(item => item.type === 'timeslot');
-        this.bookedAppointments = response.filter(item => item.type === 'appointment');
+        const currentTimeslots = response.filter(item => item.type === 'timeslot');
+        const currentAppointments = response.filter(item => item.type === 'appointment');
         
-        // Combine the lists
-        this.combinedList = [...this.availableTimeslots, ...this.bookedAppointments];
+        // Determine which location we're processing
+        const isProcessingBenYehuda = this.selectedFilterAllFav === 'all';
+        
+        // Store in appropriate arrays
+        if (isProcessingBenYehuda) {
+            this.benYehudaTimeslots = currentTimeslots;
+            this.benYehudaAppointments = currentAppointments;
+        } else {
+            this.shalomTimeslots = currentTimeslots;
+            this.shalomAppointments = currentAppointments;
+        }
+        
+        // Combine the lists based on current selected location
+        this.combinedList = [
+            ...(isProcessingBenYehuda ? this.benYehudaTimeslots : this.shalomTimeslots),
+            ...(isProcessingBenYehuda ? this.benYehudaAppointments : this.shalomAppointments)
+        ];
         
         // Sort the combined list by start_time
         this.combinedList.sort((a, b) => {
@@ -311,24 +375,20 @@ export class TrainingsPage implements AfterViewInit {
                 training.isStandbyEnrolled = false;
             }
 
-
             if (Array.isArray(training.current_participants)) {
-              training.isUserBooked = training.current_participants.some(
-                  (booking: any) => booking === loggedInCustomerFN
-              );
-          } else {
-              console.warn(`current_participants is not an array for training:`, training);
-              training.isUserBooked = false;
-          }
+                training.isUserBooked = training.current_participants.some(
+                    (booking: any) => booking === loggedInCustomerFN
+                );
+            } else {
+                console.warn(`current_participants is not an array for training:`, training);
+                training.isUserBooked = false;
+            }
         });
 
         await Promise.all(promises);
 
         // Make sure filteredAppointments is also sorted
         this.filteredAppointments = [...this.combinedList];
-
-        // Force a change detection cycle by creating a new reference
-        this.filteredAppointments = [...this.filteredAppointments];
         
         // Update filtered appointments
         this.updateFilteredAppointments();
@@ -336,7 +396,7 @@ export class TrainingsPage implements AfterViewInit {
     } catch (error) {
         console.error('Error combining timeslots and appointments:', error);
     }
-  }
+}
 
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
@@ -346,25 +406,76 @@ export class TrainingsPage implements AfterViewInit {
 
   // Modify the filterFavAll method
   async filterFavAll(event: any) {
-    this.tabLoadingState = true; // Show loading state
-    this.filteredAppointments = []; // Clear current appointments while loading
-    
     const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value;
+    
+    // Clear current display while switching
+    this.combinedList = [];
+    this.filteredAppointments = [];
+    this.days = [];
+    
+    if (selectedTab === 'favorites') {
+      this.tabLoadingState = true;
+      try {
+        // For favorites, combine both locations' data if available
+        const allAppointments = [
+          ...this.benYehudaAppointments,
+          ...this.shalomAppointments
+        ];
+        const allTimeslots = [
+          ...this.benYehudaTimeslots,
+          ...this.shalomTimeslots
+        ];
+        this.combinedList = [...allTimeslots, ...allAppointments];
+        this.unfilteredList = [...this.combinedList];
+        this.updateFilteredAppointments();
+      } finally {
+        this.tabLoadingState = false;
+      }
+      return;
+    }
+
     const locationMap: { [key: string]: string } = {
       all: 'בן יהודה',
-      shalom: 'שלום עליכם',
-      favorites: 'favorites',
+      shalom: 'שלום עליכם'
     };
 
-    const selectedLocation = locationMap[selectedTab] || 'בן יהודה';
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + 30);
+    const selectedLocation = locationMap[selectedTab];
+    const isDataLoaded = selectedTab === 'all' ? this.benYehudaLoaded : this.shalomLoaded;
 
-    try {
-      await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
-    } finally {
-      this.tabLoadingState = false; // Hide loading state when done
+    if (selectedTab === 'all') {
+      this.days = this.benYehudaDays;
+      if (this.benYehudaLoaded) {
+        this.combinedList = [...this.benYehudaTimeslots, ...this.benYehudaAppointments];
+        this.unfilteredList = [...this.combinedList];
+        this.selectedDay = this.benYehudaDays.length > 0 ? this.benYehudaDays[0].date : '';
+        this.updateFilteredAppointments();
+      }
+    } else if (selectedTab === 'shalom') {
+      this.days = this.shalomDays;
+      if (this.shalomLoaded) {
+        this.combinedList = [...this.shalomTimeslots, ...this.shalomAppointments];
+        this.unfilteredList = [...this.combinedList];
+        this.selectedDay = this.shalomDays.length > 0 ? this.shalomDays[0].date : '';
+        this.updateFilteredAppointments();
+      }
+    }
+
+    if (!isDataLoaded) {
+      if (selectedTab === 'all') {
+        this.isBenYehudaLoading = true;
+      } else {
+        this.isShalomLoading = true;
+      }
+
+      try {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + 30);
+        await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
+      } finally {
+        this.isBenYehudaLoading = false;
+        this.isShalomLoading = false;
+      }
     }
   }
   

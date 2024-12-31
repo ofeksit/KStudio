@@ -1,18 +1,21 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import Swiper from 'swiper';
-import { SwiperOptions } from 'swiper/types';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 import { TrainingsPage } from '../trainings/trainings.page';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
 import { AuthService } from '../services/auth.service';
+import { ToastController } from '@ionic/angular';
 import { BlocksService, Block } from '../services/blocks.service';
 import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
 import { Appointment } from '../Models/appointment';
 import { AmeliaService } from '../services/amelia-api.service';
 import { UpcomingAppointment } from '../Models/UpcomingAppointment';
-
+import { ProfileService } from '../services/profile.service';
+import { Pagination } from 'swiper/modules'
+import { AlertController } from '@ionic/angular';
+import {trigger, style, transition, animate} from '@angular/animations';
 
 register();
 
@@ -20,6 +23,13 @@ register();
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
+  animations: [
+    trigger('fadeOutAnimation', [
+      transition('fadeIn => fadeOut', [
+        animate('300ms ease-in', style({opacity: 0, transform: 'scale(0.8)'})),
+      ]),
+    ]),
+  ],
 })
 
 export class HomePage implements OnInit {
@@ -33,8 +43,15 @@ export class HomePage implements OnInit {
   nextLesson: any;
   fitnessTips: Block[] = [];
   isLoading: boolean = true; // Loading state
+  errorMessage: string = '';
 
-  constructor(private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
+  isConfirmDialogVisible = false;
+  selectedTraining: any;
+  selectedIndex: number = 0;
+
+  constructor(private alertController: AlertController, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {
+    
+  }
 
   ngOnInit() {
     
@@ -47,6 +64,21 @@ export class HomePage implements OnInit {
         freeMode: false,  // Disable free mode to keep the slides constrained,
         pagination: {
           el: '.swiper-pagination',
+          clickable: true,
+        },
+      });
+    }, 0);
+
+    setTimeout(() => {
+      new Swiper('.upcoming-swiper-container', {
+        modules: [Pagination], // Register the Pagination module
+        slidesPerView: 'auto',
+        spaceBetween: 10,
+        centeredSlides: false,
+        loop: false, // It's better to explicitly set loop to false
+        freeMode: false,
+        pagination: {
+          el: '.swiper-pagination', // Corrected selector (was .upcoming-swiper-pagination in your example)
           clickable: true,
         },
       });
@@ -208,5 +240,79 @@ export class HomePage implements OnInit {
       console.log("User Not Logged In!");
     }
   }
-  
+
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000, // Duration in milliseconds
+      color: color,
+      position: 'bottom',
+    });
+    await toast.present(); // Make sure the toast is presented
+  }
+
+  confirmDelete() {
+    const training = this.selectedTraining;
+    const index = this.selectedIndex;
+
+    // Close the dialog and immediately remove the training from the list
+    this.isConfirmDialogVisible = false;
+    training.fadeOut = true;
+
+    setTimeout(() => {
+      this.upcomingTrainings.splice(index, 1);
+    }, 300); // Match the animation duration
+
+    // Run the API request in the background
+    this.profileService.cancelBooking(training.bookingId).subscribe(
+      (data: any) => {
+        if (data.data.cancelBookingUnavailable) {
+          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
+        } else {
+          this.presentToast('האימון בוטל בהצלחה', 'success');
+        }
+      },
+      (error) => {
+        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
+        console.error('Error occurred while canceling the booking', error);
+      }
+    );
+  }
+
+  animateAndDeleteTraining(training: any, index: number) {
+    training.fadeOut = true;
+
+    setTimeout(() => {
+      this.deleteTraining(training.bookingId, index);
+    }, 300); // Match the animation duration
+  }
+
+  deleteTraining(bookingId: string, index: number) {
+    this.profileService.cancelBooking(bookingId).subscribe(
+      (data: any) => {
+        if (data.data.cancelBookingUnavailable) {
+          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
+        } else {
+          this.presentToast('האימון בוטל בהצלחה', 'success');
+          this.upcomingTrainings.splice(index, 1);
+        }
+      },
+      (error) => {
+        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
+        console.error('Error occurred while canceling the booking', error);
+      }
+    );
+  }
+
+  openConfirmDialog(training: any, index: number) {
+    this.selectedTraining = training;
+    this.selectedIndex = index;
+    this.isConfirmDialogVisible = true;
+  }
+
+  closeConfirmDialog() {
+    this.isConfirmDialogVisible = false;
+  }
+
+
 }

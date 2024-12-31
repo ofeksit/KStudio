@@ -6,49 +6,28 @@
       <!-- Header Tabs for "All" and "Favorites" -->
       <div class="header-tabs">
         <ion-segment mode="md" [(ngModel)]="selectedFilterAllFav" class="segment-tab" (ionChange)="filterFavAll($event)">
-          <ion-segment-button 
-            value="all" 
-            class="header-tab" 
-            *ngIf="userFavLocation == 'בן יהודה' || userFavLocation == 'הכל'">
+          <ion-segment-button
+            value="all"
+            class="header-tab"
+            *ngIf="userFavLocation === 'בן יהודה' || userFavLocation === 'הכל'">
             <ion-label>בן יהודה</ion-label>
           </ion-segment-button>
-          <ion-segment-button 
-            value="shalom" 
-            class="header-tab segment-button-checked-shalom" 
-            *ngIf="userFavLocation == 'שלום עליכם' || userFavLocation == 'הכל'">
+          <ion-segment-button
+            value="shalom"
+            class="header-tab segment-button-checked-shalom"
+            *ngIf="userFavLocation === 'שלום עליכם' || userFavLocation === 'הכל'">
             <ion-label>שלום עליכם</ion-label>
           </ion-segment-button>
-          <ion-segment-button 
-            value="favorites" 
+          <ion-segment-button
+            value="favorites"
             class="header-tab segment-button-checked-fav">
             <ion-label>מועדפים</ion-label>
           </ion-segment-button>
         </ion-segment>
-        
       </div>
 
-      <!--Skeleton Section-->
-      <ion-list *ngIf="showSkeleton">
-        <ion-list-header>
-          <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
-        </ion-list-header>
-        <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
-          <ion-thumbnail slot="start">
-            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
-          </ion-thumbnail>
-          <ion-label>
-            <h3>
-              <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
-            </h3>
-            <p>
-              <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
-            </p>
-            <p>
-              <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
-            </p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+
+
 
 
       <div *ngIf="!showSkeleton">
@@ -66,7 +45,7 @@
         </ion-segment>
         
 
-        <div class="filter-header">
+        <div class="filter-header" *ngIf="!showSkeleton">
           <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
             <ion-icon name="options-outline" slot="start"></ion-icon>
             סינון
@@ -101,6 +80,29 @@
           </ion-item>
         </ion-list>
       </div>
+
+      <!--Skeleton Section-->
+      <ion-list *ngIf="showSkeleton">
+        <ion-list-header>
+          <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+        </ion-list-header>
+        <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
+          <ion-thumbnail slot="start">
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </ion-thumbnail>
+          <ion-label>
+            <h3>
+              <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+            </h3>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+            </p>
+            <p>
+              <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
       
       <div *ngFor="let appointment of filteredAppointments" class="card">
         <div class="card-header">

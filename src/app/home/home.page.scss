@@ -118,12 +118,19 @@ ion-toolbar {
 }
 
 ion-content {
-  --background: linear-gradient(135deg, rgb(200 200 200 / 80%), rgba(255, 255, 255, 0.6));
+  //--background: linear-gradient(135deg, rgb(200 200 200 / 80%), rgba(255, 255, 255, 0.6));
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   padding: 20px;
+}
+
+.homepage-subtitle {
+  margin-top: 10%;
+  font-size: 1.5em;
+  margin-right: 3%;
+  margin-bottom: 5%;
 }
 
 /* Center the Title */
@@ -327,76 +334,198 @@ ion-card {
   box-shadow: none;
   background: transparent;
   padding: 0px;
-
-  ion-card-header {
-    background: linear-gradient(320deg, #4b6cb7, #182848);
-    border-radius: 20px;
-    margin-bottom: 15px;  // Add space between header and content
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    
-    ion-card-title {
-      color: white;
-      font-weight: bold;
-      padding: 10px 0;
-    }
-  }
-
-  ion-card-content {
-    background: white;
-    border-radius: 20px;    
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  ion-list {
-    background: transparent;
-    padding: 0;
-  }
-
-  ion-item {
-    --background: transparent;
-    border-bottom: 1px solid #eee;  // Light separator between items
-    margin-bottom: 10px;
-    padding: 5px 0;
-    
-    &:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    h2 {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 5px;
-    }
-
-    p {
-      color: #666;
-      display: flex;
-      align-items: center;
-      margin: 5px 0;
-      
-      ion-icon {
-        margin-right: 5px;
-        margin-left: 8px;
-        color: #4b6cb7;
-        
-        &.time-icon {
-          margin-left: 8px;
-        }
-      }
-    }
-  }
-
-  .no-trainings {
-    text-align: center;
-    color: #666;
-    padding: 20px;
-  }
-
-  // Style for the loading skeleton
-  ion-skeleton-text {
-    --background-rgb: 75, 108, 183;
-    opacity: 0.2;
-  }
 }
+
+.upcoming-trainings {
+  padding: 0 10px;
+  overflow: hidden; /* Hide scrollbar if needed */
+}
+
+
+.training-block {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 0 5px;
+  min-width: 280px; /* Adjust as needed */
+  text-align: right;
+  position: relative;
+  display: flex; /* Use flexbox for alignment */
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.training-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.training-title {
+  font-size: 1.2em;
+  margin-bottom: 5px;
+  margin-top: 0;
+}
+
+.training-details {
+  display: flex;
+    gap: 10px;
+}
+
+.time-container, .date-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.time-container ion-icon, .date-container ion-icon {
+    font-size: 1.2em;
+}
+
+.trash-icon {
+  position: relative;
+  right: 155px;
+  bottom: 20px;
+  font-size: 42px;
+}
+
+
+.no-trainings{
+    text-align: center;
+}
+
+.swiper-button-next, .swiper-button-prev {
+    color: black;
+}
+
+.upcoming-swiper-slide {
+  height: 120px;
+  width: 200px;
+  padding: 0px;
+  align-items: flex-start;
+  background: #f5f5f5;
+  box-shadow: none;
+}
+
+.upcoming-card-header {
+  height: 60px;  /* Fixed height for the title section */
+  padding: 15px;  /* Increased padding for header */  
+  text-align: center;
+  display: flex;
+}
+
+.upcoming-card-title {
+  font-size: 1.2em;
+  color: #333;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  margin-top: 10px;
+}
+
+.upcoming-card-content {
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  //word-wrap: break-word;
+  display: block;
+  height: auto;  /* Ensure content height adjusts to text */
+  font-size: 1em;  /* Slightly larger font size */
+  color: #5d5d5d;
+  font-weight: 400;
+  margin-bottom: -8px;
+}
+
+/* Add these styles to your component's CSS or global CSS */
+.skeleton-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 0 1rem;
+  /* Hide scrollbar */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.skeleton-item {
+  min-width: 200px; /* Set a minimum width for each item */
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  flex-shrink: 0; /* Prevent items from shrinking */
+}
+
+/* Optional: Add some styling for the scrollbar */
+.skeleton-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+
+.skeleton-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.skeleton-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.custom-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  width: 90%;
+}
+
+.dialog-content h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+}
+
+.dialog-content p {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dialog-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.confirm-button {
+  background: #ff8366;
+  color: white;
+}
+
