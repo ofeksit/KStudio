@@ -148,6 +148,23 @@ ion-content {
   color: white;
 }
 
+.upcoming-card {
+  background: linear-gradient(135deg, #4b6cb7, #182848) !important;
+  border-radius: 20px;
+}
+
+.upcoming-title {
+  color: white;
+}
+
+.whats-new-title {
+  color: white;
+}
+
+.whats-new-desc {
+  color: black;
+}
+
 /* Header row for bell icon and title */
 .header-row {
   display: flex;
@@ -306,13 +323,28 @@ ion-card {
 // Upcoming Trainings Card
 
 .upcoming-trainings-card {
-  border-radius: 20px;
-  background: linear-gradient(135deg, #4b6cb7, #182848);
-  color: white;
   margin: 20px 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0px;
 
-  ion-card-title {
-    color: white;
+  ion-card-header {
+    background: linear-gradient(320deg, #4b6cb7, #182848);
+    border-radius: 20px;
+    margin-bottom: 15px;  // Add space between header and content
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    ion-card-title {
+      color: white;
+      font-weight: bold;
+      padding: 10px 0;
+    }
+  }
+
+  ion-card-content {
+    background: white;
+    border-radius: 20px;    
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   ion-list {
@@ -321,23 +353,25 @@ ion-card {
   }
 
   ion-item {
-    --background: rgba(255, 255, 255, 0.1);
-    --border-radius: 10px;
+    --background: transparent;
+    border-bottom: 1px solid #eee;  // Light separator between items
     margin-bottom: 10px;
+    padding: 5px 0;
     
     &:last-child {
+      border-bottom: none;
       margin-bottom: 0;
     }
 
     h2 {
       font-size: 1.1em;
       font-weight: bold;
-      color: white;
+      color: #333;
       margin-bottom: 5px;
     }
 
     p {
-      color: rgba(255, 255, 255, 0.8);
+      color: #666;
       display: flex;
       align-items: center;
       margin: 5px 0;
@@ -345,6 +379,7 @@ ion-card {
       ion-icon {
         margin-right: 5px;
         margin-left: 8px;
+        color: #4b6cb7;
         
         &.time-icon {
           margin-left: 8px;
@@ -355,7 +390,13 @@ ion-card {
 
   .no-trainings {
     text-align: center;
-    color: rgba(255, 255, 255, 0.8);
+    color: #666;
     padding: 20px;
+  }
+
+  // Style for the loading skeleton
+  ion-skeleton-text {
+    --background-rgb: 75, 108, 183;
+    opacity: 0.2;
   }
 }

@@ -5,6 +5,7 @@ import { DayTrainings } from '../Models/day-trainings';
 import { Observable } from 'rxjs';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from './auth.service';
+import { UpcomingAppointment } from '../Models/UpcomingAppointment';
 
 interface BranchTrainings {
   [key: string]: DayTrainings[];
@@ -24,7 +25,7 @@ interface ApiResponse {
 export class AmeliaService {
   private readonly DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   private readonly API_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/get-appointment-title';
-  private readonly API_Appointment_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/user-appointments/';
+  private baseUrl = 'https://k-studio.co.il/wp-json/custom-api/v1';
 
   trainingsByBranch: Record<BranchType, BranchTrainings> = {
     main: this.initializeEmptyDays(),
@@ -97,8 +98,32 @@ export class AmeliaService {
     return this.trainingsByBranch;
   }
 
-  getUpcomingTrainings(): Observable<Appointment[]> {
-    let userID = this.authService.getCustomerID();
-    return this.http.get<Appointment[]>(`${this.API_Appointment_URL}/${userID}`);
+  getUpcomingTrainings(): Observable<UpcomingAppointment[]> {
+    const userID = this.authService.getUserID();
+    const customerID = this.authService.getCustomerID();
+    
+    console.log('Fetching upcoming trainings...');
+    console.log('UserID:', userID);
+    console.log('CustomerID:', customerID);
+  
+    return new Observable<UpcomingAppointment[]>((observer) => {
+      try {
+        this.http.get<UpcomingAppointment[]>(`${this.baseUrl}/user-appointments/${userID}/${customerID}`).subscribe(
+          (response) => {
+            console.log('Upcoming trainings fetched successfully:', response);
+            observer.next(response);
+            observer.complete();
+          },
+          (error) => {
+            console.error('Error fetching upcoming trainings:', error);
+            observer.error(error);
+          }
+        );
+      } catch (error) {
+        console.error('Unexpected error occurred:', error);
+        observer.error(error);
+      }
+    });
   }
+  
 }

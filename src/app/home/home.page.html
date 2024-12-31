@@ -17,48 +17,45 @@
     </ion-button>
   </div>
 
-  <ion-card class="upcoming-trainings-card">
+  <ion-card class="news-card upcoming-card">
     <ion-card-header>
-      <ion-card-title>אימונים קרובים</ion-card-title>
+      <ion-card-title class="upcoming-title">אימונים קרובים</ion-card-title>
     </ion-card-header>
-    
-    <!-- Loading skeleton -->
+  </ion-card>
+
+  <ion-card class="upcoming-trainings-card">
     <ion-card-content *ngIf="isLoadingTrainings">
       <ion-skeleton-text animated style="width: 100%; height: 60px; margin-bottom: 10px;"></ion-skeleton-text>
       <ion-skeleton-text animated style="width: 100%; height: 60px;"></ion-skeleton-text>
     </ion-card-content>
   
-    <!-- Content when loaded -->
     <ion-card-content *ngIf="!isLoadingTrainings && upcomingTrainings && upcomingTrainings.length > 0">
       <ion-list>
         <ion-item *ngFor="let training of upcomingTrainings">
           <ion-label>
-            <h2>{{training.title}}</h2>
+            <h2>{{training.serviceName}}</h2>
             <p>
               <ion-icon name="calendar-outline"></ion-icon>
-              {{training.start_time | date:'dd/MM/yyyy'}}
+              {{training.date | date:'dd/MM/yyyy'}}
               <ion-icon name="time-outline" class="time-icon"></ion-icon>
-              {{training.start_time}}
-            </p>
-            <p>
+              {{training.startTime | date:'HH:mm'}}
             </p>
           </ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>
-  
-    <!-- No trainings message -->
     <ion-card-content *ngIf="!isLoadingTrainings && (!upcomingTrainings || upcomingTrainings.length === 0)">
       <p class="no-trainings">אין אימונים קרובים כרגע</p>
     </ion-card-content>
   </ion-card>
 
+
   <!-- What's New Section -->
   <ion-card class="news-card">
     <ion-card-header>
-      <ion-card-title>מה חדש?</ion-card-title>
+      <ion-card-title class="whats-new-title">מה חדש?</ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content class="whats-new-desc">
       כאן תוכלי למצוא טיפים ונושאים חדשים מאיתנו אלייך.
     </ion-card-content>
   </ion-card>

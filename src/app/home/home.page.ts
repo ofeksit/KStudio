@@ -11,6 +11,8 @@ import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
 import { Appointment } from '../Models/appointment';
 import { AmeliaService } from '../services/amelia-api.service';
+import { UpcomingAppointment } from '../Models/UpcomingAppointment';
+
 
 register();
 
@@ -24,9 +26,7 @@ export class HomePage implements OnInit {
   @ViewChild('mainContent', { static: false }) mainContent: any;
 
   // User data
-  userName: string = 'Ruth Black';
-  userMembershipType: string = 'Premium Member';
-  upcomingTrainings: Appointment[] = [];
+  upcomingTrainings: UpcomingAppointment[] = [];
   isLoadingTrainings: boolean = true;
 
   // Lesson and Fitness Tips data
@@ -37,7 +37,7 @@ export class HomePage implements OnInit {
   constructor(private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {}
 
   ngOnInit() {
-    this.setupOneSignal();
+    
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
@@ -52,6 +52,8 @@ export class HomePage implements OnInit {
       });
     }, 0);
 
+    this.loadUpcomingTrainings();
+
     this.blocksService.getBlocks().subscribe(
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
@@ -62,7 +64,7 @@ export class HomePage implements OnInit {
       (error) => { console.error ("Error fetching user favorite location", error); }
     );
 
-    this.loadUpcomingTrainings();
+    this.setupOneSignal();
   }
   
   setupOneSignal() {
@@ -101,10 +103,12 @@ export class HomePage implements OnInit {
         this.isLoadingTrainings = false;
       },
       (error) => {
-        console.error ('Error loading upcoming trainings: ', error);
+        console.error('Error loading upcoming trainings:', error);
         this.isLoadingTrainings = false;
       }
     );
+
+    console.log("upcoming:",this.upcomingTrainings);
   }
   
   storeNotification(notificationData: any) {
