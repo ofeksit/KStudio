@@ -26,14 +26,10 @@
         </ion-segment>
       </div>
 
-
-
-
-
       <div *ngIf="!showSkeleton">
         <!-- Scrolling Tabs for Days -->
         <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" 
-    (ionChange)="onDayChange($event.detail.value ?? '')">
+        (ionChange)="onDayChange($event.detail.value ?? '')">
           <ion-segment-button 
             *ngFor="let day of days" 
             value="{{ day.date }}" 
@@ -43,8 +39,6 @@
             <ion-note>{{ day.formattedDate }}</ion-note>
           </ion-segment-button>
         </ion-segment>
-        
-
         <div class="filter-header" *ngIf="!showSkeleton">
           <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
             <ion-icon name="options-outline" slot="start"></ion-icon>
@@ -104,6 +98,7 @@
         </ion-item>
       </ion-list>
       
+      <!--Appointments Section-->
       <div *ngFor="let appointment of filteredAppointments" class="card">
         <div class="card-header">
           <h3>{{ appointment.title.name }}</h3>
