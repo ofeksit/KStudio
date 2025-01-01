@@ -142,6 +142,26 @@ export class HomePage implements OnInit {
     );
 
   }
+
+  refreshData(event: any) {
+    // Simulate an API call
+    setTimeout(() => {
+      this.loadData(); // Your method to reload data
+      event.target.complete(); // Complete the refresh
+    }, 2000); // Adjust the timeout as needed
+  }
+  
+  loadData() {
+    // Example logic to load data
+    this.isLoadingTrainings = false;
+    this.upcomingTrainings = [
+      // Add your data here
+    ];
+    this.fitnessTips = [
+      // Add your data here
+    ];
+  }
+
   
   storeNotification(notificationData: any) {
     console.log("store notifications:", notificationData);

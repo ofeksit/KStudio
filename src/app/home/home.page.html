@@ -1,4 +1,12 @@
 <ion-content class="ion-padding ion-iphone" #mainContent>
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content
+      pullingText="משוך לרענון"
+      refreshingSpinner="circles"
+      refreshingText="מרענן..."
+    ></ion-refresher-content>
+  </ion-refresher>
+  
   <!-- Container for bell icon and title -->
   <div class="header-row">
     <!-- Bell Icon -->
