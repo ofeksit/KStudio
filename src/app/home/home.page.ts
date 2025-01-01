@@ -133,6 +133,7 @@ export class HomePage implements OnInit {
       (trainings) => {
         this.upcomingTrainings = trainings;
         this.isLoadingTrainings = false;
+        console.log("trainings:", trainings)
       },
       (error) => {
         console.error('Error loading upcoming trainings:', error);
