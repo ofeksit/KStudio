@@ -6,4 +6,5 @@ export interface UpcomingAppointment {
     serviceName: string;
     startTime: string;
     fadeOut?: any;
+    providerID: string;
   }

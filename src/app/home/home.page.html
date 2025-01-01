@@ -40,6 +40,7 @@
           <ion-card-title class="upcoming-card-title">{{ training.serviceName }}</ion-card-title>
         </ion-card-header>
         <ion-card-content class="upcoming-card-content">
+          {{ training.providerID }} <br />
           {{ training.startTime | date: 'dd.MM' }}<br />
           {{ training.startTime | date: 'HH:mm' }}
         </ion-card-content>
