@@ -153,13 +153,26 @@ export class HomePage implements OnInit {
   
   loadData() {
     // Example logic to load data
-    this.isLoadingTrainings = false;
-    this.upcomingTrainings = [
-      // Add your data here
-    ];
-    this.fitnessTips = [
-      // Add your data here
-    ];
+    this.isLoadingTrainings = true;
+    this.loadUpcomingTrainings();
+    this.authService.fetchUserFavLocation().subscribe(
+      (data) => {},
+      (error) => { console.error ("Error fetching user favorite location", error); }
+    );
+    this.blocksService.getBlocks().subscribe(
+      (data) => { this.fitnessTips = data; this.isLoading = false; },
+      (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
+    );
+
+    this.authService.fetchPackageCustomerId(this.authService.getCustomerID()).subscribe(
+      (data) => {},
+      (error) => { console.error("Error fetching package customer ID", error)}
+    );
+
+    this.authService.fetchUserRole().subscribe(
+      (data) => { this.authService.storeUserRole(data.roles[0]); },
+      (error) => { console.error("Error fetching role:", error)}
+    );
   }
 
   

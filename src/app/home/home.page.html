@@ -1,9 +1,8 @@
 <ion-content class="ion-padding ion-iphone" #mainContent>
   <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
     <ion-refresher-content
-      pullingText="משוך לרענון"
-      refreshingSpinner="circles"
-      refreshingText="מרענן..."
+      refreshingSpinner="crescent"
+      pullingIcon="false"
     ></ion-refresher-content>
   </ion-refresher>
   
@@ -37,7 +36,7 @@
     </div>
   </div>
   
-  <div class="upcoming-swiper-container">
+  <div class="upcoming-swiper-container" [hidden]="isLoadingTrainings">
     <div class="swiper-wrapper">
       <div
         class="swiper-slide upcoming-swiper-slide"

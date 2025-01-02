@@ -529,3 +529,12 @@ ion-card {
   color: white;
 }
 
+ion-refresher-content {
+  --color: var(--ion-color-primary); /* Changes spinner color to your primary theme color */
+}
+
+/* Optional: Adjust the size of the spinner */
+ion-refresher-content::part(refresher-pulling-icon),
+ion-refresher-content::part(refresher-refreshing-spinner) {
+  font-size: 24px; /* Adjust size as needed */
+}
