@@ -479,6 +479,7 @@ export class TrainingsPage implements AfterViewInit {
           this.combinedList = [...this.shalomTimeslots, ...this.shalomAppointments];
           this.unfilteredList = [...this.combinedList];
           this.selectedDay = this.shalomDays.length > 0 ? this.shalomDays[0].date : '';
+          console.log("combined List:", this.combinedList);
           this.updateFilteredAppointments();
         }
       }
