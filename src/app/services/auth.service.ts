@@ -70,8 +70,11 @@ export class AuthService {
     return localStorage.getItem('user_email');
   }
   
-  getUserFavLocation(): string | null {
-    return localStorage.getItem('user_fav_location');
+  getUserFavLocation(): string {
+    const temp = localStorage.getItem('user_fav_location');
+    if (temp)
+      return temp;
+    return "";
   }
 
   getUserRole(): string | null{

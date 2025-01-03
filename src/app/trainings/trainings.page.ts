@@ -1,16 +1,13 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { GestureController, ModalController, SegmentValue } from '@ionic/angular';
+import { ModalController, SegmentValue } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from '../services/auth.service';
 import { firstValueFrom } from 'rxjs';
-import { AmeliaService } from '../services/amelia-api.service';
 import { ToastController  } from '@ionic/angular';
-import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
-import { ChangeDetectorRef } from '@angular/core';
 
 
 @Component({
@@ -18,7 +15,7 @@ import { ChangeDetectorRef } from '@angular/core';
   templateUrl: './trainings.page.html',
   styleUrls: ['./trainings.page.scss'],
 })
-export class TrainingsPage implements AfterViewInit {
+export class TrainingsPage implements OnInit {
   
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
@@ -27,7 +24,7 @@ export class TrainingsPage implements AfterViewInit {
   customerID: string | null = ""; //Define customerID from userID | Constructor
   userId: string | null; //Define active user ID | Constructor
   userEmail: string | null = ""; //Define active user email | Constructor
-  userFavLocation: string | null = ""; //Define what's the user's favorite location | Constructor
+  userFavLocation: string = ""; //Define what's the user's favorite location | Constructor
   userRole: string | null = ""; //Define user's role | Constructor
 
   //Participants popup variables
@@ -68,11 +65,7 @@ export class TrainingsPage implements AfterViewInit {
   errorMessage: string = '';
  
   // New variables for lazy loading
-  private currentDateRange: { start: Date; end: Date } | null = null;
-  userServiceID: any;
-
-  loadedStartDate: Date = new Date(); // Defaults to the current date
-  loadedEndDate: Date = new Date();   // Defaults to the current date
+  currentDateRange: { start: Date; end: Date } | null = null;
 
   allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
   tabLoadingState: boolean = false;
@@ -92,6 +85,8 @@ export class TrainingsPage implements AfterViewInit {
   private isShalomLoading: boolean = false;
   private isBenYehudaLoading: boolean = true;
   isTrainer: boolean = false;
+
+
   // Modify the loading getter
   get showSkeleton(): boolean {
     const isLoading = (this.selectedFilterAllFav === 'shalom' && this.isShalomLoading) || 
@@ -101,34 +96,28 @@ export class TrainingsPage implements AfterViewInit {
 
 //#endregion
   
-  constructor(private platform: Platform, private toastController: ToastController, private ameliaService: AmeliaService, private gestureCtrl: GestureController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private httpA: HTTP,    private modalCalendar: ModalController)
+  constructor(private platform: Platform, private toastController: ToastController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private modalCalendar: ModalController)
     {
-      if (this.authService.getUserRole() === 'trainer')
-        this.isTrainer = true;
-    this.userId = this.authService.getUserID();
-    this.userEmail = this.authService.getUserEmail();
-    this.customerID = this.authService.getCustomerID();
-    this.userFavLocation = this.authService.getUserFavLocation();    
+      if (this.authService.getUserRole() === 'trainer') {
+        this.isTrainer = true; }
+      this.userId = this.authService.getUserID();
+      this.userEmail = this.authService.getUserEmail();
+      this.customerID = this.authService.getCustomerID();
+      this.userFavLocation = this.authService.getUserFavLocation();    
 
-    this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      error: (error) => {
-        console.error("Error fetching package id", error);
-      }
-    })
-
-  }
+      this.authService.fetchPackageCustomerId(this.customerID).subscribe({
+        error: (error) => {
+          console.error("Error fetching package id", error);
+        }
+      })
+    }
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
-    console.time('ngOnInit'); // Start timing the entire function
-    console.time('Fetch user favorite location'); // Timing fetching user favorite location
     this.isLoading = true; // Show loading state initially
-
     try {
         // Wait for the favorite location to be fetched before proceeding
         const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
-        console.timeEnd('Fetch user favorite location'); // End timing fetching user favorite location
-
         this.userFavLocation = locationResponse.favorite_location;
 
         // Set the initial tab based on userFavLocation
@@ -138,38 +127,19 @@ export class TrainingsPage implements AfterViewInit {
             this.selectedFilterAllFav = 'shalom';
         }
 
-        // Timing user role fetching
-        //console.time('Fetch user role');
-        //const roleData = await firstValueFrom(this.authService.fetchUserRole());
-        //console.timeEnd('Fetch user role'); // End timing user role fetching
-
-        //this.authService.storeUserRole(roleData.roles[0]);
-        //this.userRole = roleData.roles[0];
-
         if (this.userRole === 'inactive') {
             this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
         } else if (this.userRole === 'trial-users') {
             this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
         }
-
-        // Timing load initial data
-        console.time('Load initial data');
         await this.loadInitialData();
-        console.timeEnd('Load initial data'); // End timing load initial data
 
     } catch (error) {
         console.error('Error during initialization:', error);
-        this.presentToast('Error loading user data', 'danger');
+        this.presentToast('שגיאה במשיכת נתונים', 'danger');
     } finally {
         this.isLoading = false;
-        console.timeEnd('ngOnInit'); // End timing the entire function
     }
-}
-
-
-  //afterViewInit function - Defines the modal controller
-  ngAfterViewInit() {
-
   }
 
   //Define the toast popup messages controller
@@ -181,29 +151,6 @@ export class TrainingsPage implements AfterViewInit {
       position: 'bottom',
     });
     await toast.present();
-  }
-  
-  //Format date time format to israel format
-  formatDateTimeInIsraelTime(dateString: string, timeString: string): string {
-    const localDate = new Date(`${dateString}T${timeString}`);
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'Asia/Jerusalem',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    };
-  
-    // Format the date and time as per Israeli time zone
-    const israelTime = new Intl.DateTimeFormat('en-CA', options).format(localDate); // Using 'en-CA' to format as yyyy-mm-dd
-  
-    // Adjust the format to return yyyy-mm-dd hh:mm:ss
-    const [datePart, timePart] = israelTime.replace(',', '').split(' ');
-    const formattedDate = datePart.replace(/\//g, '-');
-    return `${formattedDate} ${timePart}`;
   }
 
   //Extract 
@@ -257,8 +204,7 @@ export class TrainingsPage implements AfterViewInit {
     });    
   }
 
-  // New method to load initial data
-  // Improved loadInitialData with better error handling
+  // New method to load initial data  
   private async loadInitialData() {
     this.isLoading = true;
     this.isBenYehudaLoading = true;
@@ -270,15 +216,12 @@ export class TrainingsPage implements AfterViewInit {
         this.currentDateRange = {
             start: today,
             end: endDate
-        };
+        };       
 
-        // Set a default location or determine dynamically if needed
-        const defaultLocation = 'בן יהודה'; // Replace with dynamic logic if applicable
-
-        await this.fetchTrainingsForDateRange(today, endDate, defaultLocation);
+        await this.fetchTrainingsForDateRange(today, endDate, this.userFavLocation);
     } catch (error) {
         console.error('Error loading initial data:', error);
-        await this.presentToast('Error loading trainings', 'danger');
+        await this.presentToast('שגיאה בטעינת אימונים', 'danger');
     } finally {
         this.isLoading = false;
         this.isBenYehudaLoading = false;
@@ -410,7 +353,7 @@ export class TrainingsPage implements AfterViewInit {
     } catch (error) {
         console.error('Error combining timeslots and appointments:', error);
     }
-}
+  }
 
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
@@ -678,7 +621,6 @@ export class TrainingsPage implements AfterViewInit {
 
   // Method to enroll the user in a training session
   enrollUser(appointment: Appointment) {
-    console.log("appointment requested", appointment)
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
     appointment.isError = false; // Add an error state
@@ -688,7 +630,6 @@ export class TrainingsPage implements AfterViewInit {
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
     
     let providerId = appointment.providerId;
-    console.log("providerID", providerId)
     let customerID = this.authService.getCustomerID();
     let packageCustomerId = this.authService.getPackageCustomerId();
     
@@ -778,15 +719,12 @@ export class TrainingsPage implements AfterViewInit {
   }
   
   async openCalendarPopup() {
-
     let branch = "";
     if (this.selectedFilterAllFav === 'all'){
       branch = "main";
     } else if (this.selectedFilterAllFav === 'shalom') {
       branch = "second";
     }
-
-    console.log("branch:", branch);
     
     const modalCalendar = await this.modalCalendar.create({
       component: CalendarPopupComponent,

@@ -401,7 +401,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.selectedLocation = location;
     this.profileService.updateFavoriteLocation(location).subscribe(
       (error) => {
-        console.error("Error:", error)
       });
   }
 }
