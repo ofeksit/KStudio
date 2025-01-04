@@ -16,6 +16,7 @@ import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
 import { AlertController } from '@ionic/angular';
 import {trigger, style, transition, animate} from '@angular/animations';
+import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 
 register();
 
@@ -44,17 +45,17 @@ export class HomePage implements OnInit {
   fitnessTips: Block[] = [];
   isLoading: boolean = true; // Loading state
   errorMessage: string = '';
-
+  userRole: string | null = "";
   isConfirmDialogVisible = false;
   selectedTraining: any;
   selectedIndex: number = 0;
 
-  constructor(private alertController: AlertController, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private authService: AuthService) {
+  constructor(private alertController: AlertController, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
     
   }
 
   ngOnInit() {
-    
+    this.userRole = this.authService.getUserRole();
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
@@ -92,7 +93,7 @@ export class HomePage implements OnInit {
     );
 
     this.authService.fetchUserFavLocation().subscribe(
-      (data) => { this.authService.storeFavLocation(data); },
+      (data) => { this.authService.storeFavLocation(data.favorite_location); },
       (error) => { console.error ("Error fetching user favorite location", error); }
     );
 
@@ -133,7 +134,6 @@ export class HomePage implements OnInit {
       (trainings) => {
         this.upcomingTrainings = trainings;
         this.isLoadingTrainings = false;
-        console.log("trainings:", trainings)
       },
       (error) => {
         console.error('Error loading upcoming trainings:', error);
@@ -257,6 +257,29 @@ export class HomePage implements OnInit {
         component: ProfilePopupComponent,
         cssClass: 'profile-popup',
         presentingElement: await this.modalCtrl2.getTop(),
+        breakpoints: [0, 0.85, 1],
+        initialBreakpoint: 0.85,
+      });
+  
+      // Disable scrolling when the modal is opened
+      await modal.present();
+      this.setDisableScroll(true); // Disable background scroll
+  
+      // Re-enable scrolling when the modal is dismissed
+      modal.onDidDismiss().then(() => {
+        this.setDisableScroll(false); // Re-enable background scroll
+      });
+    } else {
+      console.log("User Not Logged In!");
+    }
+  }
+
+  async openManagePackages() {
+    if (this.authService.isLoggedIn()) {
+      const modal = await this.modalCtrl3.create({
+        component: ManagePackagesComponent,
+        cssClass: 'managePackages-popup',
+        presentingElement: await this.modalCtrl3.getTop(),
         breakpoints: [0, 0.85, 1],
         initialBreakpoint: 0.85,
       });

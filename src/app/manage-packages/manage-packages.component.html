@@ -1,0 +1,139 @@
+<!-- manage-packages.component.html -->
+<ion-content>
+  <!-- Search Box with Autocomplete -->
+  <div class="search-container">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      (ionInput)="onSearchQueryChange($event)"
+      placeholder="חפש משתמש לפי שם"
+      class="custom-searchbar">
+    </ion-searchbar>
+    <ion-list *ngIf="filteredUsers.length > 0" class="autocomplete-dropdown">
+      <ion-item
+        *ngFor="let user of filteredUsers"
+        (click)="selectUser(user)"
+        class="user-item">
+        <ion-avatar slot="start">
+          <img [src]="user.wpUserPhotoUrl" alt="User photo" />
+        </ion-avatar>
+        <ion-label>
+          {{ user.firstName }} {{ user.lastName }}
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Selected User Packages -->
+  <div *ngIf="selectedUser" class="package-details">
+    <ion-text color="primary">
+      <h2>חבילות עבור {{ selectedUser.firstName }} {{ selectedUser.lastName }}</h2>
+    </ion-text>
+    
+    <ion-list>
+      <ion-card *ngFor="let pkg of packages" class="package-card">
+        <ion-card-header>
+          <ion-card-title>חבילה</ion-card-title>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <div class="package-info">
+            <ion-chip>
+              <ion-label>
+                <strong>מקומות פנויים:</strong> {{ pkg.available }} / {{ pkg.total }}
+              </ion-label>
+            </ion-chip>
+            <ion-chip>
+              <ion-label>
+                <strong>תאריך רכישה:</strong> {{ pkg.purchased | date: 'dd.MM HH:mm' }}
+              </ion-label>
+            </ion-chip>
+          </div>
+
+          <!-- Collapsible Appointments Section -->
+          <ion-item-group>
+            <ion-item-divider class="collapsible-header" (click)="toggleAppointments(pkg.packageCustomerId)">
+              <ion-label>פגישות</ion-label>
+              <ion-icon 
+                [name]="isAppointmentsVisible(pkg.packageCustomerId) ? 'chevron-up' : 'chevron-down'"
+                slot="end">
+              </ion-icon>
+            </ion-item-divider>
+
+            <div *ngIf="isAppointmentsVisible(pkg.packageCustomerId)" class="collapsible-content">
+              <ion-button
+                expand="block"
+                color="primary"
+                (click)="fetchAppointmentsForPackage(pkg.packageCustomerId, pkg.purchased)">
+                <ion-icon name="refresh" slot="start"></ion-icon>
+                רענן פגישות
+              </ion-button>
+
+              <div *ngIf="appointments[pkg.packageCustomerId]" class="appointments">
+                <ion-list>
+                  <ion-item *ngFor="let appointment of appointments[pkg.packageCustomerId]" class="appointment-item">
+                    <ion-label>
+                      <h3>{{ appointment.time | date: 'dd.MM HH:mm' }}</h3>
+                      <p [class]="'status-' + appointment.status">
+                        סטטוס: {{ translateStatus(appointment.status) }}
+                      </p>
+                    </ion-label>
+                    <ion-button
+                      color="danger"
+                      fill="clear"
+                      slot="end"
+                      (click)="cancelAppointment(appointment.bookingId)">
+                      <ion-icon name="trash"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                </ion-list>
+              </div>
+            </div>
+          </ion-item-group>
+
+          <!-- Collapsible Add Training Section -->
+          <ion-item-group>
+            <ion-item-divider class="collapsible-header" (click)="toggleAddTraining(pkg.packageCustomerId)">
+              <ion-label>הוסף אימון</ion-label>
+              <ion-icon 
+                [name]="showAddTrainingForm[pkg.packageCustomerId] ? 'chevron-up' : 'chevron-down'"
+                slot="end">
+              </ion-icon>
+            </ion-item-divider>
+
+            <div *ngIf="showAddTrainingForm[pkg.packageCustomerId]" class="collapsible-content add-training">
+              <ion-item>
+                <ion-label position="floating">תאריך ושעה</ion-label>
+                <ion-datetime
+                [(ngModel)]="newTraining.dateTime"
+                [min]="minDate"
+                presentation="date-time"
+                locale="he"
+                hour-cycle="h23"
+                first-day-of-week="0"
+                class="custom-datetime">
+              </ion-datetime>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label position="floating">מיקום</ion-label>
+                <ion-select [(ngModel)]="newTraining.location" interface="popover">
+                  <ion-select-option value="main">ראשי</ion-select-option>
+                  <ion-select-option value="second">שני</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-button
+                expand="block"
+                color="success"
+                (click)="addTraining(pkg.packageCustomerId, pkg.serviceId)"
+                class="add-training-button">
+                <ion-icon name="add-circle" slot="start"></ion-icon>
+                הוסף אימון
+              </ion-button>
+            </div>
+          </ion-item-group>
+        </ion-card-content>
+      </ion-card>
+    </ion-list>
+  </div>
+</ion-content>

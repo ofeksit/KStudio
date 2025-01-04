@@ -126,11 +126,19 @@
       <ion-label>אימונים</ion-label>
     </div>
 
+    
+    <!-- Manage Packages Button -->
+    <div class="nav-item" *ngIf="userRole == 'administrator'" (click)="openManagePackages()">
+      <ion-icon name="person-outline"></ion-icon>
+      <ion-label>ניהול</ion-label>
+    </div>
+    
     <!-- Profile Button -->
     <div class="nav-item" (click)="openProfile()">
       <ion-icon name="person-outline"></ion-icon>
       <ion-label>פרופיל</ion-label>
     </div>
+
 
     <!-- Profile Button 
     <div class="nav-item" (click)="openPurchase()">

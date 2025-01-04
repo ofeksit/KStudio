@@ -9,7 +9,6 @@ import { ToastController  } from '@ionic/angular';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 
-
 @Component({
   selector: 'app-trainings',
   templateUrl: './trainings.page.html',
@@ -96,7 +95,13 @@ export class TrainingsPage implements OnInit {
 
 //#endregion
   
-  constructor(private platform: Platform, private toastController: ToastController, private modalCtrl: ModalController, private http: HttpClient, private authService: AuthService, private modalCalendar: ModalController)
+
+  constructor( private platform: Platform,
+              private toastController: ToastController,
+              private modalCtrl: ModalController,
+              private http: HttpClient,
+              private authService: AuthService,
+               private modalCalendar: ModalController)
     {
       if (this.authService.getUserRole() === 'trainer') {
         this.isTrainer = true; }
@@ -110,12 +115,14 @@ export class TrainingsPage implements OnInit {
           console.error("Error fetching package id", error);
         }
       })
-    }
+  }
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
+    console.log("selectedTab:", this.selectedFilterAllFav)
     this.isLoading = true; // Show loading state initially
     try {
+
         // Wait for the favorite location to be fetched before proceeding
         const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
         this.userFavLocation = locationResponse.favorite_location;
@@ -206,8 +213,14 @@ export class TrainingsPage implements OnInit {
 
   // New method to load initial data  
   private async loadInitialData() {
-    this.isLoading = true;
-    this.isBenYehudaLoading = true;
+        // Set loading state before any data fetching
+        if (this.selectedFilterAllFav === 'all') {
+          this.isBenYehudaLoading = true;
+          // Force change detection
+          setTimeout(() => {}, 0);
+        } else if (this.selectedFilterAllFav === 'shalom') {
+          this.isShalomLoading = true;
+        }
     try {
         const today = new Date();
         const endDate = new Date(today);
@@ -217,14 +230,22 @@ export class TrainingsPage implements OnInit {
             start: today,
             end: endDate
         };       
-
-        await this.fetchTrainingsForDateRange(today, endDate, this.userFavLocation);
+        let firstToFetch = this.userFavLocation;
+        if (this.userFavLocation == "הכל")
+          firstToFetch = "בן יהודה"
+        console.log("selectedthis", this.userFavLocation)
+        await this.fetchTrainingsForDateRange(today, endDate, firstToFetch);
     } catch (error) {
         console.error('Error loading initial data:', error);
         await this.presentToast('שגיאה בטעינת אימונים', 'danger');
     } finally {
-        this.isLoading = false;
-        this.isBenYehudaLoading = false;
+        if (this.selectedFilterAllFav === 'all') {
+          this.isBenYehudaLoading = false;
+          // Force change detection
+          setTimeout(() => {}, 0);
+        } else if (this.selectedFilterAllFav === 'shalom') {
+          this.isShalomLoading = false;
+        }
     }
   }
 
@@ -364,7 +385,7 @@ export class TrainingsPage implements OnInit {
   // Modify the filterFavAll method
   async filterFavAll(event: any) {
     const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value;
-    
+    console.log("selectedTab:", this.selectedFilterAllFav)
     // Clear current display while switching
     this.combinedList = [];
     this.filteredAppointments = [];
