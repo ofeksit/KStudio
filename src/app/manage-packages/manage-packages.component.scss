@@ -35,20 +35,37 @@
   padding: 16px;
   
   h2 {
-    text-align: center;
+    text-align: right;
+    font-size: 24px;
+    font-family: 'Alef';
     margin-bottom: 24px;
-    font-weight: 600;
+    font-weight: 400;
+
   }
 }
 
+// manage-packages.component.scss - Add these new styles
 .package-card {
   margin-bottom: 20px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   
-  ion-card-header {
-    background: var(--ion-color-light);
-    border-bottom: 1px solid var(--ion-color-light-shade);
+  .card-header {
+    cursor: pointer;
+    --background: var(--ion-color-light);
+    
+    ion-card-header {
+      padding: 12px;
+      width: 100%;
+    }
+    
+    ion-icon {
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  .card-content {
+    overflow: hidden;
   }
   
   ion-card-title {
@@ -57,11 +74,10 @@
     text-align: center;
   }
 }
-
 .package-info {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  margin-top: 16px;
   margin-bottom: 16px;
   
   ion-chip {
@@ -92,10 +108,17 @@
   --padding-end: 12px;
   margin-bottom: 8px;
   border-radius: 8px;
+  font-family: 'Alef';
   
   h3 {
+    font-family: 'Alef';
     font-weight: 600;
     color: var(--ion-color-dark);
+    font-size: 18px;
+  }
+
+  p {
+    font-family: 'Alef';
   }
 }
 
@@ -158,4 +181,18 @@
 ion-input[type="time"] {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
+}
+
+.subscription-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subscription-info ion-chip {
+  margin: 5px 0;
+}
+
+.custom-datetime {
+  width: 100%;
 }

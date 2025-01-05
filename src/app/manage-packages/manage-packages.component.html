@@ -25,31 +25,91 @@
 
   <!-- Selected User Packages -->
   <div *ngIf="selectedUser" class="package-details">
-    <ion-text color="primary">
-      <h2>חבילות עבור {{ selectedUser.firstName }} {{ selectedUser.lastName }}</h2>
+    <ion-text>
+      <h2>נתוני משתמש {{ selectedUser.firstName }} {{ selectedUser.lastName }}</h2>
     </ion-text>
-    
-    <ion-list>
-      <ion-card *ngFor="let pkg of packages" class="package-card">
+
+    <ion-card class="package-card">
+      <ion-item class="card-header" (click)="toggleCard(subscription.id)">
         <ion-card-header>
-          <ion-card-title>חבילה</ion-card-title>
+          <ion-card-title>מנוי</ion-card-title>
         </ion-card-header>
-        
+        <ion-icon 
+          [name]="isCardExpanded(subscription.id) ? 'chevron-up' : 'chevron-down'"
+          slot="end">
+        </ion-icon>
+      </ion-item>
+    
+      <div *ngIf="isCardExpanded(subscription.id)" class="card-content" [@expandCollapse]>
         <ion-card-content>
-          <div class="package-info">
+          <div class="subscription-info">
             <ion-chip>
               <ion-label>
-                <strong>מקומות פנויים:</strong> {{ pkg.available }} / {{ pkg.total }}
+                <strong>מס' מנוי:</strong> {{ subscription.id }}
               </ion-label>
             </ion-chip>
             <ion-chip>
               <ion-label>
-                <strong>תאריך רכישה:</strong> {{ pkg.purchased | date: 'dd.MM HH:mm' }}
+                <strong>סטטוס מנוי:</strong> {{ subscription.status }}
+              </ion-label>
+            </ion-chip>
+            <ion-chip>
+              <ion-label>
+                <strong>חידוש הבא:</strong> {{ subscription.nextRenewal }}
               </ion-label>
             </ion-chip>
           </div>
+    
+          <ion-button expand="block" color="warning" (click)="toggleSubscriptionStatus(subscription.id, 'suspend')">
+            {{ subscription.status === 'active' ? 'השהה מנוי' : 'הפעל מנוי' }}
 
-          <!-- Collapsible Appointments Section -->
+          </ion-button>
+    
+          <ion-item>
+            <ion-label>תאריך חידוש הבא</ion-label>
+            <ion-datetime
+              [(ngModel)]="subscription.nextRenewal"
+              presentation="date"
+              class="custom-datetime">
+            </ion-datetime>
+          </ion-item>
+    
+          <ion-button expand="block" color="success" (click)="updateRenewalDate(subscription.id, '24/01/2025')">
+            עדכן תאריך חידוש
+          </ion-button>
+        </ion-card-content>
+      </div>
+    </ion-card>
+    
+    
+    <ion-list>
+      <ion-card *ngFor="let pkg of packages" class="package-card">
+        <ion-item class="card-header" (click)="toggleCard(pkg.packageCustomerId)">
+          <ion-card-header>
+            <ion-card-title>חבילה</ion-card-title>
+          </ion-card-header>
+          <ion-icon 
+            [name]="isCardExpanded(pkg.packageCustomerId) ? 'chevron-up' : 'chevron-down'"
+            slot="end">
+          </ion-icon>
+        </ion-item>
+        
+        <div *ngIf="isCardExpanded(pkg.packageCustomerId)" class="card-content" [@expandCollapse]>
+          <ion-card-content>
+            <div class="package-info">
+              <ion-chip>
+                <ion-label>
+                  <strong>מקומות פנויים:</strong> {{ pkg.available }} / {{ pkg.total }}
+                </ion-label>
+              </ion-chip>
+              <ion-chip>
+                <ion-label>
+                  <strong>תאריך רכישה:</strong> {{ pkg.purchased | date: 'dd.MM HH:mm' }}
+                </ion-label>
+              </ion-chip>
+            </div>
+    
+            <!-- Collapsible Appointments Section -->
           <ion-item-group>
             <ion-item-divider class="collapsible-header" (click)="toggleAppointments(pkg.packageCustomerId)">
               <ion-label>פגישות</ion-label>
@@ -102,10 +162,10 @@
 
             <div *ngIf="showAddTrainingForm[pkg.packageCustomerId]" class="collapsible-content add-training">
               <ion-item>
-                <ion-label position="floating">תאריך ושעה</ion-label>
                 <ion-datetime
                 [(ngModel)]="newTraining.dateTime"
                 [min]="minDate"
+                [value]="newTraining.dateTime"
                 presentation="date-time"
                 locale="he"
                 hour-cycle="h23"
@@ -115,10 +175,10 @@
               </ion-item>
               
               <ion-item>
-                <ion-label position="floating">מיקום</ion-label>
+                <ion-label>מיקום</ion-label>
                 <ion-select [(ngModel)]="newTraining.location" interface="popover">
-                  <ion-select-option value="main">ראשי</ion-select-option>
-                  <ion-select-option value="second">שני</ion-select-option>
+                  <ion-select-option value="main">בן יהודה</ion-select-option>
+                  <ion-select-option value="second">שלום עליכם</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -132,8 +192,10 @@
               </ion-button>
             </div>
           </ion-item-group>
-        </ion-card-content>
+          </ion-card-content>
+        </div>
       </ion-card>
     </ion-list>
+    
   </div>
 </ion-content>

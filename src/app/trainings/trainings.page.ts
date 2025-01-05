@@ -367,7 +367,7 @@ export class TrainingsPage implements OnInit {
 
         // Make sure filteredAppointments is also sorted
         this.filteredAppointments = [...this.combinedList];
-        
+        console.log("filtered", this.filteredAppointments)
         // Update filtered appointments
         this.updateFilteredAppointments();
 

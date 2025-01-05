@@ -4,6 +4,7 @@ import { formatDate } from '@angular/common';
 import { debounceTime, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment'; // Assuming you've installed Moment.js
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 
 export interface Package {
@@ -17,8 +18,15 @@ export interface Package {
   purchased: string;
 }
 
-export interface User {
+export interface Subscription {
   id: number;
+  status: string;
+  renewalDate: string;
+}
+
+export interface User {
+  id: string;
+  customerId: string;
   firstName: string;
   lastName: string;
   wpUserPhotoUrl: string;
@@ -38,18 +46,51 @@ export interface Appointment {
   selector: 'app-manage-packages',
   templateUrl: './manage-packages.component.html',
   styleUrls: ['./manage-packages.component.scss'],
+  animations: [
+    trigger('expandCollapse', [
+      state('void', style({
+        height: '0',
+        opacity: '0'
+      })),
+      state('*', style({
+        height: '*',
+        opacity: '1'
+      })),
+      transition('void <=> *', [
+        animate('300ms ease-in-out')
+      ])
+    ])
+  ]
 })
+
 export class ManagePackagesComponent  implements OnInit {
+
+  //User
+
+  //Package
+
+  //Subscriptions
+
   newTraining = {
     dateTime: '',
     location: 'main',
   };
+
+  // Add subscription data structure
+  subscription = {
+    id: '',
+    status: '',
+    nextRenewal: ''
+  };
+  
+
+  expandedCards: { [key: number]: boolean } = {};
   
   visibleAppointments: { [key: number]: boolean } = {};
 
 
   today: string = new Date().toISOString();
-  minDate: string = new Date().toISOString().split('T')[0];
+  minDate = new Date().toISOString(); // Set minimum date to today
 
   showAddTrainingForm: { [key: number]: boolean } = {};
 
@@ -74,14 +115,65 @@ export class ManagePackagesComponent  implements OnInit {
     this.loadUsers();
     this.setupSearchSubscription();
     this.today = new Date().toISOString();
-    console.log("today:", this.today)
+    this.minDate = new Date().toISOString();
+    
+    // If newTraining.dateTime isn't already set, initialize it
+    if (!this.newTraining.dateTime) {
+      this.newTraining.dateTime = this.today;
+    }
+  }
+
+  // Add this new method to toggle card expansion
+  toggleCard(packageCustomerId: string | number): void {
+    this.expandedCards[Number(packageCustomerId)] = !this.expandedCards[Number(packageCustomerId)];
+  }
+
+  // Fetch subscription data
+  fetchSubscription(userId: string) {
+    this.managePackagesService.getSubscriptionDetails(userId).subscribe(
+      (data) => {
+        const serverData = data[0];
+        this.subscription = {
+          id: serverData.subscription_id,
+          status: serverData.status,
+          nextRenewal: serverData.next_renewal_date,
+        };
+      },
+      (error) => {
+        console.error("error:", error);
+      }
+    );
+  }
+
+
+  // Toggle subscription status
+  toggleSubscriptionStatus(userId: string, action: 'suspend' | 'reactivate') {
+    this.managePackagesService.updateSubscriptionStatus(userId, action).subscribe((response) => {
+      console.log('Status Update Response:', response);
+      this.fetchSubscription(userId); // Refresh subscription details
+    });
+  }
+
+  // Update next renewal date
+  updateRenewalDate(userId: string, nextRenewal: string) {
+    this.managePackagesService.updateRenewalDate(userId, nextRenewal).subscribe((response) => {
+      console.log('Renewal Date Update Response:', response);
+      this.fetchSubscription(userId); // Refresh subscription details
+    });
+  }
+
+  // Add this helper method
+  isCardExpanded(packageCustomerId: string | number): boolean {
+    const id = Number(packageCustomerId);
+    return this.expandedCards[id] !== false; // Default to true if undefined
   }
 
   loadUsers() {
     this.managePackagesService.getAllUsers().subscribe(
       (response) => {
         this.users = response.data.users.map((user: any) => ({
-          id: user.id,
+          id: user.externalId,
+          customerId: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           wpUserPhotoUrl: user.wpUserPhotoUrl,
@@ -121,7 +213,6 @@ export class ManagePackagesComponent  implements OnInit {
     return !!this.visibleAppointments[packageCustomerId];
   }
 
-
   // Modify the existing toggleAddTraining method
   toggleAddTraining(packageCustomerId: number): void {
     // Close other open forms first
@@ -151,10 +242,12 @@ export class ManagePackagesComponent  implements OnInit {
     this.selectedUser = user;
     this.filteredUsers = [];
     this.searchQuery = `${user.firstName} ${user.lastName}`;
-    this.fetchUserPackages(user.id);
+    this.fetchUserPackages(user.customerId);
+    this.fetchSubscription(user.id);
+  
   }
 
-  fetchUserPackages(customerId: number) {
+  fetchUserPackages(customerId: string) {
     this.managePackagesService.getUserPackages(customerId).subscribe(
       (response) => {
         if (!response?.data) {
@@ -181,8 +274,7 @@ export class ManagePackagesComponent  implements OnInit {
             });
           });
         });
-  
-        console.log('Mapped packages:', this.packages); // Debugging
+
       },
       (error) => {
         console.error('Error fetching packages:', error);
@@ -204,8 +296,6 @@ export class ManagePackagesComponent  implements OnInit {
       }
     );
   }
-  
-  
   
   translateStatus(status: string): string {
     const statusMap: { [key: string]: string } = {
@@ -234,66 +324,61 @@ export class ManagePackagesComponent  implements OnInit {
     }
   }
 
-  
-addTraining(packageCustomerId: number, serviceId: number): void {
-  if (!this.newTraining.dateTime) {
-    alert('אנא הזן תאריך ושעה לאימון');
-    return;
-  }
+  addTraining(packageCustomerId: number, serviceId: number): void {
+    if (!this.newTraining.dateTime) {
+      alert('אנא הזן תאריך ושעה לאימון');
+      return;
+    }
 
-  if (!this.selectedUser) {
-    alert('משתמש לא נבחר');
-    return;
-  }
+    if (!this.selectedUser) {
+      alert('משתמש לא נבחר');
+      return;
+    }
 
-  const bookingStart = new Date(this.newTraining.dateTime).toISOString(); // Format to ISO
-  const locationId = this.newTraining.location === 'main' ? 1 : 2; // Map location to ID
+    const bookingStart = new Date(this.newTraining.dateTime).toISOString(); // Format to ISO
+    const locationId = this.newTraining.location === 'main' ? 1 : 2; // Map location to ID
 
-  const enrollData = {
-    type: 'appointment',
-    serviceId: serviceId,
-    providerId: null,
-    locationId: locationId,
-    notifyParticipants: 0,
-    bookings: [
-      {
-        customerId: this.selectedUser.id,
-        status: 'approved',
-        duration: 3600,
-        persons: 1,
-        extras: [],
-        customFields: {},
-        utcOffset: -(new Date().getTimezoneOffset()),
-        packageCustomerService: {
-          packageCustomer: {
-            id: packageCustomerId,
+    const enrollData = {
+      type: 'appointment',
+      serviceId: serviceId,
+      providerId: null,
+      locationId: locationId,
+      notifyParticipants: 0,
+      bookings: [
+        {
+          customerId: this.selectedUser.id,
+          status: 'approved',
+          duration: 3600,
+          persons: 1,
+          extras: [],
+          customFields: {},
+          utcOffset: -(new Date().getTimezoneOffset()),
+          packageCustomerService: {
+            packageCustomer: {
+              id: packageCustomerId,
+            },
           },
         },
+      ],
+      bookingStart: bookingStart,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+
+    this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', enrollData, {
+      headers: { 'Content-Type': 'application/json' },
+    }).subscribe(
+      (response: any) => {
+        if (response.data?.timeSlotUnavailable) {
+          alert('משבצת הזמן אינה זמינה');
+          return;
+        }
+        alert('האימון נוסף בהצלחה');
+        this.newTraining = { dateTime: '', location: 'main' }; // Reset the form
       },
-    ],
-    bookingStart: bookingStart,
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
-
-  this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', enrollData, {
-    headers: { 'Content-Type': 'application/json' },
-  }).subscribe(
-    (response: any) => {
-      if (response.data?.timeSlotUnavailable) {
-        alert('משבצת הזמן אינה זמינה');
-        return;
+      (error) => {
+        console.error('Error Adding Training:', error);
+        alert('שגיאה בהוספת האימון');
       }
-      alert('האימון נוסף בהצלחה');
-      this.newTraining = { dateTime: '', location: 'main' }; // Reset the form
-    },
-    (error) => {
-      console.error('Error Adding Training:', error);
-      alert('שגיאה בהוספת האימון');
-    }
-  );
-}
-  
-  
-  
-
+    );
+  }
 }
