@@ -5,6 +5,7 @@ import { debounceTime, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment'; // Assuming you've installed Moment.js
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { AlertController } from '@ionic/angular';
 
 
 export interface Package {
@@ -83,11 +84,15 @@ export class ManagePackagesComponent  implements OnInit {
     nextRenewal: ''
   };
   
+  isDatePickerOpen = false; // To toggle the modal
+  selectedDate: string = ""; // To store the selected date
 
+  selectedSubscriptionId: string | null = null;
   expandedCards: { [key: number]: boolean } = {};
   
   visibleAppointments: { [key: number]: boolean } = {};
 
+  loadingSubscriptionId: string | null = null;
 
   today: string = new Date().toISOString();
   minDate = new Date().toISOString(); // Set minimum date to today
@@ -109,7 +114,7 @@ export class ManagePackagesComponent  implements OnInit {
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
 
-  constructor(private http: HttpClient, private managePackagesService: ManagePackagesService) { }
+  constructor(private alertController: AlertController, private http: HttpClient, private managePackagesService: ManagePackagesService) { }
 
   ngOnInit() {
     this.loadUsers();
@@ -121,6 +126,11 @@ export class ManagePackagesComponent  implements OnInit {
     if (!this.newTraining.dateTime) {
       this.newTraining.dateTime = this.today;
     }
+
+    if (!this.selectedDate) {
+      this.selectedDate = this.today;
+    }
+
   }
 
   // Add this new method to toggle card expansion
@@ -145,20 +155,97 @@ export class ManagePackagesComponent  implements OnInit {
     );
   }
 
+  fetchSubscriptionBySubscriptionID(subscriptionID: string){
+    this.managePackagesService.getSubscriptionDetailsBySubscriptionID(subscriptionID).subscribe(
+      (data) => {
+        console.log("data", data);
+        const serverData = data;
+        console.log("serverData:", serverData)
+        this.subscription = {
+          id: serverData.id,
+          status: serverData.status,
+          nextRenewal: serverData.renewalDate,
+        };
+      },
+      (error) => {
+        console.error("Error:", error);
+      }
+    );
+  }
+
+  handleSubscriptionToggle(subscriptionId: string, currentStatus: string) {
+    this.loadingSubscriptionId = subscriptionId; // Set loading state for this subscription
+    const newStatus = currentStatus === 'active' ? 'suspend' : 'active';
+  
+    // Call the API
+    this.toggleSubscriptionStatus(subscriptionId, newStatus)
+      .then(() => {
+        // Handle success (e.g., update subscription status locally if needed)
+        this.loadingSubscriptionId = null; // Clear loading state
+      })
+      .catch((error) => {
+        console.error('Error toggling subscription:', error);
+        // Handle error (e.g., show a toast notification)
+        this.loadingSubscriptionId = null; // Clear loading state
+      });
+  }
+
 
   // Toggle subscription status
-  toggleSubscriptionStatus(userId: string, action: 'suspend' | 'reactivate') {
-    this.managePackagesService.updateSubscriptionStatus(userId, action).subscribe((response) => {
-      console.log('Status Update Response:', response);
-      this.fetchSubscription(userId); // Refresh subscription details
+  toggleSubscriptionStatus(subscriptionID: string, action: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.managePackagesService.updateSubscriptionStatus(subscriptionID, action).subscribe({
+        next: (response) => {
+          console.log('Status Update Response:', response);
+          console.log("subscriptionID:", subscriptionID);
+          this.fetchSubscriptionBySubscriptionID(subscriptionID); // Refresh subscription details
+          resolve(); // Resolve the Promise on success
+        },
+        error: (err) => {
+          console.error('Error updating subscription status:', err);
+          reject(err); // Reject the Promise on error
+        }
+      });
     });
   }
 
+  openDatePicker(subscriptionId: string) {
+    this.selectedSubscriptionId = subscriptionId;
+    this.isDatePickerOpen = true;
+  }
+
+  closeDatePicker() {
+    this.isDatePickerOpen = false;
+  }
+
+  async confirmNewDate() {
+    this.closeDatePicker(); // Close the modal
+
+    const alert = await this.alertController.create({
+      header: 'אישור תאריך חדש',
+      message: `האם אתה בטוח שברצונך לעדכן את התאריך ל-${this.selectedDate}?`,
+      buttons: [
+        {
+          text: 'ביטול',
+          role: 'cancel'
+        },
+        {
+          text: 'אישור',
+          handler: () => {
+            this.updateRenewalDate(this.selectedSubscriptionId!, this.selectedDate);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
   // Update next renewal date
-  updateRenewalDate(userId: string, nextRenewal: string) {
-    this.managePackagesService.updateRenewalDate(userId, nextRenewal).subscribe((response) => {
+  updateRenewalDate(subscriptionID: string, nextRenewal: string) {
+    this.managePackagesService.updateRenewalDate(subscriptionID, nextRenewal).subscribe((response) => {
       console.log('Renewal Date Update Response:', response);
-      this.fetchSubscription(userId); // Refresh subscription details
+      this.fetchSubscriptionBySubscriptionID(subscriptionID); // Refresh subscription details
     });
   }
 

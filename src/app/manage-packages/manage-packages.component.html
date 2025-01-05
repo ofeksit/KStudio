@@ -60,23 +60,44 @@
             </ion-chip>
           </div>
     
-          <ion-button expand="block" color="warning" (click)="toggleSubscriptionStatus(subscription.id, 'suspend')">
+          <ion-button 
+          expand="block" 
+          [color]="subscription.status === 'active' ? 'warning' : 'success'" 
+          (click)="handleSubscriptionToggle(subscription.id, subscription.status)">
+          <ion-spinner *ngIf="loadingSubscriptionId === subscription.id"></ion-spinner>
+          <span *ngIf="loadingSubscriptionId !== subscription.id">
             {{ subscription.status === 'active' ? 'השהה מנוי' : 'הפעל מנוי' }}
-
-          </ion-button>
+          </span>
+        </ion-button>
     
-          <ion-item>
-            <ion-label>תאריך חידוש הבא</ion-label>
-            <ion-datetime
-              [(ngModel)]="subscription.nextRenewal"
-              presentation="date"
+        <ion-button expand="block" color="primary" (click)="openDatePicker(subscription.id)">
+          בחר תאריך חדש
+        </ion-button>
+        <ion-modal [isOpen]="isDatePickerOpen" (didDismiss)="closeDatePicker()">
+          <ng-template>
+            <ion-content>
+              <ion-datetime
+              [(ngModel)]="selectedDate"
+              [min]="minDate"
+              [value]="selectedDate"
+              presentation="date-time"
+              locale="he"
+              hour-cycle="h23"
+              first-day-of-week="0"
               class="custom-datetime">
             </ion-datetime>
-          </ion-item>
-    
-          <ion-button expand="block" color="success" (click)="updateRenewalDate(subscription.id, '24/01/2025')">
-            עדכן תאריך חידוש
-          </ion-button>
+              <ion-footer>
+                <ion-toolbar>
+                  <ion-buttons slot="end">
+                    <ion-button (click)="closeDatePicker()">ביטול</ion-button>
+                    <ion-button (click)="confirmNewDate()">אישור</ion-button>
+                  </ion-buttons>
+                </ion-toolbar>
+              </ion-footer>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+              
         </ion-card-content>
       </div>
     </ion-card>

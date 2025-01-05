@@ -65,16 +65,19 @@ export class ManagePackagesService {
     return this.http.get(url);
   }
 
-  updateSubscriptionStatus(userId: string, action: 'suspend' | 'reactivate'): Observable<any> {
-    const url = `${this.customApiURL}/subscription/${userId}/status`;
-    const body = { action };
-    return this.http.post(url, body);
+  getSubscriptionDetailsBySubscriptionID(subscriptionId: string): Observable<any> {
+    const url = `${this.customApiURL}/subscriptionById/${subscriptionId}`;
+    return this.http.get(url);
   }
 
-  updateRenewalDate(userId: string, nextRenewal: string): Observable<any> {
-    const url = `${this.customApiURL}/subscription/${userId}/renewal`;
-    const body = { nextRenewal };
-    return this.http.post(url, body);
+  updateSubscriptionStatus(subscriptionID: string, action: string): Observable<any> {
+    const url = `${this.customApiURL}/subscription-action?subscription_id=${subscriptionID}&action=${action}`;
+    return this.http.get(url); // Sending an empty body since parameters are in the URL
+  }
+
+  updateRenewalDate(subscriptionId: string, nextRenewal: string): Observable<any> {
+    const url = `${this.customApiURL}/subscription/${subscriptionId}/renewal/${nextRenewal}`;
+    return this.http.post(url, {}); // No body needed as data is passed in the URL
   }
 
 }
