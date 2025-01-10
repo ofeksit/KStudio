@@ -424,11 +424,24 @@ export class ManagePackagesComponent  implements OnInit {
 
     const bookingStart = new Date(this.newTraining.dateTime).toISOString(); // Format to ISO
     const locationId = this.newTraining.location === 'main' ? 1 : 2; // Map location to ID
+    let providerId = 0;
+    console.log("location:", this.newTraining.location);
+    console.log("serviceId:", serviceId)
+    if (this.newTraining.location === 'main' && serviceId == 1 || serviceId == 4) {
+      providerId = 172;
+    } else if (this.newTraining.location === 'main' && serviceId == 12 || serviceId == 54 || serviceId == 17){
+      providerId = 169;
+    } else if (this.newTraining.location != 'main'  && serviceId == 12 || serviceId == 54 || serviceId == 17) {
+      providerId = 643;
+    } else if (this.newTraining.location != 'main' && serviceId == 1 || serviceId == 4) {
+      providerId = 644;
+    }
+      
 
     const enrollData = {
       type: 'appointment',
       serviceId: serviceId,
-      providerId: null,
+      providerId: providerId,
       locationId: locationId,
       notifyParticipants: 0,
       bookings: [
@@ -450,7 +463,7 @@ export class ManagePackagesComponent  implements OnInit {
       bookingStart: bookingStart,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
-
+    console.log("enrollData:", enrollData)
     this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', enrollData, {
       headers: { 'Content-Type': 'application/json' },
     }).subscribe(
