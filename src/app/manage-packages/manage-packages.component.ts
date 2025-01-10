@@ -394,10 +394,10 @@ export class ManagePackagesComponent  implements OnInit {
   }
 
   cancelAppointment(bookingId: string): void {
-    if (confirm('האם אתה בטוח שברצונך לבטל את הפגישה?')) {
+    if (confirm('האם אתה בטוח שברצונך לבטל את האימון?')) {
       this.managePackagesService.cancelAppointment(bookingId).subscribe(
         () => {
-          alert('הפגישה בוטלה בהצלחה');
+          alert('האימון בוטל בהצלחה');
           // Refresh the appointments after cancellation
           if (this.currentPackageId && this.currentPurchaseDate) {
             this.fetchAppointmentsForPackage(this.currentPackageId, this.currentPurchaseDate);
@@ -405,7 +405,7 @@ export class ManagePackagesComponent  implements OnInit {
         },
         (error) => {
           console.error('Error canceling appointment:', error);
-          alert('אירעה שגיאה בעת ביטול הפגישה');
+          alert('אירעה שגיאה בעת ביטול האימון');
         }
       );
     }

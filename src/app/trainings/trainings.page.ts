@@ -233,8 +233,9 @@ export class TrainingsPage implements OnInit {
         let firstToFetch = this.userFavLocation;
         if (this.userFavLocation == "הכל")
           firstToFetch = "בן יהודה"
-        console.log("selectedthis", this.userFavLocation)
+        console.time("fetchTime");
         await this.fetchTrainingsForDateRange(today, endDate, firstToFetch);
+        console.timeEnd("fetchTime");
     } catch (error) {
         console.error('Error loading initial data:', error);
         await this.presentToast('שגיאה בטעינת אימונים', 'danger');
