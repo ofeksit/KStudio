@@ -1,0 +1,34 @@
+.modal-container {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: white;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  }
+  
+  h2.songName {
+    color: black;
+    font-family: 'Alef';
+    font-size: 1.4em;
+    font-weight: 600;
+    line-height: 30px;
+  }
+  
+  img.artistIMG {
+    border-radius: 50px;
+  }
+  
+  ion-button {
+    font-weight: bold;
+  }
+  
+  ion-icon {
+    margin-right: 5px;
+  }
+  
+  ion-thumbnail img {
+    border-radius: 12px;
+  }
+  
