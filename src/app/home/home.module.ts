@@ -13,6 +13,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ProfilePopupComponent } from '../profile-popup/profile-popup.component';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
+import { MusicModalComponent } from '../music-modal/music-modal.component';
 
 
 
@@ -27,7 +28,7 @@ import { ManagePackagesComponent } from '../manage-packages/manage-packages.comp
     MatToolbarModule,
     MatCardModule,
   ],
-  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent, ManagePackagesComponent],
+  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent, ManagePackagesComponent, MusicModalComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

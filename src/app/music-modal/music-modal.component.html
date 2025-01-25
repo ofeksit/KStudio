@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>פלייליסט אימון</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="closeModal()">סגור</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Search Bar -->
+  <ion-searchbar [(ngModel)]="searchQuery" (ionInput)="searchSongs()"></ion-searchbar>
+
+  <!-- Search Results -->
+  <ion-list>
+    <ion-item *ngFor="let song of searchResults">
+      <ion-thumbnail slot="start">
+        <img [src]="song.album?.images[0]?.url || 'assets/default-artist.png'" />
+      </ion-thumbnail>
+      <ion-label>
+        <h2>{{ song.name }}</h2>
+        <p>{{ song.artists[0]?.name }}</p>
+      </ion-label>
+      <ion-button shape="round" fill="outline" (click)="addSong(song)">
+        <ion-icon name="add-circle-outline"></ion-icon> הוסף
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <!-- Selected Songs from Database -->
+  <ion-list *ngIf="selectedSongs.length > 0">
+    <ion-item *ngFor="let song of selectedSongs">
+      <ion-thumbnail slot="start">
+        <img [src]="song.artist_image" class="artistIMG" />
+      </ion-thumbnail>
+      <ion-label>
+        <h2 class="songName">{{ song.song_name }}</h2>
+        <p class="artistName">{{ song.artist_name }}</p>
+      </ion-label>
+      <ion-button color="danger" shape="round" fill="outline" (click)="removeSong(song)">
+        <ion-icon name="trash-outline"></ion-icon> מחק
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

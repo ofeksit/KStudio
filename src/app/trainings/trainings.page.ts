@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { ToastController  } from '@ionic/angular';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
+import { MusicModalComponent } from '../music-modal/music-modal.component';
 
 @Component({
   selector: 'app-trainings',
@@ -85,6 +86,7 @@ export class TrainingsPage implements OnInit {
   private isBenYehudaLoading: boolean = true;
   isTrainer: boolean = false;
 
+  
 
   // Modify the loading getter
   get showSkeleton(): boolean {
@@ -760,6 +762,23 @@ export class TrainingsPage implements OnInit {
   getWeeklyTrainings() {
     // Replace with real API or service to fetch weekly training data
     return [];
+  }
+
+
+  async openMusicModal(training: any) {
+    const modal = await this.modalCtrl.create({
+      component: MusicModalComponent,
+      componentProps: { training }
+    });
+
+    modal.onDidDismiss().then((res) => {
+      if (res.data) {
+        console.log('Selected Songs:', res.data);
+        // Here, you can save the selected songs to the database or display them
+      }
+    });
+
+    return await modal.present();
   }
 
 }
