@@ -1,49 +1,83 @@
-<div #modalContainer class="modal-container">
+<div class="music-modal-container">
   <ion-header>
     <ion-toolbar>
-      <ion-title>פלייליסט אימון</ion-title>
       <ion-buttons slot="end">
-        <ion-button (click)="closeModal()">
-          <ion-icon name="arrow-back-outline"></ion-icon> סגור
+        <ion-button (click)="closeModal()" class="close-button">
+          <ion-icon name="close-outline"></ion-icon>
         </ion-button>
       </ion-buttons>
+      <ion-title>פלייליסט אימון</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
-    <!-- Search Bar -->
-    <ion-searchbar [(ngModel)]="searchQuery" (ionInput)="searchSongs()"></ion-searchbar>
+    <!-- Search Section -->
+    <div class="search-container">
+      <ion-searchbar 
+        #searchInput
+        [(ngModel)]="searchQuery" 
+        (ionInput)="searchSongs()" 
+        (ionClear)="clearSearch()"
+        placeholder="חיפוש"
+        class="custom-searchbar"
+      ></ion-searchbar>
+      
+      <!-- Loading Indicator -->
+      <div *ngIf="isSearching" class="search-loading">
+        <ion-spinner name="lines-small" color="primary"></ion-spinner>
+      </div>
+    </div>
 
     <!-- Search Results -->
-    <ion-list>
-      <ion-item *ngFor="let song of searchResults">
+    <ion-list *ngIf="searchResults.length > 0" class="search-results-list">
+      <ion-item *ngFor="let song of searchResults" class="fade-in">
         <ion-thumbnail slot="start">
-          <img [src]="song.album?.images[0]?.url || 'assets/default-artist.png'" />
+          <img [src]="song.album?.images[0]?.url || 'assets/default-artist.png'" class="song-thumbnail" />
         </ion-thumbnail>
         <ion-label>
           <h2>{{ song.name }}</h2>
           <p>{{ song.artists[0]?.name }}</p>
         </ion-label>
-        <ion-button shape="round" fill="outline" (click)="addSong(song)">
-          <ion-icon name="add-circle-outline"></ion-icon> הוסף
+        <ion-button 
+          *ngIf="!isAddedToSelectedSongs(song)" 
+          (click)="addSong(song)" 
+          color="primary" 
+          fill="clear"
+          class="add-song-btn"
+        >
+          <ion-icon name="add-circle-outline"></ion-icon>
         </ion-button>
       </ion-item>
     </ion-list>
 
-    <!-- Selected Songs from Database -->
-    <ion-list *ngIf="selectedSongs.length > 0">
-      <ion-item *ngFor="let song of selectedSongs">
-        <ion-thumbnail slot="start">
-          <img [src]="song.artist_image" class="artistIMG" />
-        </ion-thumbnail>
-        <ion-label>
-          <h2 class="songName">{{ song.song_name }}</h2>
-          <p class="artistName">{{ song.artist_name }}</p>
-        </ion-label>
-        <ion-button color="danger" shape="round" fill="outline" (click)="removeSong(song)">
-          <ion-icon name="trash-outline"></ion-icon> מחק
-        </ion-button>
-      </ion-item>
-    </ion-list>
+    <!-- Selected Songs -->
+    <div class="selected-songs-container">
+     
+      <ion-list #selectedSongsList class="selected-songs-list">
+        <ion-item *ngFor="let song of selectedSongs" [ngClass]="{ 'fade-in': song.isNew, 'fade-out': song.isFadingOut }">
+          <ion-thumbnail slot="start">
+            <img [src]="song.artist_image" class="artist-image" />
+          </ion-thumbnail>
+          <ion-label>
+            <h2>{{ song.song_name }}</h2>
+            <p>{{ song.artist_name }}</p>
+          </ion-label>
+          <ion-button 
+            *ngIf="song.user_id === userId || userRole === 'administrator' || userRole === 'team'" 
+            (click)="removeSong(song)" 
+            color="danger" 
+            fill="clear"
+            class="remove-song-btn"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="userRole === 'administrator' || userRole === 'team'">
+        <ion-fab-button (click)="createSpotifyPlaylist()" color="success">
+          <ion-icon name="musical-notes-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </div>
   </ion-content>
 </div>

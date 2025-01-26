@@ -418,11 +418,13 @@ ion-tab-button {
   //margin-top: -30px;
   color: #333;
   font-family: 'Alef';
+  margin-left: auto;
 }
 
 .card-header ion-icon {
   font-size: 24px;
   cursor: pointer;
+  margin-left: 10px;
 }
 
 .card-header ion-icon.favorite {

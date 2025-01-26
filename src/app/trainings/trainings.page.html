@@ -103,9 +103,7 @@
         <div class="card-header">
           <h3>{{ appointment.title.name }}</h3>
           <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
-          <ion-button fill="clear" (click)="openMusicModal(appointment)">
-            <ion-icon name="musical-notes"></ion-icon>
-          </ion-button>
+          <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
         </div>
         
         <div class="card-content">
