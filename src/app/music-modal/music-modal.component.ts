@@ -130,16 +130,6 @@ export class MusicModalComponent implements OnInit {
       }, 300); // Matches fade-out animation duration
     }
   }
-  
-
-  scrollToBottom() {
-    setTimeout(() => {
-      this.selectedSongsList.nativeElement.scrollTo({
-        top: this.selectedSongsList.nativeElement.scrollHeight,
-        behavior: 'smooth'
-      });
-    }, 100);
-  }
 
   animateAddSong() {
     setTimeout(() => {
@@ -151,7 +141,6 @@ export class MusicModalComponent implements OnInit {
           .fromTo('transform', 'scale(0.95)', 'scale(1)');
           
         animation.play();
-        this.scrollToBottom();
       }
     }, 50);
   }
@@ -164,7 +153,6 @@ export class MusicModalComponent implements OnInit {
           ...song,
           artist_image: song.artist_image || 'assets/default-artist.png'
         }));
-        this.scrollToBottom();
       },
       (error) => {
         console.error('Error fetching songs:', error);
@@ -216,26 +204,25 @@ export class MusicModalComponent implements OnInit {
       this.presentToast('No songs in the playlist!', 'danger');
       return;
     }
-    console.log("training", this.training);    
-    const playlistName = `${this.training.start_time}`;
-    console.log("playlistName:", playlistName)
-
+    const playlistName = `Training - ${this.training.start_time}`;
+  
     try {
-      // Step 1: Create Playlist
-      const playlistResponse = await this.spotifyService.createPlaylist(playlistName);
-      console.log("playlistResponse:", playlistResponse.id)
+      // Step 1: Create Playlist (Fix: Pass `this.selectedSongs`)
+      const playlistResponse = await this.spotifyService.createPlaylist(playlistName, this.selectedSongs);
+      console.log("playlistResponse:", playlistResponse.id);
       const playlistId = playlistResponse.id;
-
+  
       // Step 2: Get URIs of Selected Songs
       const songUris = this.selectedSongs.map(song => `spotify:track:${song.song_id}`);
-
+  
       // Step 3: Add Songs to Playlist
       await this.spotifyService.addSongsToPlaylist(playlistId, songUris);
-
+  
       this.presentToast(`הפלייליסט נוצר בהצלחה!`, 'success');
     } catch (error) {
       console.error('Error creating playlist:', error);
       this.presentToast('Failed to create playlist', 'danger');
     }
   }
+  
 }
