@@ -31,9 +31,9 @@ export class ManagePackagesService {
   }
 
   getFilteredAppointments(startDate: string, endDate: string, packageCustomerId: number): Observable<any> {
-    console.log("start date:", startDate)
+    //console.log("start date:", startDate)
     const url = `${this.customApiURL}/appointments?startDate=${startDate}&endDate=${endDate}&packageCustomerId=${packageCustomerId}`;
-    console.log("url", url)
+    //console.log("url", url)
     return this.http.get(url);
   }
 

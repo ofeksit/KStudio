@@ -73,33 +73,41 @@ export class MusicModalComponent implements OnInit {
   }
 
   addSong(song: any) {
+    // Log the incoming song data
+    //console.log('Adding song with data:', song);
+  
     const newSong = {
       song_id: song.id,
       song_name: song.name,
       artist_name: song.artists[0]?.name || 'Unknown Artist',
       artist_image: song.album?.images[0]?.url || 'assets/default-artist.png',
       user_id: this.userId,
-      isNew: true, // Mark as new for animation
-      isFadingOut: false // Ensure it's not in fade-out mode
+      duration_ms: song.duration_ms, // Store the raw duration value
+      isNew: true,
+      isFadingOut: false
     };
   
-    // Check if the song is already in the list to prevent duplicates
+    // Log the duration value
+    //console.log(`Duration for ${newSong.song_name}: ${newSong.duration_ms}ms`);
+  
     if (!this.selectedSongs.some(s => s.song_id === newSong.song_id)) {
-      this.selectedSongs.push(newSong); // Add song instantly
+      this.selectedSongs.push(newSong);
+      //console.log('Updated selectedSongs:', this.selectedSongs);
     }
   
-    // Perform API request in the background
+    // Add the API call
     this.spotifyService.addSongToTraining(this.training.id, this.userId, song).subscribe(
       () => {
-        //this.presentToast('Song added successfully', 'success');
+        //console.log(`Added song ${newSong.song_name} with duration ${newSong.duration_ms}ms to training`);
       },
       (error) => {
         console.error('Error adding song:', error);
         this.presentToast('Failed to add song', 'danger');
+        // Remove the song from the local array if the API call fails
+        this.selectedSongs = this.selectedSongs.filter(s => s.song_id !== newSong.song_id);
       }
     );
   
-    // Hide search results and reset search bar
     this.clearSearch();
     this.animateAddSong();
   }
@@ -149,6 +157,7 @@ export class MusicModalComponent implements OnInit {
   loadTrainingSongs() {
     this.spotifyService.getSongsForTraining(this.training.id).subscribe(
       (songs) => {
+        //console.log("Songs received from API:", songs); // Add this line
         this.selectedSongs = songs.map(song => ({
           ...song,
           artist_image: song.artist_image || 'assets/default-artist.png'
@@ -175,9 +184,16 @@ export class MusicModalComponent implements OnInit {
   }
 
   getTotalDuration(): string {
-    const totalSeconds = this.selectedSongs.reduce((total, song) => total + song.duration_ms / 1000, 0);
+    const totalMs = this.selectedSongs.reduce((total, song) => {
+      const duration = typeof song.duration_ms === 'string' 
+        ? parseInt(song.duration_ms) 
+        : song.duration_ms;
+      return total + (isNaN(duration) ? 0 : duration);
+    }, 0);
+    
+    const totalSeconds = Math.floor(totalMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
+    const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
@@ -204,25 +220,28 @@ export class MusicModalComponent implements OnInit {
       this.presentToast('No songs in the playlist!', 'danger');
       return;
     }
+  
     const playlistName = `Training - ${this.training.start_time}`;
   
     try {
-      // Step 1: Create Playlist (Fix: Pass `this.selectedSongs`)
-      const playlistResponse = await this.spotifyService.createPlaylist(playlistName, this.selectedSongs);
-      console.log("playlistResponse:", playlistResponse.id);
-      const playlistId = playlistResponse.id;
+      // Step 1: Create Playlist
+      const playlistId = await this.spotifyService.createPlaylist(playlistName, this.selectedSongs);
   
-      // Step 2: Get URIs of Selected Songs
-      const songUris = this.selectedSongs.map(song => `spotify:track:${song.song_id}`);
+      if (!playlistId) {
+        console.error("❌ Playlist creation failed.");
+        this.presentToast('Failed to create playlist', 'danger');
+        return;
+      }
   
-      // Step 3: Add Songs to Playlist
-      await this.spotifyService.addSongsToPlaylist(playlistId, songUris);
+      //console.log(`🎵 Playlist created with ID: ${playlistId}`);
   
       this.presentToast(`הפלייליסט נוצר בהצלחה!`, 'success');
     } catch (error) {
-      console.error('Error creating playlist:', error);
+      console.error('❌ Error creating playlist:', error);
       this.presentToast('Failed to create playlist', 'danger');
     }
   }
+  
+  
   
 }

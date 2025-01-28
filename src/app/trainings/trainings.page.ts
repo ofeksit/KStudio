@@ -121,7 +121,7 @@ export class TrainingsPage implements OnInit {
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {
-    console.log("selectedTab:", this.selectedFilterAllFav)
+    //console.log("selectedTab:", this.selectedFilterAllFav)
     this.isLoading = true; // Show loading state initially
     try {
 
@@ -370,7 +370,7 @@ export class TrainingsPage implements OnInit {
 
         // Make sure filteredAppointments is also sorted
         this.filteredAppointments = [...this.combinedList];
-        console.log("filtered", this.filteredAppointments)
+        //console.log("filtered", this.filteredAppointments)
         // Update filtered appointments
         this.updateFilteredAppointments();
 
@@ -388,7 +388,7 @@ export class TrainingsPage implements OnInit {
   // Modify the filterFavAll method
   async filterFavAll(event: any) {
     const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value;
-    console.log("selectedTab:", this.selectedFilterAllFav)
+    //console.log("selectedTab:", this.selectedFilterAllFav)
     // Clear current display while switching
     this.combinedList = [];
     this.filteredAppointments = [];
@@ -446,7 +446,7 @@ export class TrainingsPage implements OnInit {
           this.combinedList = [...this.shalomTimeslots, ...this.shalomAppointments];
           this.unfilteredList = [...this.combinedList];
           this.selectedDay = this.shalomDays.length > 0 ? this.shalomDays[0].date : '';
-          console.log("combined List:", this.combinedList);
+          //console.log("combined List:", this.combinedList);
           this.updateFilteredAppointments();
         }
       }
@@ -520,7 +520,7 @@ export class TrainingsPage implements OnInit {
   
   // Add this function to trigger on type change
   onTypeChange() {
-    console.log("Selected type:", this.selectedType);  // Check if the correct type is being selected
+    //console.log("Selected type:", this.selectedType);  // Check if the correct type is being selected
     this.updateFilteredAppointments(); // Reapply the filter
   }
 
@@ -617,7 +617,7 @@ export class TrainingsPage implements OnInit {
     };
   
     this.http.post(url, data).subscribe(response => {
-      console.log('User added to standby list', response);      
+      //console.log('User added to standby list', response);      
       this.isStandbyLoading = false;
       this.isStandbySuccess = true;
   
@@ -685,7 +685,7 @@ export class TrainingsPage implements OnInit {
       bookingStart: formattedBookingStart,
       timeZone: timeZone,
     };
-    console.log("enrollData", enrollData)
+    //console.log("enrollData", enrollData)
     this.platform.ready().then(() => {
       const body = JSON.stringify(enrollData);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', body, {
@@ -773,7 +773,7 @@ export class TrainingsPage implements OnInit {
 
     modal.onDidDismiss().then((res) => {
       if (res.data) {
-        console.log('Selected Songs:', res.data);
+        //console.log('Selected Songs:', res.data);
         // Here, you can save the selected songs to the database or display them
       }
     });
