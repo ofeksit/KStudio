@@ -604,27 +604,27 @@ export class TrainingsPage implements OnInit {
   }
 
   // Function to add user to standby list
-  addToStandbyList(appointmentId: number, customerId: string | null, email: string | null) {
-    this.isStandbyLoading = true;
-    this.isStandbySuccess = false; // Reset success state
+  addToStandbyList(appointment: Appointment, customerId: string | null, email: string | null) {
+    appointment.isStandbyLoading = true;
+    appointment.isStandbySuccess = false; // Reset success state
   
     const url = 'https://k-studio.co.il/wp-json/standby-list/v1/add';
   
     const data = {
-      appointment_id: appointmentId,
+      appointment_id: appointment?.id,
       customer_id: customerId,
       email: email
     };
   
     this.http.post(url, data).subscribe(response => {
       //console.log('User added to standby list', response);      
-      this.isStandbyLoading = false;
-      this.isStandbySuccess = true;
+      appointment.isStandbyLoading = false;
+      appointment.isStandbySuccess = true;
   
   
     }, error => {
       console.error('Error adding user to standby list', error);
-      this.isStandbyLoading = false;
+      appointment.isStandbyLoading = false;
       this.presentToast('שגיאה', 'danger');
     });
   }

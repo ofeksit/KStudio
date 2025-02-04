@@ -17,5 +17,8 @@ export interface Appointment {
   isSuccess?: boolean; //Enrolling Animation
   isError?: boolean; //Enrolling animation
   isUserBooked?: boolean;
-  isStandbyEnrolled?: boolean; // Add this property
+  isStandbyEnrolled?: boolean;
+  isStandbySuccess?: boolean;
+  isStandbyLoading?: boolean;
+  songsCount: number;
 }

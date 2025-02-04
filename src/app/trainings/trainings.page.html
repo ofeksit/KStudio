@@ -104,6 +104,10 @@
           <h3>{{ appointment.title.name }}</h3>
           <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
           <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
+            <!-- Show the badge if there is at least one song -->
+            <!-- <ion-badge  color="primary" class="song-count-badge"> -->
+            <!-- {{ appointment.songsCount }} -->
+            <!-- </ion-badge> -->
         </div>
         
         <div class="card-content">
@@ -158,21 +162,21 @@
               class="action-button" 
               [ngClass]="{
                 'standby-enrolled': appointment.isStandbyEnrolled,
-                'loading': isStandbyLoading && !appointment.isStandbyEnrolled,
-                'success': isStandbySuccess && !appointment.isStandbyEnrolled,
+                'loading': appointment.isStandbyLoading && !appointment.isStandbyEnrolled,
+                'success': appointment.isStandbySuccess && !appointment.isStandbyEnrolled,
                 'error': appointment.isError && !appointment.isStandbyEnrolled
               }" 
-              [disabled]="appointment.isStandbyEnrolled || isStandbyLoading || isStandbySuccess || appointment.isError"
-              (click)="addToStandbyList(appointment?.id ?? 0, userId, userEmail)"
+              [disabled]="appointment.isStandbyEnrolled || appointment.isStandbyLoading || appointment.isStandbySuccess || appointment.isError"
+              (click)="addToStandbyList(appointment ?? 0, userId, userEmail)"
             >
               <ng-container *ngIf="appointment.isStandbyEnrolled"> רשום להמתנה </ng-container>
-              <ng-container *ngIf="!appointment.isStandbyEnrolled && !isStandbyLoading && !isStandbySuccess && !appointment.isError">
+              <ng-container *ngIf="!appointment.isStandbyEnrolled && !appointment.isStandbyLoading && !appointment.isStandbySuccess && !appointment.isError">
                 הרשמה להמתנה
               </ng-container>
-              <ng-container *ngIf="!appointment.isStandbyEnrolled && isStandbyLoading">
+              <ng-container *ngIf="!appointment.isStandbyEnrolled && appointment.isStandbyLoading">
                 <ion-spinner name="crescent"></ion-spinner>
               </ng-container>
-              <ng-container *ngIf="!appointment.isStandbyEnrolled && isStandbySuccess">
+              <ng-container *ngIf="!appointment.isStandbyEnrolled && appointment.isStandbySuccess">
                 <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
               </ng-container>
               <ng-container *ngIf="!appointment.isStandbyEnrolled && appointment.isError">
