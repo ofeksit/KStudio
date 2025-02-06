@@ -47,14 +47,19 @@ export class HomePage implements OnInit {
   isConfirmDialogVisible = false;
   selectedTraining: any;
   selectedIndex: number = 0;
-
+  userId: string | null = '';
+  userEmail: string | null= '';
+  customerId: string | null = '';
+  
   constructor(private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
-    
+    this.userRole = this.authService.getUserRole();
+    this.userId = this.authService.getUserID();
+    this.userEmail = this.authService.getUserEmail();
+    this.customerId = this.authService.getCustomerID();
   }
 
   ngOnInit() {
-    this.userRole = this.authService.getUserRole();
-    this.profileService.fetchSubscriptionExpiryDate(this.authService.getUserID()).subscribe(
+    this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
       (data) => {},
       (error) => { console.error ("Error fetching subscription expiry date", error)}
       );
@@ -97,7 +102,7 @@ export class HomePage implements OnInit {
         },
       });
     }, 0);
-
+    
     this.loadUpcomingTrainings();
     this.setupOneSignal();
   }
@@ -108,11 +113,11 @@ export class HomePage implements OnInit {
     
     // Replace YOUR_ONESIGNAL_APP_ID with your OneSignal App ID
     OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
-    const userEmail = this.authService.getUserEmail();
+    
     // Retrieve the logged-in user's information (from AuthService or another source)
-    if (userEmail) {
+    if (this.userEmail) {
       // Tag the user in OneSignal with their unique ID or email
-      OneSignal.User.addTag("email", userEmail);  // Optional: tag with email as well
+      OneSignal.User.addTag("email", this.userEmail);  // Optional: tag with email as well
     }
     else {
       OneSignal.User.addTag("email", "error");
@@ -165,7 +170,7 @@ export class HomePage implements OnInit {
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
     );
 
-    this.authService.fetchPackageCustomerId(this.authService.getCustomerID()).subscribe(
+    this.authService.fetchPackageCustomerId(this.customerId).subscribe(
       (data) => {},
       (error) => { console.error("Error fetching package customer ID", error)}
     );
@@ -175,15 +180,14 @@ export class HomePage implements OnInit {
       (error) => { console.error("Error fetching role:", error)}
     );
 
-    this.profileService.fetchSubscriptionData(this.authService.getUserID(), this.authService.getCustomerID()).subscribe(
+    this.profileService.fetchSubscriptionData(this.userId, this.customerId).subscribe(
       (data) => {},
       (error) => {}
     );
   }
 
   
-  storeNotification(notificationData: any) {
-    console.log("store notifications:", notificationData);
+  storeNotification(notificationData: any) {    
     // Retrieve existing notifications from localStorage
     let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
 

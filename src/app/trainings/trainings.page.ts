@@ -9,6 +9,7 @@ import { ToastController  } from '@ionic/angular';
 import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 import { MusicModalComponent } from '../music-modal/music-modal.component';
+import { ProfileService } from '../services/profile.service';
 
 @Component({
   selector: 'app-trainings',
@@ -20,12 +21,14 @@ export class TrainingsPage implements OnInit {
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
 
-  //Variables which defines in constructor from other services
+  //Users' Details
   customerID: string | null = ""; //Define customerID from userID | Constructor
   userId: string | null; //Define active user ID | Constructor
   userEmail: string | null = ""; //Define active user email | Constructor
   userFavLocation: string = ""; //Define what's the user's favorite location | Constructor
   userRole: string | null = ""; //Define user's role | Constructor
+  isTrainer: boolean = false;
+  
 
   //Participants popup variables
   showingParticipants = false; //Popup to show participants
@@ -84,7 +87,7 @@ export class TrainingsPage implements OnInit {
 
   private isShalomLoading: boolean = false;
   private isBenYehudaLoading: boolean = true;
-  isTrainer: boolean = false;
+  
 
   
 
@@ -103,10 +106,10 @@ export class TrainingsPage implements OnInit {
               private modalCtrl: ModalController,
               private http: HttpClient,
               private authService: AuthService,
-               private modalCalendar: ModalController)
+              private modalCalendar: ModalController,
+              private profileService: ProfileService )
     {
-      if (this.authService.getUserRole() === 'trainer') {
-        this.isTrainer = true; }
+      if (this.authService.getUserRole() === 'trainer') { this.isTrainer = true; }
       this.userId = this.authService.getUserID();
       this.userEmail = this.authService.getUserEmail();
       this.customerID = this.authService.getCustomerID();
@@ -120,29 +123,27 @@ export class TrainingsPage implements OnInit {
   }
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
-  async ngOnInit() {
-    //console.log("selectedTab:", this.selectedFilterAllFav)
+  async ngOnInit() {    
     this.isLoading = true; // Show loading state initially
     try {
+      if (this.userRole === 'inactive') {
+        this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
+      } else if (this.userRole === 'trial-users') {
+        this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
+      }
 
-        // Wait for the favorite location to be fetched before proceeding
-        const locationResponse = await firstValueFrom(this.authService.fetchUserFavLocation());
-        this.userFavLocation = locationResponse.favorite_location;
+      // Wait for the favorite location to be fetched before proceeding
+      const locationResponse = this.authService.getUserFavLocation();
+      this.userFavLocation = locationResponse;
 
-        // Set the initial tab based on userFavLocation
-        if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-            this.selectedFilterAllFav = 'all';
-        } else if (this.userFavLocation === 'שלום עליכם') {
-            this.selectedFilterAllFav = 'shalom';
-        }
+      // Set the initial tab based on userFavLocation
+      if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+          this.selectedFilterAllFav = 'all';
+      } else if (this.userFavLocation === 'שלום עליכם') {
+          this.selectedFilterAllFav = 'shalom';
+      }
 
-        if (this.userRole === 'inactive') {
-            this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
-        } else if (this.userRole === 'trial-users') {
-            this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
-        }
-        await this.loadInitialData();
-
+      await this.loadInitialData();
     } catch (error) {
         console.error('Error during initialization:', error);
         this.presentToast('שגיאה במשיכת נתונים', 'danger');
@@ -224,20 +225,32 @@ export class TrainingsPage implements OnInit {
           this.isShalomLoading = true;
         }
     try {
-        const today = new Date();
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + 20);
-
-        this.currentDateRange = {
-            start: today,
-            end: endDate
-        };       
-        let firstToFetch = this.userFavLocation;
-        if (this.userFavLocation == "הכל")
-          firstToFetch = "בן יהודה"
-        console.time("fetchTime");
-        await this.fetchTrainingsForDateRange(today, endDate, firstToFetch);
-        console.timeEnd("fetchTime");
+      const today = new Date();
+      const maxEndDate = new Date(today);
+      maxEndDate.setDate(today.getDate() + 20);
+      const expiryDate = this.profileService.getSubscriptionExpiryDate();
+      let endDate = maxEndDate;
+  
+      if (expiryDate != "0") {
+          const subscriptionEndDate = new Date(expiryDate);
+          if (subscriptionEndDate < maxEndDate) {
+              endDate = subscriptionEndDate;
+          }
+      }
+  
+      this.currentDateRange = {
+          start: today,
+          end: endDate
+      };
+  
+      let firstToFetch = this.userFavLocation;
+      
+      if (this.userFavLocation == "הכל")
+          firstToFetch = "בן יהודה";
+  
+      console.time("fetchTime");
+      await this.fetchTrainingsForDateRange(today, endDate, firstToFetch);
+      console.timeEnd("fetchTime");
     } catch (error) {
         console.error('Error loading initial data:', error);
         await this.presentToast('שגיאה בטעינת אימונים', 'danger');
@@ -454,7 +467,8 @@ export class TrainingsPage implements OnInit {
       if (!isDataLoaded) {
         const startDate = new Date();
         const endDate = new Date();
-        endDate.setDate(startDate.getDate() + 30);
+        endDate.setDate(startDate.getDate() + 20);
+        
         await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
       }
     } finally {

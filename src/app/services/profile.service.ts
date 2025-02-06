@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, catchError, first, forkJoin, map, of, tap, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, catchError,  forkJoin, map, of, tap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
-import { Appointment } from '../Models/appointment';
 import { environment } from 'src/environments/environment';
 import { Platform  } from '@ionic/angular';
 import { HTTP } from '@awesome-cordova-plugins/http/ngx';
@@ -121,7 +120,7 @@ export class ProfileService {
   }
   
   fetchSubscriptionExpiryDate(userId: string | null): Observable<{ expiryDate: string }> {
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;
+    const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id={${userId}}`;
   
     return this.http.get<any[]>(url).pipe(
       map((response: any[]) => {
@@ -130,10 +129,8 @@ export class ProfileService {
         }
   
         const firstSubscription = response[0]; // First available subscription
-        console.log("First ", firstSubscription)
         const status = firstSubscription.status;
         let expiryDate: string;
-        console.log("Status:", status)
         let date = new Date();
         if (status === "active") {
           if (firstSubscription.expiry_date != 0)
@@ -142,6 +139,7 @@ export class ProfileService {
             date = new Date(firstSubscription.renewal_date)
           expiryDate = `${date.getDate().toString().padStart(2, '0')}/${
             (date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+          this.storeSubscriptionExpiryDate(expiryDate); // Store the formatted expiry date
           expiryDate = "תוקף המנוי: " + expiryDate
         } else if (status === "on-hold") {
           expiryDate = "המנוי מושהה";
@@ -149,7 +147,6 @@ export class ProfileService {
           expiryDate = "לא נמצא מנוי בתוקף";
         }
   
-        this.storeSubscriptionExpiryDate(expiryDate); // Store the formatted expiry date
         return { expiryDate };
       })
     );
@@ -362,7 +359,7 @@ export class ProfileService {
   }
 
   getSubscriptionExpiryDate() {
-    localStorage.getItem('subscription_expiry_date');
+    return localStorage.getItem('subscription_expiry_date');
   }
 
 }
