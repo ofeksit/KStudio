@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import Swiper from 'swiper';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
@@ -9,12 +9,10 @@ import { ToastController } from '@ionic/angular';
 import { BlocksService, Block } from '../services/blocks.service';
 import { register } from 'swiper/element/bundle';
 import OneSignal from 'onesignal-cordova-plugin';
-import { Appointment } from '../Models/appointment';
 import { AmeliaService } from '../services/amelia-api.service';
 import { UpcomingAppointment } from '../Models/UpcomingAppointment';
 import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
-import { AlertController } from '@ionic/angular';
 import {trigger, style, transition, animate} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 
@@ -50,12 +48,27 @@ export class HomePage implements OnInit {
   selectedTraining: any;
   selectedIndex: number = 0;
 
-  constructor(private alertController: AlertController, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
+  constructor(private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
     
   }
 
   ngOnInit() {
     this.userRole = this.authService.getUserRole();
+    this.profileService.fetchSubscriptionExpiryDate(this.authService.getUserID()).subscribe(
+      (data) => {},
+      (error) => { console.error ("Error fetching subscription expiry date", error)}
+      );
+
+    this.blocksService.getBlocks().subscribe(
+      (data) => { this.fitnessTips = data; this.isLoading = false; },
+      (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
+    );
+
+    this.authService.fetchUserFavLocation().subscribe(
+      (data) => { this.authService.storeFavLocation(data.favorite_location); },
+      (error) => { console.error ("Error fetching user favorite location", error); }
+    );
+
     setTimeout(() => {
       new Swiper('.swiper-container', {
         slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
@@ -86,17 +99,6 @@ export class HomePage implements OnInit {
     }, 0);
 
     this.loadUpcomingTrainings();
-
-    this.blocksService.getBlocks().subscribe(
-      (data) => { this.fitnessTips = data; this.isLoading = false; },
-      (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
-    );
-
-    this.authService.fetchUserFavLocation().subscribe(
-      (data) => { this.authService.storeFavLocation(data.favorite_location); },
-      (error) => { console.error ("Error fetching user favorite location", error); }
-    );
-
     this.setupOneSignal();
   }
   
@@ -140,7 +142,6 @@ export class HomePage implements OnInit {
         this.isLoadingTrainings = false;
       }
     );
-
   }
 
   refreshData(event: any) {
@@ -172,6 +173,11 @@ export class HomePage implements OnInit {
     this.authService.fetchUserRole().subscribe(
       (data) => { this.authService.storeUserRole(data.roles[0]); },
       (error) => { console.error("Error fetching role:", error)}
+    );
+
+    this.profileService.fetchSubscriptionData(this.authService.getUserID(), this.authService.getCustomerID()).subscribe(
+      (data) => {},
+      (error) => {}
     );
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, first, forkJoin, map, of, tap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Appointment } from '../Models/appointment';
 import { environment } from 'src/environments/environment';
@@ -120,6 +120,42 @@ export class ProfileService {
     });
   }
   
+  fetchSubscriptionExpiryDate(userId: string | null): Observable<{ expiryDate: string }> {
+    const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;
+  
+    return this.http.get<any[]>(url).pipe(
+      map((response: any[]) => {
+        if (!response || response.length === 0) {
+          return { expiryDate: "לא נמצא מנוי בתוקף" }; // No active subscription
+        }
+  
+        const firstSubscription = response[0]; // First available subscription
+        console.log("First ", firstSubscription)
+        const status = firstSubscription.status;
+        let expiryDate: string;
+        console.log("Status:", status)
+        let date = new Date();
+        if (status === "active") {
+          if (firstSubscription.expiry_date != 0)
+            date = new Date(firstSubscription.expiry_date)
+          else
+            date = new Date(firstSubscription.renewal_date)
+          expiryDate = `${date.getDate().toString().padStart(2, '0')}/${
+            (date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+          expiryDate = "תוקף המנוי: " + expiryDate
+        } else if (status === "on-hold") {
+          expiryDate = "המנוי מושהה";
+        } else {
+          expiryDate = "לא נמצא מנוי בתוקף";
+        }
+  
+        this.storeSubscriptionExpiryDate(expiryDate); // Store the formatted expiry date
+        return { expiryDate };
+      })
+    );
+  }
+  
+  
   // Function to fetch available package slots and expiry date using customer ID
   fetchAvailablePackageSlots(customerId: string | null): Observable<{ availableSlots: number, expiryDate: string }> {
   const url = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
@@ -166,6 +202,82 @@ export class ProfileService {
     })
   );
   }
+
+  fetchSubscriptionData(userId: string | null, customerId: string | null): Observable<{ 
+    subscriptionId: number; 
+    expiryDate: string; 
+    availableSlots: number; 
+}> {
+  const subscriptionUrl = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;
+  const packageUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
+
+  return forkJoin({
+    subscription: this.http.get<any[]>(subscriptionUrl).pipe(
+      map((response: any[]) => {
+        if (!response || response.length === 0) {
+          return { subscriptionId: 0, expiryDate: "לא נמצא מנוי בתוקף" };
+        }
+
+        const firstSubscription = response[0]; // First available subscription
+        console.log("First ", firstSubscription)
+        const status = firstSubscription.status;
+        let expiryDate: string;
+        console.log("Status:", status)
+        let date = new Date();
+        if (status === "active") {
+          if (firstSubscription.expiry_date != 0)
+            date = new Date(firstSubscription.expiry_date)
+          else
+            date = new Date(firstSubscription.renewal_date)
+          expiryDate = `${date.getDate().toString().padStart(2, '0')}/${
+            (date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+          this.storeSubscriptionExpiryDate(expiryDate)
+          expiryDate = "תוקף המנוי: " + expiryDate
+        } else if (status === "on-hold") {
+          expiryDate = "המנוי מושהה";
+        } else {
+          expiryDate = "לא נמצא מנוי בתוקף";
+        }
+
+        return {
+          subscriptionId: firstSubscription.subscription_id,
+          expiryDate: expiryDate
+        };
+      })
+    ),
+    packageSlots: this.http.get(packageUrl).pipe(
+      map((response: any) => {
+        if (response && response.data && response.data.length > 0) {
+          const packages = response.data[0].packages;
+
+          if (packages && packages.length > 0) {
+            const purchases = packages[0].purchases;
+            const packageCustomerId = purchases[0].packageCustomerId;
+            this.authService.storePackageCustomerID(packageCustomerId); // Store package customer ID
+
+            if (purchases && purchases.length > 0) {
+              const availableSlots = purchases[0].purchase[0].available;
+              return { availableSlots: availableSlots };
+            }
+          }
+        }
+        return { availableSlots: 0 }; // Default if no data found
+      }),
+      catchError((error) => {
+        console.error('Package API Error:', error);
+        return of({ availableSlots: 0 }); // Default on error
+      })
+    )
+  }).pipe(
+    map(({ subscription, packageSlots }) => ({
+      subscriptionId: subscription.subscriptionId,
+      expiryDate: subscription.expiryDate,
+      availableSlots: packageSlots.availableSlots
+    }))
+  );
+}
+
+
 
   getUserPackageCustomerID(){
     let customerId = this.authService.getPackageCustomerId();
@@ -243,6 +355,14 @@ export class ProfileService {
     const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero
     const day = date.getDate().toString().padStart(2, '0'); // Add leading zero
     return `${year}-${month}-${day}`;
+  }
+
+  storeSubscriptionExpiryDate(expiryDate: string) {
+    localStorage.setItem('subscription_expiry_date', expiryDate);
+  }
+
+  getSubscriptionExpiryDate() {
+    localStorage.getItem('subscription_expiry_date');
   }
 
 }

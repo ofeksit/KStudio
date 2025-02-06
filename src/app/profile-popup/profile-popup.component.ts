@@ -8,9 +8,6 @@ import { AmeliaService } from '../services/amelia-api.service';
 import * as moment from 'moment';
 import { Md5 } from 'ts-md5';
 
-
-
-
 @Component({
   selector: 'app-profile-popup',
   templateUrl: './profile-popup.component.html',
@@ -47,7 +44,6 @@ export class ProfilePopupComponent implements AfterViewInit {
   
   
   constructor(
-    private gestureCtrl: GestureController,
     private modalCtrl: ModalController,
     private actionSheetCtrl: ActionSheetController,
     private profileService: ProfileService,
@@ -94,17 +90,35 @@ export class ProfilePopupComponent implements AfterViewInit {
     
     
   async ngOnInit() {
+    /*const subs = this.profileService.fetchSubscriptionExpiryDate(this.userID).subscribe(
+    ({ subscriptionId, expiryDate}) => { this.nextRenewalDate = this.formatDate(expiryDate)},
+    (error) => {console.error(error)}
+    );
+    
     this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe(
       ({ availableSlots, expiryDate }) => {
         this.slotsLeft = availableSlots;  // Assign the available slots
-        this.nextRenewalDate = this.formatDate(expiryDate);  // Format the expiry date
+        //this.nextRenewalDate = this.formatDate(expiryDate);  // Format the expiry date
       },
       (error) => {
         console.error('Error fetching available slots and expiry date:', error);
         this.slotsLeft = 0;
-        this.nextRenewalDate = '';  // Handle error by setting default values
+        //this.nextRenewalDate = '';  // Handle error by setting default values
       }
-    );
+    );*/
+
+    this.profileService.fetchSubscriptionData(this.userID, this.customerID).subscribe(
+      ({ subscriptionId, expiryDate, availableSlots }) => {
+          this.nextRenewalDate = this.formatDate(expiryDate);
+          this.slotsLeft = availableSlots;
+      },
+      (error) => {
+          console.error('Error fetching subscription data:', error);
+          this.slotsLeft = 0;
+          this.nextRenewalDate = '';
+      }
+  );
+  
   
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     //this.profileService.getUserPackageCustomerID(); - SHOULD CHECK IF WORKS WITHOUT IT, FETCHING USER PACKAGECUSTOMERID
