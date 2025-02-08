@@ -99,13 +99,16 @@
   </div>
   <div class="inside-container">
     <div class="header-tabs">
-      <!-- Tabs for Trainings and Purchases -->
+      <!-- Tabs for Trainings, Purchases, and Notes -->
       <ion-segment mode="md" [(ngModel)]="selectedTab" class="segment-tab" (ionChange)="onTabChange($event)">
         <ion-segment-button value="trainings" class="header-tab">
           <ion-label>אימונים</ion-label>
         </ion-segment-button>
         <ion-segment-button value="purchases" class="header-tab">
           <ion-label>רכישות</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="notes" class="header-tab">
+          <ion-label>הערות</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -221,6 +224,20 @@
           </ion-card-header>
         </ion-card>
       </ion-list>
+    </div>
+    <!-- Notes Section -->
+    <div *ngIf="selectedTab === 'notes'">
+      <ion-list>
+        <ion-item *ngFor="let note of userNotes" (swipe)="removeNote(note)">
+          <ion-label>
+            <h2>{{ note.title }}</h2>
+            <p>{{ note.content }}</p>
+          </ion-label>
+          <ion-icon name="trash-outline" slot="end" (click)="removeNote(note)"></ion-icon>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="full" (click)="addNote()">הוסף הערה</ion-button>
     </div>
   </div>
 </ion-content>

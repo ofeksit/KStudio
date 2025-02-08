@@ -480,3 +480,31 @@ ion-item {
 .custom-three-way-toggle input#right:checked + label {
   color: #fff; /* Text color when selected */
 }
+
+/* Add these styles to your existing SCSS file */
+
+.notes-section {
+  padding: 16px;
+}
+
+.note-item {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.note-item h2 {
+  font-size: 1.2em;
+  color: #333;
+}
+
+.note-item p {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.note-item ion-icon {
+  color: #ff6b6b;
+  cursor: pointer;
+}

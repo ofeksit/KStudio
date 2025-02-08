@@ -41,6 +41,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   locationEnabled = false; // Track the toggle state
   favLocation: string | null = "";
   selectedLocation: string = ""; // Default location
+  userNotes: any[] = []; // Array to store user notes
   
   
   constructor(
@@ -50,6 +51,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     private authService: AuthService,
     private toastController: ToastController,
     private ameliaService: AmeliaService,
+    private gestureCtrl: GestureController,
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.translateUserRole(this.authService.getUserRole());
@@ -254,6 +256,21 @@ export class ProfilePopupComponent implements AfterViewInit {
       scrollElement.style.overflowY = 'hidden';
     }
   });
+
+  const noteItems = document.querySelectorAll('.note-item');
+  noteItems.forEach(item => {
+    const gesture = this.gestureCtrl.create({
+      el: item,
+      gestureName: 'swipe',
+      onMove: (ev) => {
+        if (ev.deltaX < -100) {
+          this.removeNote(item);
+        }
+      }
+    });
+    gesture.enable();
+  });
+
   }
 
   closePopup() {
@@ -416,5 +433,22 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.profileService.updateFavoriteLocation(location).subscribe(
       (error) => {
       });
+  }
+
+  // Add a new note
+  addNote() {
+    const newNote = {
+      title: 'New Note',
+      content: 'This is a new note.'
+    };
+    this.userNotes.push(newNote);
+  }
+
+  // Remove a note
+  removeNote(note: any) {
+    const index = this.userNotes.indexOf(note);
+    if (index > -1) {
+      this.userNotes.splice(index, 1);
+    }
   }
 }

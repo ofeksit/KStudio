@@ -228,16 +228,23 @@ export class TrainingsPage implements OnInit {
       const today = new Date();
       const maxEndDate = new Date(today);
       maxEndDate.setDate(today.getDate() + 20);
-      const expiryDate = this.profileService.getSubscriptionExpiryDate();
+      let expiryDate = this.profileService.getSubscriptionExpiryDate();
       let endDate = maxEndDate;
-  
-      if (expiryDate != "0") {
-          const subscriptionEndDate = new Date(expiryDate);
-          if (subscriptionEndDate < maxEndDate) {
-              endDate = subscriptionEndDate;
-          }
+      
+      if (expiryDate)
+      {
+        const [day, month, year] = expiryDate.split("/").map(Number);
+        var expiryDateFormatted = new Date(year, month - 1, day);
+      
+        // Function to find the closer date
+        const closerDate = (endDate: any, expiryDateFormatted: any, today: any) => {
+          return Math.abs(endDate - today) < Math.abs(expiryDateFormatted - today) ? endDate : expiryDateFormatted;
+        };
+
+        endDate = closerDate(endDate, expiryDateFormatted, today);
       }
-  
+
+      
       this.currentDateRange = {
           start: today,
           end: endDate
@@ -286,6 +293,7 @@ export class TrainingsPage implements OnInit {
     try {
       const startDateFormatted = formatDate(startDate);
       const endDateFormatted = formatDate(endDate);
+      console.log("endDateFormatted:", endDateFormatted)
       const encodedLocation = encodeURIComponent(selectedLocation);
       
       const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
@@ -465,11 +473,26 @@ export class TrainingsPage implements OnInit {
       }
   
       if (!isDataLoaded) {
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + 20);
+        const today = new Date();
+        const maxEndDate = new Date(today);
+        maxEndDate.setDate(today.getDate() + 20);
+        let expiryDate = this.profileService.getSubscriptionExpiryDate();
+        let endDate = maxEndDate;
         
-        await this.fetchTrainingsForDateRange(startDate, endDate, selectedLocation);
+        if (expiryDate)
+        {
+          const [day, month, year] = expiryDate.split("/").map(Number);
+          var expiryDateFormatted = new Date(year, month - 1, day);
+        
+          // Function to find the closer date
+          const closerDate = (endDate: any, expiryDateFormatted: any, today: any) => {
+            return Math.abs(endDate - today) < Math.abs(expiryDateFormatted - today) ? endDate : expiryDateFormatted;
+          };
+  
+          endDate = closerDate(endDate, expiryDateFormatted, today);
+        }
+        
+        await this.fetchTrainingsForDateRange(today, endDate, selectedLocation);
       }
     } finally {
       // Reset loading states after all operations
