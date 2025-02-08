@@ -481,30 +481,62 @@ ion-item {
   color: #fff; /* Text color when selected */
 }
 
-/* Add these styles to your existing SCSS file */
+/* Notes Grid */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
 
-.notes-section {
+.note-card {
+  border-radius: 16px;
   padding: 16px;
+  position: relative;
+  //transition: transform 0.2s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+
+
+  
+  &.ion-color-success-light { --background: rgba(167, 243, 208, 0.5); }
+  &.ion-color-purple-light { --background: rgba(221, 214, 254, 0.5); }
+  &.ion-color-pink-light { --background: rgba(251, 207, 232, 0.5); }
+  &.ion-color-warning-light { --background: rgba(254, 243, 199, 0.5); }
+  &.ion-color-cyan-light { --background: rgba(165, 243, 252, 0.5); }
+  &.ion-color-tertiary-light { --background: rgba(249, 168, 212, 0.5); }
 }
 
-.note-item {
-  border-radius: 8px;
+.note-title {
+  font-weight: 600;
+  font-size: 1.1rem;
   margin-bottom: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  color: var(--ion-color-dark);
 }
 
-.note-item h2 {
-  font-size: 1.2em;
-  color: #333;
+.note-content {
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+  flex: 1;
 }
 
-.note-item p {
-  font-size: 0.9em;
-  color: #666;
+.add-note-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  --background: #ff4081;
+  --box-shadow: 0 4px 12px rgba(255, 64, 129, 0.4);
 }
 
-.note-item ion-icon {
-  color: #ff6b6b;
-  cursor: pointer;
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
 }

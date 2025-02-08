@@ -15,6 +15,8 @@ export class ProfileService {
     'Content-Type': 'application/json',
     'Amelia': 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk', // API Key
   });
+  private apiUrl = 'https://k-studio.co.il/wp-json/custom-api/v1';
+
 
   constructor(private platform: Platform, private httpA: HTTP, private http: HttpClient, private authService: AuthService) {}
 
@@ -361,6 +363,28 @@ export class ProfileService {
 
   getSubscriptionExpiryDate() {
     return localStorage.getItem('subscription_expiry_date');
+  }
+
+  // Add a new note
+  addNote(userID: string | null, title: string, content: string, color: string): Observable<any> {
+    const body = { userID, title, content, color };
+    return this.http.post(`${this.apiUrl}/add-note`, body);
+  }
+
+  // Remove a note
+  removeNote(noteId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/remove-note`, { note_id: noteId });
+  }
+
+  // Edit a note
+  editNote(noteId: number, title: string, content: string, color: string): Observable<any> {
+    const body = { note_id: noteId, title, content, color };
+    return this.http.post(`${this.apiUrl}/edit-note`, body);
+  }
+
+  // Get all notes by user ID
+  getNotesByUser(userID: string | null): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-notes-by-user?user_id=${userID}`);
   }
 
 }

@@ -8,6 +8,16 @@ import { AmeliaService } from '../services/amelia-api.service';
 import * as moment from 'moment';
 import { Md5 } from 'ts-md5';
 
+interface Note {
+  id: number;
+  userID: string | null;
+  title: string;
+  content: string;
+  color: string;
+  dragX?: any;
+  opacity?: any;
+}
+
 @Component({
   selector: 'app-profile-popup',
   templateUrl: './profile-popup.component.html',
@@ -41,7 +51,24 @@ export class ProfilePopupComponent implements AfterViewInit {
   locationEnabled = false; // Track the toggle state
   favLocation: string | null = "";
   selectedLocation: string = ""; // Default location
-  userNotes: any[] = []; // Array to store user notes
+  userNotes: Note[] = []; // Array to store user notes
+  colors = ['#D1FAE5', '#E5E7EB', '#FCE7F3', '#FEF3C7', '#CFFAFE', '#FCE7F3'];
+  showUndoToast = false;
+  deletedNote: Note | null = null;
+  deletedNoteIndex: number | null = null;
+  undoTimeout: any;
+  // Define the button structure
+  undoButton = [{
+    text: 'Undo',
+    handler: () => this.undoDelete()
+  }];
+  selectedNote: Note | null = null;
+  isEditModalOpen: boolean = false;
+
+  // Temporary variables for two-way binding
+  editTitle: string = '';
+  editContent: string = '';
+  editColor: string = '';
   
   
   constructor(
@@ -121,7 +148,9 @@ export class ProfilePopupComponent implements AfterViewInit {
       }
   );
   
-  
+    //Fetching Notes For Specific User
+    this.fetchNotes();
+
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     //this.profileService.getUserPackageCustomerID(); - SHOULD CHECK IF WORKS WITHOUT IT, FETCHING USER PACKAGECUSTOMERID
     
@@ -256,21 +285,6 @@ export class ProfilePopupComponent implements AfterViewInit {
       scrollElement.style.overflowY = 'hidden';
     }
   });
-
-  const noteItems = document.querySelectorAll('.note-item');
-  noteItems.forEach(item => {
-    const gesture = this.gestureCtrl.create({
-      el: item,
-      gestureName: 'swipe',
-      onMove: (ev) => {
-        if (ev.deltaX < -100) {
-          this.removeNote(item);
-        }
-      }
-    });
-    gesture.enable();
-  });
-
   }
 
   closePopup() {
@@ -435,20 +449,179 @@ export class ProfilePopupComponent implements AfterViewInit {
       });
   }
 
-  // Add a new note
-  addNote() {
-    const newNote = {
-      title: 'New Note',
-      content: 'This is a new note.'
-    };
-    this.userNotes.push(newNote);
+  // Fetch notes for the user
+  fetchNotes() {
+    this.profileService.getNotesByUser(this.userID).subscribe(response => {
+      if (response.success) {
+        this.userNotes = response.notes;
+      }
+    });
   }
 
+  // Add a new note
+  addNote() {
+    const newColor = this.getRandomColor();
+    this.profileService.addNote(this.userID, 'New Note', 'Click to edit...', newColor).subscribe(response => {
+      if (response.success) {
+        this.userNotes.push({
+          id: response.note_id,
+          userID: this.userID,
+          title: 'New Note',
+          content: 'Click to edit...',
+          color: newColor
+        });
+      }
+    });
+    console.log("NewColor:", newColor)
+  }
+  
+  // Utility function to pick a random color
+  getRandomColor(): string {
+    return this.colors[Math.floor(Math.random() * this.colors.length)];
+  }
+  
   // Remove a note
-  removeNote(note: any) {
-    const index = this.userNotes.indexOf(note);
-    if (index > -1) {
-      this.userNotes.splice(index, 1);
+  removeNote(noteId: number) {
+    const index = this.userNotes.findIndex(note => note.id === noteId);
+    if (index === -1) return;
+  
+    this.deletedNote = this.userNotes[index];
+    this.deletedNoteIndex = index;
+    this.userNotes.splice(index, 1); // Remove note from UI
+  
+    this.showUndoToast = true; // Show undo option
+  
+    this.undoTimeout = setTimeout(() => {
+      this.finalizeDelete(noteId);
+    }, 5000);
+  }
+
+  
+  
+  // Edit a note
+  editNote(note: Note) {
+    this.profileService.editNote(note.id, note.title, note.content, note.color).subscribe(response => {
+      if (response.success) {
+        console.log('Note updated successfully');
+      }
+    });
+  }
+
+
+  private touchStartX: number = 0;
+  private threshold: number = 100; // Minimum swipe distance to delete
+  private maxSwipeDistance: number = window.innerWidth * 0.4; // 40% of screen width
+    
+
+  onTouchStart(event: TouchEvent, noteId: number) {
+    this.touchStartX = event.touches[0].clientX;
+    const note = this.userNotes.find(n => n.id === noteId);
+    if (note) {
+      note.dragX = 0;  // Reset dragging position
+      note.opacity = 1; // Reset opacity
     }
   }
+
+  onTouchMove(event: TouchEvent, noteId: number) {
+    const currentX = event.touches[0].clientX;
+    const diffX = currentX - this.touchStartX;
+  
+    const note = this.userNotes.find(n => n.id === noteId);
+    if (note) {
+      note.dragX = diffX; // Move the note with the swipe
+      note.opacity = Math.max(0.4, 1 - Math.abs(diffX) / this.maxSwipeDistance); // Reduce opacity as it moves
+    }
+  }
+
+  onTouchEnd(noteId: number) {
+    const note = this.userNotes.find(n => n.id === noteId);
+    if (!note) return;
+  
+    if (Math.abs(note.dragX) > this.threshold) {
+      this.animateNoteDeletion(noteId, note.dragX > 0 ? window.innerWidth : -window.innerWidth);
+    } else {
+      this.resetNotePosition(note);
+    }
+  }
+
+  private animateNoteDeletion(noteId: number, targetX: number) {
+    const note = this.userNotes.find(n => n.id === noteId);
+    if (!note) return;
+  
+    note.dragX = targetX; // Move it off the screen
+    note.opacity = 0; // Fade out
+  
+    setTimeout(() => {
+      this.removeNote(noteId);
+    }, 300);
+  }
+  
+  private resetNotePosition(note: any) {
+    note.dragX = 0;
+    note.opacity = 1;
+  }
+
+  undoDelete() {
+    if (this.deletedNote !== null && this.deletedNoteIndex !== null) {
+      this.userNotes.splice(this.deletedNoteIndex, 0, this.deletedNote);
+    }
+  
+    this.deletedNote = null;
+    this.deletedNoteIndex = null;
+    this.showUndoToast = false;
+    clearTimeout(this.undoTimeout);
+  }
+  
+  
+  finalizeDelete(noteId: number) {
+    this.showUndoToast = false;
+    this.deletedNote = null;
+    this.deletedNoteIndex = null;
+  
+    this.profileService.removeNote(noteId).subscribe(response => {
+      console.log("Note deleted from server", response);
+    });
+  }
+
+  openEditPopup(note: Note) {
+    if (!note) return; // Ensure a note is selected
+  
+    this.selectedNote = { ...note }; // Clone the object to avoid modifying the original
+    this.editTitle = note.title;
+    this.editContent = note.content;
+    this.editColor = note.color;
+    
+    this.isEditModalOpen = true;
+  }
+  
+  
+
+  saveNoteChanges() {
+    if (!this.selectedNote) return;
+  
+    this.profileService.editNote(
+      this.selectedNote.id,
+      this.editTitle,
+      this.editContent,
+      this.editColor
+    ).subscribe(response => {
+      if (response.success) {
+        const index = this.userNotes.findIndex(n => n.id === this.selectedNote!.id);
+        if (index !== -1) {
+          this.userNotes[index] = {
+            id: this.selectedNote!.id, // Use "!" to assert it's never null
+            userID: this.selectedNote!.userID ?? '', // Ensure userID is not undefined
+            title: this.editTitle,
+            content: this.editContent,
+            color: this.editColor,
+            dragX: this.selectedNote!.dragX ?? 0, // Provide default value
+            opacity: this.selectedNote!.opacity ?? 1 // Provide default value
+          };          
+        }
+        this.isEditModalOpen = false;
+      }
+    });
+  }
+  
+
 }

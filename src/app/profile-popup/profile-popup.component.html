@@ -227,17 +227,77 @@
     </div>
     <!-- Notes Section -->
     <div *ngIf="selectedTab === 'notes'">
-      <ion-list>
-        <ion-item *ngFor="let note of userNotes" (swipe)="removeNote(note)">
-          <ion-label>
-            <h2>{{ note.title }}</h2>
-            <p>{{ note.content }}</p>
-          </ion-label>
-          <ion-icon name="trash-outline" slot="end" (click)="removeNote(note)"></ion-icon>
-        </ion-item>
-      </ion-list>
+        
+      <div class="notes-grid">
+        <ion-card *ngFor="let note of userNotes" 
+        class="note-card" 
+        [style.backgroundColor]="note.color"
+        [style.transform]="'translateX(' + (note.dragX || 0) + 'px)'"
+        [style.opacity]="note.opacity ?? 1"
+        (touchstart)="onTouchStart($event, note.id)"
+        (touchmove)="onTouchMove($event, note.id)"
+        (touchend)="onTouchEnd(note.id)"
+        (click)="openEditPopup(note)">
+        <ion-card-header>
+          <ion-card-title class="note-title">{{ note.title }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content class="note-content">
+          {{ note.content }}
+        </ion-card-content>
+      <ion-toast
+        [isOpen]="showUndoToast"
+        message="הפתק נמחק בהצלחה."
+        [buttons]="undoButton"
+        duration="5000"
+        (didDismiss)="finalizeDelete(note.id)">
+      </ion-toast>  
+      </ion-card>
 
-      <ion-button expand="full" (click)="addNote()">הוסף הערה</ion-button>
+
+      </div>
+    
+        <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+          <ion-fab-button class="add-note-fab" (click)="addNote()">
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
+        </ion-fab>
     </div>
   </div>
 </ion-content>
+
+
+<!-- Edit Note Modal -->
+<ion-modal [isOpen]="isEditModalOpen" (ionModalDidDismiss)="isEditModalOpen = false">
+  <ion-content>
+    <div class="edit-note-modal">
+      <h2>Edit Note</h2>
+
+      <ion-item>
+        <ion-label position="floating">Title</ion-label>
+        <ion-input [(ngModel)]="editTitle"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Content</ion-label>
+        <ion-textarea [(ngModel)]="editContent"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Color</ion-label>
+        <ion-select [(ngModel)]="editColor">
+          <ion-select-option *ngFor="let color of colors" [value]="color">
+            <span [style.backgroundColor]="color" class="color-preview"></span> {{ color }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <div class="modal-actions">
+        <ion-button color="danger" (click)="isEditModalOpen = false">Cancel</ion-button>
+        <ion-button (click)="saveNoteChanges()">Save</ion-button>
+      </div>
+    </div>
+  </ion-content>
+</ion-modal>
+
+
+
