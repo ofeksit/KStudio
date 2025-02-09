@@ -1,0 +1,78 @@
+.edit-modal-content {
+  --background: rgba(0, 0, 0, 0.5);
+  
+  // Center the modal
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-note-modal {
+  background: white;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+
+  .close-icon {
+    font-size: 24px;
+    color: #666;
+  }
+
+  .header-title {
+    flex: 1;
+    text-align: center;
+    color: var(--ion-color-primary);
+    font-size: 18px;
+    font-weight: 500;
+    margin-right: 24px; // Compensate for close icon width
+  }
+}
+
+.form-content {
+  padding: 16px;
+
+  .input-field {
+    --background: white;
+    --border-color: #eee;
+    --border-width: 1px;
+    --border-style: solid;
+    --border-radius: 8px;
+    --padding-start: 0;
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.save-button {
+  margin: 16px;
+  --border-radius: 8px;
+}
+
+// Animation
+.animate-modal {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

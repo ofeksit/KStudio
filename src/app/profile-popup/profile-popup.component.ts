@@ -1,10 +1,11 @@
-import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, NgZone   } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
 import { ProfileService } from '../services/profile.service';
 import { AuthService } from '../services/auth.service';
 import { Booking } from '../Models/booking';
 import { ToastController } from '@ionic/angular';
 import { AmeliaService } from '../services/amelia-api.service';
+import { EditNoteComponent } from '../edit-note/edit-note.component';
 import * as moment from 'moment';
 import { Md5 } from 'ts-md5';
 
@@ -27,12 +28,16 @@ export class ProfilePopupComponent implements AfterViewInit {
   @ViewChild('popup') popup!: ElementRef;
   
 
+  //#region userVariables
   userName: string | null;  // Fetched dynamically
   userRole: string | null = '';  // Fetched dynamically
   userPhoto: string = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png';  // Placeholder for avatar image
   userEmail: string | null = '';
   userID: string | null = '';
   customerID: string | null = '';
+  //#endregion
+
+  //#region Trainings/Purchases Variables
   knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   nextRenewalDate?: string;  // Subscription specific
   slotsLeft?: number;  // Amelia package specific
@@ -51,6 +56,10 @@ export class ProfilePopupComponent implements AfterViewInit {
   locationEnabled = false; // Track the toggle state
   favLocation: string | null = "";
   selectedLocation: string = ""; // Default location
+  isLoadingSubscriptionData = false;
+  //#endregion
+
+  //#region NotesVariables
   userNotes: Note[] = []; // Array to store user notes
   colors = ['#D1FAE5', '#E5E7EB', '#FCE7F3', '#FEF3C7', '#CFFAFE', '#FCE7F3'];
   showUndoToast = false;
@@ -59,7 +68,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   undoTimeout: any;
   // Define the button structure
   undoButton = [{
-    text: 'Undo',
+    text: 'בטל',
     handler: () => this.undoDelete()
   }];
   selectedNote: Note | null = null;
@@ -69,7 +78,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   editTitle: string = '';
   editContent: string = '';
   editColor: string = '';
-  
+  //#endregion
   
   constructor(
     private modalCtrl: ModalController,
@@ -79,6 +88,9 @@ export class ProfilePopupComponent implements AfterViewInit {
     private toastController: ToastController,
     private ameliaService: AmeliaService,
     private gestureCtrl: GestureController,
+    private editNoteModalCtrl: ModalController,
+    private cdRef: ChangeDetectorRef,
+    private ngZone: NgZone,
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.translateUserRole(this.authService.getUserRole());
@@ -97,12 +109,6 @@ export class ProfilePopupComponent implements AfterViewInit {
         console.error("Error fetching user fav location", error);
       }
     })
-            
-    this.authService.fetchPackageCustomerId(this.customerID).subscribe({
-      error: (error) => {
-        console.error("Error fetching package id", error);
-      }
-    })
   } 
 
   setGravatarUrl(){
@@ -119,32 +125,18 @@ export class ProfilePopupComponent implements AfterViewInit {
     
     
   async ngOnInit() {
-    /*const subs = this.profileService.fetchSubscriptionExpiryDate(this.userID).subscribe(
-    ({ subscriptionId, expiryDate}) => { this.nextRenewalDate = this.formatDate(expiryDate)},
-    (error) => {console.error(error)}
-    );
-    
-    this.profileService.fetchAvailablePackageSlots(this.customerID).subscribe(
-      ({ availableSlots, expiryDate }) => {
-        this.slotsLeft = availableSlots;  // Assign the available slots
-        //this.nextRenewalDate = this.formatDate(expiryDate);  // Format the expiry date
-      },
-      (error) => {
-        console.error('Error fetching available slots and expiry date:', error);
-        this.slotsLeft = 0;
-        //this.nextRenewalDate = '';  // Handle error by setting default values
-      }
-    );*/
-
+    this.isLoadingSubscriptionData = false;
     this.profileService.fetchSubscriptionData(this.userID, this.customerID).subscribe(
       ({ subscriptionId, expiryDate, availableSlots }) => {
           this.nextRenewalDate = this.formatDate(expiryDate);
           this.slotsLeft = availableSlots;
+          this.isLoadingSubscriptionData = true;
       },
       (error) => {
           console.error('Error fetching subscription data:', error);
           this.slotsLeft = 0;
           this.nextRenewalDate = '';
+          this.isLoadingSubscriptionData = true;
       }
   );
   
@@ -362,19 +354,6 @@ export class ProfilePopupComponent implements AfterViewInit {
     }
   }
 
-  translateStatus(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'מאושר';  // Hebrew for "approved"
-      case 'cancelled':
-        return 'בוטל';  // Hebrew for "cancelled"
-      case 'pending':
-        return 'ממתין';  // Hebrew for "pending"
-      default:
-        return 'לא ידוע';  // Hebrew for "unknown"
-    }
-  }
-
   cancelBooking(bookingId: string) {
     this.profileService.cancelBooking(bookingId).subscribe(
       (data: any) => {
@@ -449,7 +428,8 @@ export class ProfilePopupComponent implements AfterViewInit {
       });
   }
 
-  // Fetch notes for the user
+  //#region NotesFunctions
+  // Fetch notes for user
   fetchNotes() {
     this.profileService.getNotesByUser(this.userID).subscribe(response => {
       if (response.success) {
@@ -472,12 +452,16 @@ export class ProfilePopupComponent implements AfterViewInit {
         });
       }
     });
-    console.log("NewColor:", newColor)
+    
   }
   
   // Utility function to pick a random color
   getRandomColor(): string {
     return this.colors[Math.floor(Math.random() * this.colors.length)];
+  }
+
+  trackByNoteId(index: number, note: any): number {
+    return note.id; // Ensure this is unique for each note
   }
   
   // Remove a note
@@ -485,11 +469,13 @@ export class ProfilePopupComponent implements AfterViewInit {
     const index = this.userNotes.findIndex(note => note.id === noteId);
     if (index === -1) return;
   
-    this.deletedNote = this.userNotes[index];
+    this.deletedNote = { ...this.userNotes[index] }; // Store deleted note copy
     this.deletedNoteIndex = index;
     this.userNotes.splice(index, 1); // Remove note from UI
   
     this.showUndoToast = true; // Show undo option
+  
+    console.log("Note deleted, waiting for undo...");
   
     this.undoTimeout = setTimeout(() => {
       this.finalizeDelete(noteId);
@@ -555,7 +541,7 @@ export class ProfilePopupComponent implements AfterViewInit {
       this.removeNote(noteId);
     }, 300);
   }
-  
+   
   private resetNotePosition(note: any) {
     note.dragX = 0;
     note.opacity = 1;
@@ -563,65 +549,94 @@ export class ProfilePopupComponent implements AfterViewInit {
 
   undoDelete() {
     if (this.deletedNote !== null && this.deletedNoteIndex !== null) {
+      console.log("Undoing delete...");
+  
+      // Reset opacity and dragX for the deleted note
+      this.deletedNote.opacity = 1; // Reset opacity to fully visible
+      this.deletedNote.dragX = 0;   // Reset dragX to 0 (no horizontal translation)
+  
+      // Reinsert the deleted note back into the array
       this.userNotes.splice(this.deletedNoteIndex, 0, this.deletedNote);
+  
+      console.log("Updated userNotes:", this.userNotes); // Debugging line
+  
+      // Reset state
+      this.deletedNote = null;
+      this.deletedNoteIndex = null;
+      this.showUndoToast = false;
+      clearTimeout(this.undoTimeout);
+  
+      // Force Angular to detect changes
+      this.cdRef.detectChanges();
+    }
+  }
+
+  finalizeDelete(noteId: number | null | undefined) {
+    if (!noteId) {
+      this.showUndoToast = false;
+      return;
     }
   
-    this.deletedNote = null;
-    this.deletedNoteIndex = null;
-    this.showUndoToast = false;
-    clearTimeout(this.undoTimeout);
-  }
-  
-  
-  finalizeDelete(noteId: number) {
     this.showUndoToast = false;
     this.deletedNote = null;
     this.deletedNoteIndex = null;
   
     this.profileService.removeNote(noteId).subscribe(response => {
-      console.log("Note deleted from server", response);
+      console.log("Note permanently deleted from server", response);
     });
   }
-
-  openEditPopup(note: Note) {
-    if (!note) return; // Ensure a note is selected
   
-    this.selectedNote = { ...note }; // Clone the object to avoid modifying the original
+  async openEditPopup(note: Note) {
+    if (!note) return;
+  
+    this.selectedNote = { ...note };
     this.editTitle = note.title;
     this.editContent = note.content;
     this.editColor = note.color;
-    
-    this.isEditModalOpen = true;
+  
+    console.log("Opening Edit Modal for Note:", this.selectedNote);
+  
+    const modal = await this.editNoteModalCtrl.create({
+      component: EditNoteComponent,
+      componentProps: {
+        title: this.editTitle,
+        content: this.editContent,
+        color: this.editColor,
+        onSave: (newTitle: string, newContent: string, newColor: string) => {
+          this.saveNoteChanges(newTitle, newContent, newColor);
+        }
+      }
+    });
+  
+    return await modal.present();
   }
   
   
-
-  saveNoteChanges() {
+  saveNoteChanges(newTitle: string, newContent: string, newColor: string) {
     if (!this.selectedNote) return;
+  
+    console.log("Saving Note Changes:", this.selectedNote.id, newTitle, newContent, newColor);
   
     this.profileService.editNote(
       this.selectedNote.id,
-      this.editTitle,
-      this.editContent,
-      this.editColor
+      newTitle,
+      newContent,
+      newColor
     ).subscribe(response => {
       if (response.success) {
         const index = this.userNotes.findIndex(n => n.id === this.selectedNote!.id);
         if (index !== -1) {
           this.userNotes[index] = {
-            id: this.selectedNote!.id, // Use "!" to assert it's never null
-            userID: this.selectedNote!.userID ?? '', // Ensure userID is not undefined
-            title: this.editTitle,
-            content: this.editContent,
-            color: this.editColor,
-            dragX: this.selectedNote!.dragX ?? 0, // Provide default value
-            opacity: this.selectedNote!.opacity ?? 1 // Provide default value
-          };          
+            ...this.selectedNote!,
+            title: newTitle,
+            content: newContent,
+            color: newColor
+          };
         }
-        this.isEditModalOpen = false;
+        console.log("Note Updated Successfully");
       }
     });
-  }
-  
 
+  }
+//#endregion Notes Functions
 }

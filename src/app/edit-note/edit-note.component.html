@@ -1,0 +1,24 @@
+<ion-content class="edit-modal-content" (click)="closeModal()">
+  <div class="edit-note-modal animate-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <ion-icon name="close-outline" class="close-icon" (click)="closeModal()"></ion-icon>
+      <span class="header-title">Edit Note</span>
+    </div>
+
+    <div class="form-content">
+      <ion-item class="input-field">
+        <ion-label position="stacked">Title</ion-label>
+        <ion-input [(ngModel)]="title"></ion-input>
+      </ion-item>
+
+      <ion-item class="input-field">
+        <ion-label position="stacked">Content</ion-label>
+        <ion-textarea [(ngModel)]="content" rows="6" autoGrow="true"></ion-textarea>
+      </ion-item>
+    </div>
+
+    <ion-button class="save-button" expand="block" (click)="saveChanges()">
+      Save Note
+    </ion-button>
+  </div>
+</ion-content>

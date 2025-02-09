@@ -14,7 +14,7 @@ import { ProfilePopupComponent } from '../profile-popup/profile-popup.component'
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 import { MusicModalComponent } from '../music-modal/music-modal.component';
-
+import { EditNoteComponent } from '../edit-note/edit-note.component';
 
 
 @NgModule({
@@ -28,7 +28,7 @@ import { MusicModalComponent } from '../music-modal/music-modal.component';
     MatToolbarModule,
     MatCardModule,
   ],
-  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent, ManagePackagesComponent, MusicModalComponent],
+  declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent, ManagePackagesComponent, MusicModalComponent, EditNoteComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePageModule {}

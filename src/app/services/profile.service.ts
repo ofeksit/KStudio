@@ -207,7 +207,7 @@ export class ProfileService {
     expiryDate: string; 
     availableSlots: number; 
 }> {
-  console.log("Enters fetchSubscriptionData function in profile service");
+  
   const subscriptionUrl = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;
   const packageUrl = `https://k-studio.co.il/wp-json/wn/v1/package-purchases/${customerId}`;
 
@@ -219,10 +219,9 @@ export class ProfileService {
         }
 
         const firstSubscription = response[0]; // First available subscription
-        console.log("First ", firstSubscription)
         const status = firstSubscription.status;
         let expiryDate: string;
-        console.log("Status:", status)
+        
         let date = new Date();
         if (status === "active") {
           if (firstSubscription.expiry_date != 0)
