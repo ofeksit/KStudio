@@ -79,6 +79,10 @@ export class ProfilePopupComponent implements AfterViewInit {
   editContent: string = '';
   editColor: string = '';
   //#endregion
+
+  private gesture: any;
+  private startY = 0;
+  private modalHeight = 0;
   
   constructor(
     private modalCtrl: ModalController,
@@ -89,8 +93,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     private ameliaService: AmeliaService,
     private gestureCtrl: GestureController,
     private editNoteModalCtrl: ModalController,
-    private cdRef: ChangeDetectorRef,
-    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef
   ) {
     this.userName = this.authService.getUserFullName();    
     this.userRole = this.translateUserRole(this.authService.getUserRole());
@@ -268,15 +271,70 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-  // Wait until the DOM is fully rendered
-  const scrollElements = document.querySelectorAll('.scroll-y');
+    // Get the modal height for calculations
+    this.modalHeight = this.popup.nativeElement.offsetHeight;
+    
+    // Create the gesture
+    this.gesture = this.gestureCtrl.create({
+      el: this.popup.nativeElement,
+      gestureName: 'modal-drag',
+      direction: 'y',
+      onStart: (detail) => {
+        // Store initial touch position
+        this.startY = detail.currentY;
+        // Enable hardware acceleration
+        this.popup.nativeElement.style.transition = 'none';
+      },
+      onMove: (detail) => {
+        const deltaY = detail.currentY - this.startY;
+        
+        // Only allow downward drag
+        if (deltaY >= 0) {
+          // Apply transform with some resistance
+          const resistance = 0.4;
+          const transform = deltaY * resistance;
+          this.popup.nativeElement.style.transform = `translateY(${transform}px)`;
+          
+          // Calculate opacity based on drag distance
+          const opacity = 1 - (transform / (this.modalHeight * 0.5));
+          this.popup.nativeElement.style.opacity = opacity.toString();
+        }
+      },
+      onEnd: (detail) => {
+        // Reset transition for smooth animation
+        this.popup.nativeElement.style.transition = '0.3s ease-out';
+        
+        const deltaY = detail.currentY - this.startY;
+        const velocity = detail.velocityY;
+        
+        // Dismiss if:
+        // 1. Dragged down more than 25% of modal height OR
+        // 2. Flicked down with sufficient velocity
+        if (deltaY > this.modalHeight * 0.25 || (deltaY > 50 && velocity > 0.5)) {
+          // Animate out
+          this.popup.nativeElement.style.transform = `translateY(100%)`;
+          this.popup.nativeElement.style.opacity = '0';
+          
+          // Dismiss the modal after animation
+          setTimeout(() => {
+            this.modalCtrl.dismiss();
+          }, 300);
+        } else {
+          // Reset position
+          this.popup.nativeElement.style.transform = 'none';
+          this.popup.nativeElement.style.opacity = '1';
+        }
+      }
+    });
 
-  scrollElements.forEach((scrollElement) => {
-    if (scrollElement instanceof HTMLElement) {
-      // Override the overflow-y style dynamically
-      scrollElement.style.overflowY = 'hidden';
+    // Enable the gesture
+    this.gesture.enable(true);
+  }
+
+  ngOnDestroy() {
+    if (this.gesture) {
+      this.gesture.destroy();
     }
-  });
   }
 
   closePopup() {
@@ -441,13 +499,13 @@ export class ProfilePopupComponent implements AfterViewInit {
   // Add a new note
   addNote() {
     const newColor = this.getRandomColor();
-    this.profileService.addNote(this.userID, 'New Note', 'Click to edit...', newColor).subscribe(response => {
+    this.profileService.addNote(this.userID, 'פתק חדש', 'לחץ כדי לערוך...', newColor).subscribe(response => {
       if (response.success) {
         this.userNotes.push({
           id: response.note_id,
           userID: this.userID,
-          title: 'New Note',
-          content: 'Click to edit...',
+          title: 'פתק חדש',
+          content: 'לחץ כדי לערוך...',
           color: newColor
         });
       }
@@ -594,22 +652,21 @@ export class ProfilePopupComponent implements AfterViewInit {
     this.editContent = note.content;
     this.editColor = note.color;
   
-    console.log("Opening Edit Modal for Note:", this.selectedNote);
-  
     const modal = await this.editNoteModalCtrl.create({
       component: EditNoteComponent,
       componentProps: {
         title: this.editTitle,
         content: this.editContent,
         color: this.editColor,
-        onSave: (newTitle: string, newContent: string, newColor: string) => {
-          this.saveNoteChanges(newTitle, newContent, newColor);
-        }
-      }
+        onSave: this.saveNoteChanges.bind(this)
+      },
+      cssClass: 'edit-note-modal-wrapper', // Ensure CSS is applied correctly
     });
   
-    return await modal.present();
+    await modal.present();
   }
+  
+  
   
   
   saveNoteChanges(newTitle: string, newContent: string, newColor: string) {

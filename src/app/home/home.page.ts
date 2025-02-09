@@ -239,8 +239,8 @@ export class HomePage implements OnInit {
       component: TrainingsPage,
       cssClass: 'trainings-popup',
       presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
-      breakpoints: [0, 0.85, 1],
-      initialBreakpoint: 0.85,
+      breakpoints: [0, 0.90, 1],
+      initialBreakpoint: 0.90,
     });
 
     // Disable scrolling when the modal is opened
@@ -268,6 +268,7 @@ export class HomePage implements OnInit {
         presentingElement: await this.modalCtrl2.getTop(),
         breakpoints: [0, 0.85, 1],
         initialBreakpoint: 0.85,
+        handle: true,
       });
   
       // Disable scrolling when the modal is opened

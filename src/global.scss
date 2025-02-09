@@ -96,3 +96,7 @@ button {
   .scroll-y {
     overflow-y: hidden !important; /* Force hiding of vertical overflow */
   }
+
+  .ion-page {
+    --ion-background-color: transparent !important;
+  }

@@ -114,6 +114,10 @@ ion-button {
   margin-top: 10px;
 }
 
+ion-segment.days-tabs {
+  border-bottom: 1px solid grey;
+}
+
 //Each ion Segment
 .filter-segment {
   color: red;
@@ -208,11 +212,11 @@ ion-item {
 
 /* Tab styling */
 .custom-tabs {
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  //border: 1px solid #ccc;
+  //border-radius: 10px;
   //padding: 10px 20px;
-  background-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  //background-color: white;
+  //box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   position: relative; /* Make sure the indicator stays within the button */
   --background-activated: transparent; /* Remove grey background when clicked */
   --background-focused: transparent; /* Remove grey background when focused */
@@ -245,7 +249,7 @@ ion-item {
   width: 80%;
   height: 4px;
   background: #59c7cd;
-  border-radius: 12px;
+  //border-radius: 12px;
   transition: all 0.3s ease;
 }
 
@@ -259,11 +263,19 @@ ion-item {
   width: 80%;
   height: 4px;
   background: #59c7cd; /* Default color */
-  border-radius: 12px;
+  //border-radius: 12px;
   transition: all 0.3s ease;
 }
 
+.scroll-container {
+  overflow-x: auto;  /* Keep scrolling */
+  -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
 
+.scroll-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome, Safari, and Edge */
+}
 
 /* Shalom underline color */
 .custom-underline-shalom.segment-button-checked::after {

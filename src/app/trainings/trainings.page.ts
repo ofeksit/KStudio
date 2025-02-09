@@ -165,7 +165,7 @@ export class TrainingsPage implements OnInit {
 
   //Extract 
   extractAvailableDays() {
-    const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const hebrewDays = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'ש\''];
     const today = new Date().toISOString().split('T')[0];
 
     const allDates = this.combinedList

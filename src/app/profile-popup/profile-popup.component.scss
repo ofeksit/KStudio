@@ -491,7 +491,7 @@ ion-item {
   border-radius: 16px;
   padding: 16px;
   position: relative;
-  //transition: transform 0.2s ease;
+  transition: transform 0.2s ease;
   min-height: 120px;
   display: flex;
   flex-direction: column;
@@ -533,10 +533,45 @@ ion-item {
 
 .notes-header {
   display: flex;
-  
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-  }
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 20px;
+  font-weight: bold;
+  position: relative;
+}
+
+/* Floating Add Button */
+.add-note-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.add-note-header {
+  margin-right: 5%;
+}
+
+/* Icon inside the button */
+.add-note-button ion-icon {
+  font-size: 22px;
+}
+
+/* Hover/Click effect */
+.add-note-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.add-note-button:active {
+  transform: scale(0.95);
 }

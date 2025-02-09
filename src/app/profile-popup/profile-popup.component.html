@@ -1,4 +1,4 @@
-<ion-content class="popup-modal" #popup #mainContentProfile>
+<ion-content class="popup-modal profile-page" #popup>
   <!-- Drag handle -->
   <div class="drag-handle"></div>
 
@@ -88,13 +88,13 @@
     <ion-chip>
       <ion-icon name="barbell-outline" color="medium"></ion-icon>
       <ion-label *ngIf="isLoadingSubscriptionData">{{slotsLeft}} אימונים נותרו</ion-label>
-      <ion-skeleton-text [animated]="true" *ngIf="!isLoadingSubscriptionData"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" *ngIf="!isLoadingSubscriptionData" style="width: 100px;"></ion-skeleton-text>
     </ion-chip>
 
     <ion-chip>
       <ion-icon name="calendar-outline" color="medium"></ion-icon>
       <ion-label *ngIf="isLoadingSubscriptionData">{{nextRenewalDate}}</ion-label>
-      <ion-skeleton-text [animated]="true" *ngIf="!isLoadingSubscriptionData"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" *ngIf="!isLoadingSubscriptionData" style="width: 140px;"></ion-skeleton-text>
     </ion-chip>
   </div>
   </div>
@@ -117,27 +117,28 @@
     </div>
 
     <!--Skeleton Section-->
-    <ion-list *ngIf="isLoading">
-          <ion-list-header>
-            <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
-          </ion-list-header>
-          <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
-            <ion-thumbnail slot="start">
-              <ion-skeleton-text [animated]="true"></ion-skeleton-text>
-            </ion-thumbnail>
-            <ion-label>
-              <h3>
-                <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
-              </h3>
-              <p>
-                <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
-              </p>
-              <p>
-                <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
-              </p>
-            </ion-label>
-          </ion-item>
+    <ion-list *ngIf="isLoading && (selectedTab === 'trainings' || selectedTab === 'purchases')">
+      <ion-list-header>
+        <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+      </ion-list-header>
+      <ion-item *ngFor="let i of [1, 2, 3, 4]" lines="none" class="skeleton-item">
+        <ion-thumbnail slot="start">
+          <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+        </ion-thumbnail>
+        <ion-label>
+          <h3>
+            <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+          </h3>
+          <p>
+            <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+          </p>
+          <p>
+            <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+          </p>
+        </ion-label>
+      </ion-item>
     </ion-list>
+
 
     <!-- List of User's Appointments -->
     <div *ngIf="selectedTab === 'trainings'">
@@ -228,11 +229,17 @@
         </ion-card>
       </ion-list>
     </div>
-    <!-- Notes Section -->
-    <div *ngIf="selectedTab === 'notes'">
-      <div class="notes-grid">
-        
-        <ion-card *ngFor="let note of userNotes; trackBy: trackByNoteId" 
+  <!-- Notes Section -->
+  <div *ngIf="selectedTab === 'notes'">
+    <!-- Improved Header -->
+    <div class="add-note-header">
+      <button class="add-note-button" (click)="addNote()">
+        <ion-icon name="add-outline" color="white"></ion-icon>
+      </button>
+    </div>
+
+    <div class="notes-grid">
+      <ion-card *ngFor="let note of userNotes; trackBy: trackByNoteId" 
         class="note-card" 
         [style.backgroundColor]="note.color"
         [style.transform]="'translateX(' + (note.dragX || 0) + 'px)'"
@@ -241,13 +248,14 @@
         (touchmove)="onTouchMove($event, note.id)"
         (touchend)="onTouchEnd(note.id)"
         (click)="openEditPopup(note)">
+        
         <ion-card-header class="notes-header">
           <ion-card-title class="note-title">{{ note.title }}</ion-card-title>
         </ion-card-header>
+        
         <ion-card-content class="note-content">
           {{ note.content }}
         </ion-card-content>
-        </ion-card>
 
         <ion-toast
         [isOpen]="showUndoToast"
@@ -256,16 +264,11 @@
         duration="5000"
         (didDismiss)="deletedNote?.id ? finalizeDelete(deletedNote?.id) : null">
         </ion-toast>
-      </div>
-      
-
-    
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button class="add-note-fab" (click)="addNote()">
-          <ion-icon name="add"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
+      </ion-card>
     </div>
+  </div>
+
+
   </div>
 </ion-content>
 
