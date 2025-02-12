@@ -41,7 +41,7 @@
 
 body {
   font-family: 'Alef', sans-serif;
-  background: #f4f4f9;
+  background: #fff;
   color: #333;  
 }
 
@@ -93,10 +93,22 @@ button {
     transform: translateY(-4px);
   }
 
-  .scroll-y {
-    overflow-y: hidden !important; /* Force hiding of vertical overflow */
-  }
-
   .ion-page {
     --ion-background-color: transparent !important;
   }
+
+  html, body {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  
+  ion-content {
+    --overflow: auto;
+    will-change: transform;
+  }
+  
+  ion-content::part(scroll) {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  

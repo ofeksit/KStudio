@@ -65,6 +65,7 @@
   font-family: 'Alef';
 }
 
+
 ion-textarea {
   //text-indent: 10px;
   margin-right: 10px;
@@ -90,6 +91,17 @@ ion-input {
     &:last-child {
       margin-bottom: 0;
     }
+  }
+
+  .input-field-content {
+    --background: white;
+    --border-color: #eee;
+    --border-width: 1px;
+    --border-style: solid;
+    --border-radius: 8px;
+    --padding-start: 0;
+    margin-bottom: 16px;
+    max-height: 400px;
   }
 }
 

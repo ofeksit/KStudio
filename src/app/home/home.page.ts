@@ -239,8 +239,8 @@ export class HomePage implements OnInit {
       component: TrainingsPage,
       cssClass: 'trainings-popup',
       presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
-      breakpoints: [0, 0.90, 1],
-      initialBreakpoint: 0.90,
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
     });
 
     // Disable scrolling when the modal is opened
@@ -266,8 +266,8 @@ export class HomePage implements OnInit {
         component: ProfilePopupComponent,
         cssClass: 'profile-popup',
         presentingElement: await this.modalCtrl2.getTop(),
-        breakpoints: [0, 0.85, 1],
-        initialBreakpoint: 0.85,
+        breakpoints: [0, 1],
+        initialBreakpoint: 1,
         handle: true,
       });
   
@@ -290,8 +290,8 @@ export class HomePage implements OnInit {
         component: ManagePackagesComponent,
         cssClass: 'managePackages-popup',
         presentingElement: await this.modalCtrl3.getTop(),
-        breakpoints: [0, 0.85, 1],
-        initialBreakpoint: 0.85,
+        breakpoints: [0, 1],
+        initialBreakpoint: 1,
       });
   
       // Disable scrolling when the modal is opened

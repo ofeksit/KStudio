@@ -239,6 +239,7 @@
     </div>
 
     <div class="notes-grid">
+      <ion-label *ngIf="userNotes.length == 0" class="notes-not-found">לא נמצאו פתקים</ion-label>
       <ion-card *ngFor="let note of userNotes; trackBy: trackByNoteId" 
         class="note-card" 
         [style.backgroundColor]="note.color"

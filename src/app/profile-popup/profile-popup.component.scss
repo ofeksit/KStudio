@@ -531,6 +531,13 @@ ion-item {
   --box-shadow: 0 4px 12px rgba(255, 64, 129, 0.4);
 }
 
+ion-label.notes-not-found {
+  font-family: "Alef";
+  text-align: center;
+  margin-top: 20%;
+  color: grey;
+}
+
 .notes-header {
   display: flex;
   justify-content: space-between;

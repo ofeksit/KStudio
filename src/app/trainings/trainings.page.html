@@ -28,20 +28,28 @@
 
       <div *ngIf="!showSkeleton">
         <!-- Scrolling Tabs for Days -->
-        <ion-segment scrollable mode="md" [(ngModel)]="selectedDay" class="days-tabs" (ionChange)="onDayChange($event.detail.value ?? '')">
-          <ion-segment-button 
-            *ngFor="let day of days" 
-            value="{{ day.date }}" 
-            class="custom-tabs"
-            [ngStyle]="{'--color': selectedDay === day.date ? '#000000' : '#808080'}"
-            [ngClass]="[
-              selectedFilterAllFav === 'shalom' ? 'custom-underline-shalom' : 
-              selectedFilterAllFav === 'favorites' ? 'custom-underline-favorites' : 
-              'custom-underline-default'
-            ]">
-            <ion-label>{{ day.formattedDate }} {{ day.day }}</ion-label>
-          </ion-segment-button>
-        </ion-segment>
+        
+        <!-- template.html -->
+        <div class="segment-container">
+          <div class="segment-scroll" #segmentScroll>
+            <ng-container *ngFor="let day of days">
+              <button 
+                #segmentButton
+                class="segment-button" 
+                [class.active]="selectedDay === day.date"
+                (click)="onDayChange(day.date)">
+                <span class="segment-label">{{ day.formattedDate }} | {{ day.day }} </span>
+              </button>
+            </ng-container>
+            <div 
+              class="segment-indicator"
+              [ngStyle]="{'transform': 'translateX(' + indicatorPosition + 'px)'}">
+            </div>
+          </div>
+        </div>
+        
+          
+
         <div class="filter-header" *ngIf="!showSkeleton">
           <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
             <ion-icon name="options-outline" slot="start"></ion-icon>

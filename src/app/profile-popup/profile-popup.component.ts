@@ -271,9 +271,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Get the modal height for calculations
-    this.modalHeight = this.popup.nativeElement.offsetHeight;
-    
+     
     // Create the gesture
     this.gesture = this.gestureCtrl.create({
       el: this.popup.nativeElement,
@@ -537,7 +535,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   
     this.undoTimeout = setTimeout(() => {
       this.finalizeDelete(noteId);
-    }, 5000);
+    }, 2500);
   }
 
   

@@ -107,11 +107,21 @@ ion-button {
 
 //Each ion Segment
 .segment-tab .days-tabs {
-  overflow-x: hidden;
-  --background: #fff;
-  //--indicator-color: #3498db;
-  --border-radius: 10px;
-  margin-top: 10px;
+  //overflow-x: hidden;
+  //--background: #fff;
+  //--indicator-color: #ff3c00;
+  //--border-radius: 10px;
+  //color: grey;
+  //margin-top: 10px;
+}
+
+// Hide scrollbar but keep functionality
+.scroll-container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 ion-segment.days-tabs {
@@ -223,7 +233,7 @@ ion-item {
   --background: transparent; /* Ensure the default background is transparent */
   font-size: 1em;
   --color-checked: #333;
-  --color: #666;
+  --color: #ff0000;
   //padding: 10px;
   padding-bottom: 10px;
   width: 90%;
@@ -617,4 +627,76 @@ ion-spinner {
   top: -5px;
   right: -5px;
   font-size: 0.7rem;
+}
+
+
+/* General Styles */
+// styles.scss
+.segment-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 8px 0;
+}
+
+.segment-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 32px;
+  padding: 0 16px;
+  position: relative;
+  border-bottom: 2px #c7c7c7 solid;
+  padding-bottom: 10px;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.segment-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: fit-content;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px 0;
+  
+  &.active {
+    color: black;
+    
+    .segment-label {
+      font-weight: 600;
+    }
+  }
+  
+  &:not(.active) {
+    color: #999;
+    
+    &:hover {
+      color: #666;
+    }
+  }
+}
+
+.segment-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.segment-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.segment-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 48px;
+  background-color: black;
+  transition: transform 0.3s ease;
 }

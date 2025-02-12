@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ModalController, SegmentValue } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
@@ -16,10 +16,14 @@ import { ProfileService } from '../services/profile.service';
   templateUrl: './trainings.page.html',
   styleUrls: ['./trainings.page.scss'],
 })
-export class TrainingsPage implements OnInit {
+export class TrainingsPage implements AfterViewInit {
   
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
+  @ViewChildren('segmentButton') segmentButtons!: QueryList<ElementRef>;
+  @ViewChild('segmentScroll', { static: true }) segmentScroll!: ElementRef;
+
+
 
   //Users' Details
   customerID: string | null = ""; //Define customerID from userID | Constructor
@@ -72,6 +76,8 @@ export class TrainingsPage implements OnInit {
 
   allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
   tabLoadingState: boolean = false;
+  indicatorPosition = 0;
+
 
   // Add scrolling days for each location
   private benYehudaDays: { formattedDate: any; date: string; day: string }[] = [];
@@ -121,6 +127,15 @@ export class TrainingsPage implements OnInit {
         }
       })
   }
+  
+
+  ngAfterViewInit() {
+    this.updateIndicatorPosition();
+    this.segmentButtons.changes.subscribe(() => {
+      this.updateIndicatorPosition();
+    });
+  }
+
 
   //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
   async ngOnInit() {    
@@ -403,7 +418,26 @@ export class TrainingsPage implements OnInit {
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
     this.selectedDay = String(selectedDay || ''); // Convert to a string and handle undefined
+    this.updateIndicatorPosition();
     this.updateFilteredAppointments(); // Update appointments based on the selected day
+  }
+
+  private updateIndicatorPosition() {
+    setTimeout(() => {
+      if (this.segmentButtons && this.segmentButtons.length > 0) {
+        const index = this.days.findIndex(s => s.date === this.selectedDay);
+        if (index !== -1) {
+          const button = this.segmentButtons.toArray()[index]?.nativeElement;
+          if (button && this.segmentScroll?.nativeElement) {
+            this.indicatorPosition = button.offsetLeft - this.segmentScroll.nativeElement.offsetLeft;
+          }
+        }
+      }
+    });
+  }
+
+  getIndicatorPosition(): number {
+    return this.indicatorPosition;
   }
 
   // Modify the filterFavAll method
@@ -817,5 +851,7 @@ export class TrainingsPage implements OnInit {
 
     return await modal.present();
   }
+
+  
 
 }
