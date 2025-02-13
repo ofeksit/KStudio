@@ -130,10 +130,9 @@ export class TrainingsPage implements AfterViewInit {
   
 
   ngAfterViewInit() {
-    this.updateIndicatorPosition();
-    this.segmentButtons.changes.subscribe(() => {
+    setTimeout(() => {
       this.updateIndicatorPosition();
-    });
+    }, 100); // Small delay for rendering
   }
 
 
@@ -424,17 +423,36 @@ export class TrainingsPage implements AfterViewInit {
 
   private updateIndicatorPosition() {
     setTimeout(() => {
-      if (this.segmentButtons && this.segmentButtons.length > 0) {
-        const index = this.days.findIndex(s => s.date === this.selectedDay);
-        if (index !== -1) {
-          const button = this.segmentButtons.toArray()[index]?.nativeElement;
-          if (button && this.segmentScroll?.nativeElement) {
-            this.indicatorPosition = button.offsetLeft - this.segmentScroll.nativeElement.offsetLeft;
+      if (!this.segmentButtons || this.segmentButtons.length === 0) {
+        console.warn("segmentButtons is empty!");
+        return;
+      }
+  
+      const index = this.days.findIndex(s => s.date === this.selectedDay);
+      console.log("Selected Day:", this.selectedDay);
+      console.log("Found Index:", index);
+  
+      if (index !== -1) {
+        const button = this.segmentButtons.toArray()[index]?.nativeElement;
+        console.log("Button Exists:", !!button);
+  
+        if (button && this.segmentScroll?.nativeElement) {
+          const rect = button.getBoundingClientRect();
+          const scrollRect = this.segmentScroll.nativeElement.getBoundingClientRect();
+          this.indicatorPosition = rect.left - scrollRect.left;
+  
+          console.log("Indicator Position:", this.indicatorPosition);
+  
+          // Check if the indicator is within a valid range
+          if (this.indicatorPosition < 0 || this.indicatorPosition > this.segmentScroll.nativeElement.clientWidth) {
+            console.warn("Indicator Position is out of bounds!", this.indicatorPosition);
           }
         }
       }
-    });
+    }, 50);
   }
+  
+  
 
   getIndicatorPosition(): number {
     return this.indicatorPosition;
