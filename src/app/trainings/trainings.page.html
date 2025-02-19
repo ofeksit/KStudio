@@ -38,7 +38,8 @@
                 class="segment-button" 
                 [class.active]="selectedDay === day.date"
                 (click)="onDayChange(day.date)">
-                <span class="segment-label">{{ day.formattedDate }} | {{ day.day }} </span>
+                <span class="segment-label">{{ day.day }} </span>
+                <span class="segment-label">{{ day.formattedDate }}</span>
               </button>
             </ng-container>
             <div 
@@ -51,15 +52,21 @@
           
 
         <div class="filter-header" *ngIf="!showSkeleton">
-          <ion-button class="filter-button" (click)="toggleFilterDropdown()" fill="outline">
-            <ion-icon name="options-outline" slot="start"></ion-icon>
-            סינון
-          </ion-button>
-          <ion-icon name="calendar-outline" class="calendar-icon" (click)="openCalendarPopup()" *ngIf="!this.isTrainer"></ion-icon>
+          <button class="icon-button" 
+        (click)="toggleFilterDropdown($event)" 
+        [@buttonState]="getDropdownState()">
+            <i class="filter-icon"><ion-icon name="filter-outline" class="filter-icon"></ion-icon></i>
+          </button>
+          <button class="icon-button calendar-button">
+            <i class="calendar-icon"><ion-icon name="calendar-outline" class="calendar-icon" (click)="openCalendarPopup()" *ngIf="!this.isTrainer"></ion-icon></i>
+          </button>
         </div>        
 
         <!-- Modern Dropdown for Filters -->
-        <ion-list *ngIf="showDropdown" class="filter-dropdown">
+        <ion-list class="filter-dropdown"
+        [@dropdownState]="getDropdownState()" 
+        (@dropdownState.done)="dropdownAnimationDone($event)"
+        *ngIf="showDropdown || isAnimating">
           <ion-item>
             <ion-label style="text-indent: 8px;">סוג אימון</ion-label>
             <ion-select [(ngModel)]="selectedType" interface="popover" placeholder="בחר סוג אימון" (ionChange)="onTypeChange()">

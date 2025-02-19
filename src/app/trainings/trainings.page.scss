@@ -19,21 +19,50 @@
   align-items: center; /* Vertically align items */
   justify-content: center; /* Center the filter button */
   position: relative; /* Allows for absolute positioning of the calendar icon */
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
-.calendar-icon {
-  position: absolute;
-  left: 16px; /* Adjust the left spacing as needed */
-  font-size: 24px; /* Adjust the icon size if necessary */
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%); /* Align to the middle of the row */
+/* Base styles for both buttons */
+.icon-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 12px;
 }
 
-.filter-button {
-  font-size: 16px; /* Optional: Adjust the button font size */
-  padding: 8px 16px; /* Optional: Adjust padding for better aesthetics */
+.icon-button:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Individual positioning */
+.calendar-button {
+  margin-left: 16px;
+}
+
+/* Icon styling */
+.calendar-icon, .filter-icon {
+  position: static; /* Remove absolute positioning */
+  font-size: 18px; /* More appropriate size */
+  transform: none; /* Remove transform */
+  color: #222222; /* Dark gray color similar to Airbnb */
+}
+
+/* Container for the buttons */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+}
 
 /* Full-width card styling */
 .training-card {
@@ -326,14 +355,15 @@ ion-item {
   background: #373737; /* Use the desired color for the שלום עליכם tab */
 }
 
+/*
 .filter-button {
-  --border-radius: 30px;  /* Rounded button */
-  --padding-start: 15px;  /* Padding inside button */
+  --border-radius: 30px;  /* Rounded button 
+  --padding-start: 15px;  /* Padding inside button 
   --padding-end: 15px;
   --background: #fff;
   --box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  --color: #000;          /* Black text color */
-  --icon-size: 20px;      /* Adjust the icon size */
+  --color: #000;          /* Black text color 
+  --icon-size: 20px;      /* Adjust the icon size 
   --border-color: #E5E5E5;
   display: flex;
   justify-content: center;
@@ -343,9 +373,10 @@ ion-item {
   margin-top: 20px;
 }
 
+
 .filter-button:hover {
-  --background: #f5f5f5;  /* Slight color change on hover */
-}
+  --background: #f5f5f5;  /* Slight color change on hover 
+}*/
 
 
 .clear-filter-icon {
@@ -363,6 +394,10 @@ ion-item {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 15px;
   width: 100%;
+  
+  &.ng-animating {
+    pointer-events: none; // Prevent interaction during animation
+  }
 }
 
 ion-select {
@@ -647,6 +682,7 @@ ion-spinner {
   position: relative;
   border-bottom: 2px #c7c7c7 solid;
   padding-bottom: 10px;
+  font-family: 'Alef';
   
   &::-webkit-scrollbar {
     display: none;
@@ -669,6 +705,7 @@ ion-spinner {
     
     .segment-label {
       font-weight: 600;
+      font-size: 14px;
     }
   }
   
@@ -689,6 +726,7 @@ ion-spinner {
 .segment-label {
   font-size: 14px;
   font-weight: 500;
+  line-height: 20px;
 }
 
 .segment-indicator {

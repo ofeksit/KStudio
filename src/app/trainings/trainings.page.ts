@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations'
 import { ModalController, SegmentValue } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import * as moment from 'moment';
@@ -15,6 +16,33 @@ import { ProfileService } from '../services/profile.service';
   selector: 'app-trainings',
   templateUrl: './trainings.page.html',
   styleUrls: ['./trainings.page.scss'],
+  animations: [
+    trigger('buttonState', [
+      state('open', style({
+        transform: 'rotate(180deg)',
+        // Other "on" styles
+      })),
+      state('closed', style({
+        transform: 'rotate(0deg)',
+        // Return to original styles
+      })),
+      transition('closed <=> open', animate('200ms ease-in-out'))
+    ]),
+    trigger('dropdownState', [
+      state('open', style({
+        opacity: 1,
+        transform: 'translateY(0)',
+        height: '*'
+      })),
+      state('closed', style({
+        opacity: 0,
+        transform: 'translateY(-10px)',
+        height: '0'
+      })),
+      transition('closed => open', animate('200ms ease-out')),
+      transition('open => closed', animate('200ms ease-in'))
+    ])
+  ]
 })
 export class TrainingsPage implements AfterViewInit {
   
@@ -93,6 +121,7 @@ export class TrainingsPage implements AfterViewInit {
 
   private isShalomLoading: boolean = false;
   private isBenYehudaLoading: boolean = true;
+  isAnimating: any;
   
 
   
@@ -666,9 +695,57 @@ export class TrainingsPage implements AfterViewInit {
     localStorage.setItem('favoriteTrainings', JSON.stringify(favorites));
   }
 
-  // Toggle dropdown visibility
-  toggleFilterDropdown() {
+  // Enhanced toggle dropdown method
+  toggleFilterDropdown(event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    if (this.isAnimating) {
+      return;
+    }
+    
     this.showDropdown = !this.showDropdown;
+    this.isAnimating = true;
+    
+    if (this.showDropdown) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+  }
+
+  // New method to close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  handleOutsideClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const dropdown = document.querySelector('.filter-dropdown');
+    const filterButton = document.querySelector('.filter-icon')?.parentElement;
+    const trainingList = document.querySelector('.training-list'); // Add selector for your training list
+    
+    if (this.showDropdown && 
+        dropdown && filterButton &&
+        !dropdown.contains(target) && 
+        !filterButton.contains(target) &&
+        !trainingList?.contains(target)) { // Don't close if clicking on training list
+      this.showDropdown = false;
+      document.body.classList.remove('no-scroll');
+    }
+  }
+
+  // Optional: handle animation completion
+  dropdownAnimationDone(event: any) {
+    // Only mark animation as complete when it's actually done
+    if (event.toState === 'closed' && !this.showDropdown) {
+      this.isAnimating = false;
+    } else if (event.toState === 'open' && this.showDropdown) {
+      this.isAnimating = false;
+    }
+  }
+
+  // Get animation state for template binding
+  getDropdownState(): string {
+    return this.showDropdown ? 'open' : 'closed';
   }
 
   //Calculate progress bar
