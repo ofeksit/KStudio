@@ -705,7 +705,7 @@ ion-spinner {
     
     .segment-label {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 16px;
     }
   }
   
@@ -724,7 +724,7 @@ ion-spinner {
 }
 
 .segment-label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 20px;
 }
@@ -732,7 +732,7 @@ ion-spinner {
 .segment-indicator {
   position: absolute;
   bottom: -2px;
-  left: 0;
+  left: -3.3%;
   height: 4px; // Ensure visible height
   width: 48px; // Ensure visible width
   background-color: black;

@@ -49,7 +49,9 @@ export class TrainingsPage implements AfterViewInit {
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
   @ViewChildren('segmentButton') segmentButtons!: QueryList<ElementRef>;
-  @ViewChild('segmentScroll', { static: true }) segmentScroll!: ElementRef;
+  @ViewChild('segmentScroll') segmentScroll!: ElementRef;
+  @ViewChild('indicator') indicator!: ElementRef;
+
 
 
 
@@ -104,7 +106,8 @@ export class TrainingsPage implements AfterViewInit {
 
   allAvailableDays: string[] = []; // Keeps all loaded days for the scrolling bar
   tabLoadingState: boolean = false;
-  indicatorPosition = 0;
+  indicatorPosition = 357;
+  indicatorWidth = 20;
 
 
   // Add scrolling days for each location
@@ -122,6 +125,7 @@ export class TrainingsPage implements AfterViewInit {
   private isShalomLoading: boolean = false;
   private isBenYehudaLoading: boolean = true;
   isAnimating: any;
+  renderer: any;
   
 
   
@@ -450,38 +454,30 @@ export class TrainingsPage implements AfterViewInit {
     this.updateFilteredAppointments(); // Update appointments based on the selected day
   }
 
-  private updateIndicatorPosition() {
-    setTimeout(() => {
-      if (!this.segmentButtons || this.segmentButtons.length === 0) {
-        console.warn("segmentButtons is empty!");
-        return;
+private updateIndicatorPosition() {
+  setTimeout(() => {
+    if (!this.segmentButtons || this.segmentButtons.length === 0) {
+      return;
+    }
+
+    const index = this.days.findIndex(s => s.date === this.selectedDay);
+    
+    if (index !== -1) {
+      const button = this.segmentButtons.toArray()[index]?.nativeElement;
+      
+      if (button && this.segmentScroll?.nativeElement) {
+        const rect = button.getBoundingClientRect();
+        const scrollRect = this.segmentScroll.nativeElement.getBoundingClientRect();
+        
+        // Calculate center position of the button
+        this.indicatorPosition = (rect.left - scrollRect.left) + (button.offsetWidth / 2) - (this.indicatorWidth / 2);
+        
+        // Add this property to your component
+        this.renderer.setStyle(this.indicator.nativeElement, 'transform', `translateX(${this.indicatorPosition}px)`);
       }
-  
-      const index = this.days.findIndex(s => s.date === this.selectedDay);
-      console.log("Selected Day:", this.selectedDay);
-      console.log("Found Index:", index);
-  
-      if (index !== -1) {
-        const button = this.segmentButtons.toArray()[index]?.nativeElement;
-        console.log("Button Exists:", !!button);
-  
-        if (button && this.segmentScroll?.nativeElement) {
-          const rect = button.getBoundingClientRect();
-          const scrollRect = this.segmentScroll.nativeElement.getBoundingClientRect();
-          this.indicatorPosition = rect.left - scrollRect.left;
-  
-          console.log("Indicator Position:", this.indicatorPosition);
-  
-          // Check if the indicator is within a valid range
-          if (this.indicatorPosition < 0 || this.indicatorPosition > this.segmentScroll.nativeElement.clientWidth) {
-            console.warn("Indicator Position is out of bounds!", this.indicatorPosition);
-          }
-        }
-      }
-    }, 50);
-  }
-  
-  
+    }
+  }, 50);
+}
 
   getIndicatorPosition(): number {
     return this.indicatorPosition;
