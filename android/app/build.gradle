@@ -7,8 +7,8 @@ android {
       applicationId "io.kstudio.os"
       minSdkVersion rootProject.ext.minSdkVersion
       targetSdkVersion rootProject.ext.targetSdkVersion
-      versionCode 15
-      versionName "3.2"
+      versionCode 16
+      versionName "3.3"
       testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
       aaptOptions {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
