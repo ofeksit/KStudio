@@ -850,12 +850,13 @@ private updateIndicatorPosition() {
     //console.log("enrollData", enrollData)
     this.platform.ready().then(() => {
       const body = JSON.stringify(enrollData);
-      this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', body, {
+      this.http.post('https://k-studio.co.il/wp-json/wn/v1/enrollTraining', body, {
         headers: {
           'Content-Type': 'application/json',
         },
       }).subscribe(
         (response: any) => {
+          console.log("Response:", response)
           // Handle null responses
           if (response.message === null || response.data === null) {
             this.presentToast('שגיאה: לא נמצאה חבילה זמינה', 'danger');

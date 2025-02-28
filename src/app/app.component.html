@@ -1,3 +1,14 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>
+
+<!-- Custom Update Dialog -->
+<div class="custom-dialog" *ngIf="isUpdateDialogVisible">
+  <div class="dialog-content">
+    <h3>ישששש התחדשנו!</h3>
+    <p>שוחררה גרסה חדשה עם חידושים מגניבים. שנתעדכן? 😍</p>
+    <div class="dialog-buttons">
+      <button class="cancel-button" (click)="updateApp()">עדכן כעת</button>
+    </div>
+  </div>
+</div>
