@@ -67,8 +67,8 @@ export class AppComponent implements OnInit {
   }
 
   updateApp() {
-    window.open('https://play.google.com/store/apps/details?id=io.kstudio.os'); //For Android
-    //window.open('https://apps.apple.com/us/app/kstudio/id6737809810'); // For iPhone
+    //window.open('https://play.google.com/store/apps/details?id=io.kstudio.os'); //For Android
+    window.open('https://apps.apple.com/us/app/kstudio/id6737809810'); // For iPhone
   }
 
   checkLoginStatus() {

@@ -180,7 +180,7 @@ ion-content {
   width: 100%;
   padding: 10px 15px;
   position: relative;
-  //padding-top: 35px; /* iPhone ONLY!!! */
+  padding-top: 35px; /* iPhone ONLY!!! */
 }
 
 
@@ -278,8 +278,8 @@ ion-card {
   align-items: center;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Adds subtle shadow for depth */
   z-index: 1000; /* Ensures it stays on top of other content */  
-  //padding-bottom: 50px; //Check iPhone next version
-  //padding-top: 30px; //Check iPhone next version
+  padding-bottom: 50px; //Check iPhone next version
+  padding-top: 30px; //Check iPhone next version
 }
 
 .ios .ion-padding {
