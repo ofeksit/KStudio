@@ -12,6 +12,9 @@ import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.compone
 import { MusicModalComponent } from '../music-modal/music-modal.component';
 import { ProfileService } from '../services/profile.service';
 
+
+
+
 @Component({
   selector: 'app-trainings',
   templateUrl: './trainings.page.html',
@@ -778,7 +781,7 @@ private updateIndicatorPosition() {
       email: email
     };
   
-    this.http.post(url, data).subscribe(response => {
+    this.http.post(url, data).subscribe(() => {
       //console.log('User added to standby list', response);      
       appointment.isStandbyLoading = false;
       appointment.isStandbySuccess = true;
@@ -943,7 +946,5 @@ private updateIndicatorPosition() {
 
     return await modal.present();
   }
-
-  
 
 }
