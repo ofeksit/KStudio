@@ -11,6 +11,7 @@ import { Platform } from '@ionic/angular';
 import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.component';
 import { MusicModalComponent } from '../music-modal/music-modal.component';
 import { ProfileService } from '../services/profile.service';
+import { CalendarService  } from '../services/calendar.service';
 
 
 
@@ -149,7 +150,8 @@ export class TrainingsPage implements AfterViewInit {
               private http: HttpClient,
               private authService: AuthService,
               private modalCalendar: ModalController,
-              private profileService: ProfileService )
+              private profileService: ProfileService,
+            private calendarService: CalendarService )
     {
       if (this.authService.getUserRole() === 'trainer') { this.isTrainer = true; }
       this.userId = this.authService.getUserID();
@@ -945,6 +947,19 @@ private updateIndicatorPosition() {
     });
 
     return await modal.present();
+  }
+
+  addTrainingToCalendar() {
+    const startDate = new Date('2025-03-15T10:00:00'); // Example training date
+    const endDate = new Date('2025-03-15T12:00:00');   // 2-hour training
+
+    this.calendarService.addEventToCalendar(
+      'Gym Training Session',
+      'Smart Zone Gym, Tel Aviv',
+      'Your booked training session at Smart Zone Gym',
+      startDate,
+      endDate
+    );
   }
 
 }
