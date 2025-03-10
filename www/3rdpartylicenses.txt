@@ -66,6 +66,9 @@ MIT
 @angular/router
 MIT
 
+@awesome-cordova-plugins/calendar
+MIT
+
 @awesome-cordova-plugins/core
 MIT
 
