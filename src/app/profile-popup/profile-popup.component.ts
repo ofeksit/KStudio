@@ -324,9 +324,6 @@ export class ProfilePopupComponent implements AfterViewInit {
         }
       }
     });
-
-    // Enable the gesture
-    this.gesture.enable(true);
   }
 
   ngOnDestroy() {

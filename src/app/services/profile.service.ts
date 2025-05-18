@@ -122,7 +122,7 @@ export class ProfileService {
   }
   
   fetchSubscriptionExpiryDate(userId: string | null): Observable<{ expiryDate: string }> {
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id={${userId}}`;
+    const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;
   
     return this.http.get<any[]>(url).pipe(
       map((response: any[]) => {

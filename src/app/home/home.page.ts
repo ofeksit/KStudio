@@ -60,7 +60,8 @@ export class HomePage implements OnInit {
 
   ngOnInit() {
     this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
-      (error) => { console.error ("Error fetching subscription expiry date", error)}
+      (data) => { },
+      (error) => { console.error ("Error fetching subscription expiry datssse", error)}
       );
 
     this.blocksService.getBlocks().subscribe(

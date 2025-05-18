@@ -112,3 +112,8 @@ button {
     backface-visibility: hidden;
   }
   
+  ion-app {
+    padding-top: constant(safe-area-inset-top); /* legacy */
+    padding-top: env(safe-area-inset-top);
+  }
+  

@@ -5,6 +5,8 @@ import { AmeliaService } from './services/amelia-api.service';
 import { Platform } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 import { HttpClient } from '@angular/common/http';
+import { StatusBar, Style } from '@capacitor/status-bar';
+
 
 
 
@@ -17,7 +19,7 @@ register();
 })
 export class AppComponent implements OnInit {
 
-  currentVesion = '2.1';
+  currentVesion = '2.2';
   latestVersionUrl = 'https://k-studio.co.il/app-version.json';
   isUpdateDialogVisible = false;
 
@@ -31,10 +33,26 @@ export class AppComponent implements OnInit {
       ) {
     
     // Force light theme on app startup
-    document.body.setAttribute('data-theme', 'light');
+    document.body.setAttribute('data-theme', 'dark');
+    this.initializeApp();
   }
 
-  
+  async initializeApp() {
+    await this.platform.ready();
+
+    // Set background color to black
+    await StatusBar.setBackgroundColor({ color: '#000000' });
+
+    // Set light style for white icons
+    await StatusBar.setStyle({ style: Style.Light });
+
+    // Make sure it's visible
+    await StatusBar.show();
+
+    // Prevent content from going behind it
+    document.body.style.setProperty('padding-top', 'env(safe-area-inset-top)');
+  }
+
   ngOnInit() {
     this.checkLoginStatus();
     this.ameliaService.fetchTitleTrainings("main").then(

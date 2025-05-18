@@ -3,11 +3,9 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
-    "LiveUpdates": {
-      "appId": "51618994",
-      "channel": "Producsstion",
-      "autoUpdateMethod": "background",
-      "maxVersions": 2
+    "StatusBar": {
+      "backgroundColor": "#000000",
+      "style": "LIGHT"
     }
   },
   "cordova": {

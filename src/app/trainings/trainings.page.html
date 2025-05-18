@@ -118,10 +118,6 @@
           <h3>{{ appointment.title.name }}</h3>
           <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
           <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
-          <button class="action-button calendar-button" (click)="addTrainingToCalendar()">
-            <ion-icon name="calendar-outline" (click)="addTrainingToCalendar()"></ion-icon>
-            <span>הוסף ליומן</span>
-          </button>
             <!-- Show the badge if there is at least one song -->
             <!-- <ion-badge  color="primary" class="song-count-badge"> -->
             <!-- {{ appointment.songsCount }} -->
