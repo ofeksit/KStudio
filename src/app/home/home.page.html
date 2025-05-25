@@ -1,3 +1,8 @@
+<ion-app>
+  <ion-router-outlet></ion-router-outlet>
+  <joy-ride></joy-ride> </ion-app>
+
+
 <ion-content class="ion-padding ion-iphone" #mainContent>
   <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
     <ion-refresher-content
@@ -24,6 +29,14 @@
     </ion-button>
   </div>
 
+    <!-- Upcoming Trainings Section -->
+  <div id="home-upcoming-trainings-section" 
+      joyrideStep="upcomingTrainingsStep" 
+      title="אימונים קרובים" 
+      text="כאן תוכל לראות את האימונים הקרובים שלך.">
+    <!-- Your upcoming trainings content -->
+  </div>
+
   <ion-card-title class="homepage-subtitle">אימונים קרובים</ion-card-title>
 
   <div *ngIf="isLoadingTrainings">
@@ -35,6 +48,7 @@
       </div>
     </div>
   </div>
+
   
   <div class="upcoming-swiper-container" [hidden]="isLoadingTrainings">
     <div class="swiper-wrapper">
@@ -90,6 +104,14 @@
     <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
     <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
     <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
+  </div>
+
+    <!-- Tips Section -->
+  <div id="home-tips-section" 
+      joyrideStep="tipsStep" 
+      title="טיפים חשובים" 
+      text="בכל פעם שתיכנס תקבל טיפ חדש שיעזור לך להתמיד ולהשתפר!">
+    <!-- Your tips content -->
   </div>
 
   <!-- Swiper Section for Fitness Tips -->

@@ -15,8 +15,11 @@ import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
 import {trigger, style, transition, animate} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
-import { TutorialComponent } from '../tutorial/tutorial.component';
 import { OnboardingService } from '../services/onboarding.service';
+import { JoyrideService } from 'ngx-joyride';
+import { Subscription } from 'rxjs';
+import { PopoverController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 register();
 
@@ -35,6 +38,8 @@ register();
 
 export class HomePage implements OnInit {
   @ViewChild('mainContent', { static: false }) mainContent: any;
+  private joyrideSubscription: Subscription | undefined;
+  private popoverForTutorial: HTMLIonPopoverElement | null | undefined;
 
   // User data
   upcomingTrainings: UpcomingAppointment[] = [];
@@ -53,7 +58,22 @@ export class HomePage implements OnInit {
   userEmail: string | null= '';
   customerId: string | null = '';
   
-  constructor(private onboardingService: OnboardingService, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
+  constructor(
+    private readonly joyrideService: JoyrideService,
+    private router: Router,
+    private onboardingService: OnboardingService,
+    private popoverController: PopoverController, 
+    private toastController: ToastController, 
+    private profileService: ProfileService, 
+    private ameliaService: AmeliaService, 
+    private blocksService: BlocksService, 
+    private modalCtrl: ModalController, 
+    private modalCtrl1: ModalController, 
+    private modalCtrl2: ModalController, 
+    private modalCtrl3: ModalController, 
+    private authService: AuthService
+  ) {
+    console.log('HomePage constructor: JoyrideService injected?', !!this.joyrideService);
     this.userRole = this.authService.getUserRole();
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
@@ -61,88 +81,193 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    console.log('HomePage ngOnInit: Initializing component.');
+
+    console.log('HomePage ngOnInit: Calling fetchSubscriptionExpiryDate...');
     this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
-      (data) => { },
-      (error) => { console.error ("Error fetching subscription expiry datssse", error)}
-      );
+      (data) => {
+        console.log('HomePage ngOnInit: fetchSubscriptionExpiryDate success.');
+      },
+      (error) => {
+        // This console.error was already in your code, ensure you check the browser console for it
+        console.error("HomePage ngOnInit: Error fetching subscription expiry date", error);
+      }
+    );
+    console.log('HomePage ngOnInit: Subscribed to fetchSubscriptionExpiryDate.');
 
+    console.log('HomePage ngOnInit: Calling getBlocks...');
     this.blocksService.getBlocks().subscribe(
-      (data) => { this.fitnessTips = data; this.isLoading = false; },
-      (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
+      (data) => {
+        this.fitnessTips = data; this.isLoading = false;
+        console.log('HomePage ngOnInit: getBlocks success.');
+      },
+      (error) => {
+        // This console.error was already in your code
+        console.error("HomePage ngOnInit: Error fetching blocks", error);
+        this.isLoading = false; // Ensure loading state is handled on error
+      }
     );
+    console.log('HomePage ngOnInit: Subscribed to getBlocks.');
 
+    console.log('HomePage ngOnInit: Calling fetchUserFavLocation...');
     this.authService.fetchUserFavLocation().subscribe(
-      (data) => { this.authService.storeFavLocation(data.favorite_location); },
-      (error) => { console.error ("Error fetching user favorite location", error); }
+      (data) => {
+        this.authService.storeFavLocation(data.favorite_location);
+        console.log('HomePage ngOnInit: fetchUserFavLocation success.');
+      },
+      (error) => {
+        // This console.error was already in your code
+        console.error("HomePage ngOnInit: Error fetching user favorite location", error);
+      }
     );
+    console.log('HomePage ngOnInit: Subscribed to fetchUserFavLocation.');
 
+    console.log('HomePage ngOnInit: Setting up Swiper 1 (swiper-container)...');
     setTimeout(() => {
-      new Swiper('.swiper-container', {
-        slidesPerView: 'auto',  // Dynamically adjust the number of visible slides based on their width
-        spaceBetween: 10,  // Space between each slide
-        centeredSlides: false,  // Avoid centering to limit scrolling
-        loop: true,  // Disable looping to prevent continuous scrolling
-        freeMode: false,  // Disable free mode to keep the slides constrained,
-        pagination: {
-          el: '.swiper-pagination',
-          clickable: true,
-        },
-      });
+      try {
+        new Swiper('.swiper-container', {
+          slidesPerView: 'auto',
+          spaceBetween: 10,
+          centeredSlides: false,
+          loop: true,
+          freeMode: false,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+        });
+        console.log('HomePage ngOnInit: Swiper 1 (swiper-container) initialized.');
+      } catch (e) {
+        console.error('HomePage ngOnInit: Error initializing Swiper 1 (swiper-container)', e);
+      }
     }, 0);
+    console.log('HomePage ngOnInit: Swiper 1 (swiper-container) setup scheduled.');
 
+    console.log('HomePage ngOnInit: Setting up Swiper 2 (upcoming-swiper-container)...');
     setTimeout(() => {
-      new Swiper('.upcoming-swiper-container', {
-        modules: [Pagination], // Register the Pagination module
-        slidesPerView: 'auto',
-        spaceBetween: 10,
-        centeredSlides: false,
-        loop: false, // It's better to explicitly set loop to false
-        freeMode: false,
-        pagination: {
-          el: '.swiper-pagination', // Corrected selector (was .upcoming-swiper-pagination in your example)
-          clickable: true,
-        },
-      });
+      try {
+        new Swiper('.upcoming-swiper-container', {
+          modules: [Pagination],
+          slidesPerView: 'auto',
+          spaceBetween: 10,
+          centeredSlides: false,
+          loop: false,
+          freeMode: false,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+        });
+        console.log('HomePage ngOnInit: Swiper 2 (upcoming-swiper-container) initialized.');
+      } catch (e) {
+        console.error('HomePage ngOnInit: Error initializing Swiper 2 (upcoming-swiper-container)', e);
+      }
     }, 0);
-    
-    this.loadUpcomingTrainings();
-    this.setupOneSignal();
+    console.log('HomePage ngOnInit: Swiper 2 (upcoming-swiper-container) setup scheduled.');
+
+    console.log('HomePage ngOnInit: Calling loadUpcomingTrainings...');
+    try {
+      this.loadUpcomingTrainings();
+      console.log('HomePage ngOnInit: loadUpcomingTrainings called.');
+    } catch (e) {
+      console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e);
+    }
+
+    console.log('HomePage ngOnInit: Calling setupOneSignal...');
+    try {
+      this.setupOneSignal();
+      console.log('HomePage ngOnInit: setupOneSignal called.');
+    } catch (e) {
+      console.error('HomePage ngOnInit: Error calling setupOneSignal', e);
+    }
+
+    console.log('HomePage ngOnInit: Initialization complete. <--- LOOK FOR THIS LOG');
   }
 
   async ionViewDidEnter() {
-    const hasSeenTutorial = await this.onboardingService.checkIfTutorialSeen();
+    console.log('HomePage ionViewDidEnter: View has entered.'); // Log ionViewDidEnter
+    try {
+      const hasSeenTutorial = await this.onboardingService.checkIfTutorialSeen();
+      console.log('HomePage ionViewDidEnter: Has seen tutorial?', hasSeenTutorial); // Log tutorial seen status
+
       if (!hasSeenTutorial) {
-        this.presentTutorial();
+        console.log('HomePage ionViewDidEnter: Tutorial not seen, attempting to start.'); // Log before starting
+        this.startAppTutorial();
+      } else {
+        console.log('HomePage ionViewDidEnter: Tutorial already seen.');
       }
+    } catch (error) {
+      console.error('HomePage ionViewDidEnter: Error checking tutorial status.', error);
+    }
   }
 
+  startAppTutorial() {
+    console.log('HomePage startAppTutorial: Method called.'); 
+    const stepNames = [
+      'upcomingTrainingsStep', 
+      'tipsStep',             
+    ];
+    console.log('HomePage startAppTutorial: Defined step names:', stepNames); 
+
+    if (!this.joyrideService) {
+      console.error('HomePage startAppTutorial: JoyrideService is not available!');
+      return;
+    }
+
+    console.log('HomePage startAppTutorial: Attempting to start tour with JoyrideService.');
+    this.joyrideSubscription = this.joyrideService.startTour({
+      steps: stepNames, 
+      showCounter: true,
+      showPrevButton: true,
+      stepDefaultPosition: 'bottom',
+      customTexts: { 
+        prev: 'הקודם', 
+        next: 'הבא', 
+        done: 'סיום'
+      }
+    }).subscribe({
+      next: async (step) => {
+        console.log('HomePage JoyrideService: Next step:', step.name, step); 
+
+        if (step.name === 'profilePopupContentStep') {
+          // ... (rest of your logic)
+        } else {
+          // ... (rest of your logic)
+        }
+      },
+      complete: () => {
+        console.log('HomePage JoyrideService: Tutorial completed!'); 
+        this.onboardingService.markTutorialAsSeen();
+        // ... (rest of your logic)
+      },
+      error: (e) => {
+        console.error('HomePage JoyrideService: Joyride error:', e); 
+        this.onboardingService.markTutorialAsSeen(); 
+        // ... (rest of your logic)
+      }
+    });
+    console.log('HomePage startAppTutorial: Tour subscription created.');
+  }
+
+  // ... (rest of your methods remain the same) ...
   async presentTutorial() {
     console.log("Presenting tutorial....");
   }
   
   setupOneSignal() {
-    // Remove this method to stop OneSignal Debugging
     OneSignal.Debug.setLogLevel(6)
-    
-    // Replace YOUR_ONESIGNAL_APP_ID with your OneSignal App ID
     OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
-    
-    // Retrieve the logged-in user's information (from AuthService or another source)
     if (this.userEmail) {
-      // Tag the user in OneSignal with their unique ID or email
-      OneSignal.User.addTag("email", this.userEmail);  // Optional: tag with email as well
+      OneSignal.User.addTag("email", this.userEmail);
     }
     else {
       OneSignal.User.addTag("email", "error");
     }
-
-    // Handle notification clicks and store notifications
     OneSignal.Notifications.addEventListener('click', async (event) => {
       let notificationData = event.notification;
-      this.storeNotification(notificationData); // Store the clicked notification
+      this.storeNotification(notificationData); 
       console.log('Notification clicked: ', notificationData);
     });
-
     OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
       console.log("Notification permission granted " + success);
     })
@@ -154,24 +279,23 @@ export class HomePage implements OnInit {
       (trainings) => {
         this.upcomingTrainings = trainings;
         this.isLoadingTrainings = false;
+        console.log('HomePage loadUpcomingTrainings: Successfully loaded trainings.');
       },
       (error) => {
-        console.error('Error loading upcoming trainings:', error);
+        console.error('HomePage loadUpcomingTrainings: Error loading upcoming trainings:', error);
         this.isLoadingTrainings = false;
       }
     );
   }
 
   refreshData(event: any) {
-    // Simulate an API call
     setTimeout(() => {
-      this.loadData(); // Your method to reload data
-      event.target.complete(); // Complete the refresh
-    }, 2000); // Adjust the timeout as needed
+      this.loadData(); 
+      event.target.complete(); 
+    }, 2000); 
   }
   
   loadData() {
-    // Example logic to load data
     this.isLoadingTrainings = true;
     this.loadUpcomingTrainings();
     this.authService.fetchUserFavLocation().subscribe(
@@ -182,17 +306,14 @@ export class HomePage implements OnInit {
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
     );
-
     this.authService.fetchPackageCustomerId(this.customerId).subscribe(
       (data) => {},
       (error) => { console.error("Error fetching package customer ID", error)}
     );
-
     this.authService.fetchUserRole().subscribe(
       (data) => { this.authService.storeUserRole(data.roles[0]); },
       (error) => { console.error("Error fetching role:", error)}
     );
-
     this.profileService.fetchSubscriptionData(this.userId, this.customerId).subscribe(
       (data) => {},
       (error) => {}
@@ -201,50 +322,36 @@ export class HomePage implements OnInit {
 
   
   storeNotification(notificationData: any) {    
-    // Retrieve existing notifications from localStorage
     let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-
-    // Add the new notification to the front of the array
     notifications.unshift({
       title: notificationData.title,
       message: notificationData.body,
       timestamp: new Date(),
     });
-
-    // Limit the array to the last 5 notifications
     if (notifications.length > 5) {
       notifications = notifications.slice(0, 5);
     }
-
-    // Store the updated list back to localStorage
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }
 
   async openNotifications() {
     const modal = await this.modalCtrl1.create({
       component: NotificationPopupComponent,
-      cssClass: 'notification-popup',  // Custom class for styling      
-      presentingElement: await this.modalCtrl1.getTop(),  // Ensure it's treated as a sheet
-      breakpoints: [0, 0.5, 1],  // Modal will have 0 (collapsed), 50%, and full-screen options
-      initialBreakpoint: 0.5,  // Start the modal at 50% of screen height
+      cssClass: 'notification-popup',      
+      presentingElement: await this.modalCtrl1.getTop(),  
+      breakpoints: [0, 0.5, 1],  
+      initialBreakpoint: 0.5,  
     });
-    
-    // Disable scrolling when the modal is opened
     await modal.present();
-    this.setDisableScroll(true);  // Disable background scroll when modal opens
-
-    // Re-enable scrolling when the modal is dismissed
+    this.setDisableScroll(true);  
     modal.onDidDismiss().then(() => {
-      this.setDisableScroll(false); // Re-enable background scroll when modal is closed
+      this.setDisableScroll(false); 
     });
-
     return await modal.present();
   }
 
-  
-
   openWhatsApp() {
-    const phoneNumber = '+972547937089';  // Replace with your WhatsApp number in international format
+    const phoneNumber = '+972547937089';  
     window.open(`https://wa.me/${phoneNumber}`, '_blank');
   }
 
@@ -252,26 +359,26 @@ export class HomePage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: TrainingsPage,
       cssClass: 'trainings-popup',
-      presentingElement: await this.modalCtrl.getTop(),  // Ensure it's treated as a sheet
+      presentingElement: await this.modalCtrl.getTop(),  
       breakpoints: [0, 1],
       initialBreakpoint: 1,
     });
-
-    // Disable scrolling when the modal is opened
     await modal.present();
-    this.setDisableScroll(true);  // Disable background scroll when modal opens
-
-    // Re-enable scrolling when the modal is dismissed
+    this.setDisableScroll(true);  
     modal.onDidDismiss().then(() => {
-      this.setDisableScroll(false); // Re-enable background scroll when modal is closed
+      this.setDisableScroll(false); 
     });
-
     return await modal.present();
   }
 
   private async setDisableScroll(disable: boolean) {
-    const scrollElement = await this.mainContent.getScrollElement();
-    scrollElement.style.overflowY = disable ? 'hidden' : 'scroll'; // Disable or enable scrolling
+    // It's possible mainContent is not available when this is first called if ngOnInit fails
+    if (this.mainContent && typeof this.mainContent.getScrollElement === 'function') {
+      const scrollElement = await this.mainContent.getScrollElement();
+      scrollElement.style.overflowY = disable ? 'hidden' : 'scroll'; 
+    } else {
+      console.warn('setDisableScroll: mainContent or getScrollElement not available.');
+    }
   }
 
   async openProfile() {
@@ -284,14 +391,10 @@ export class HomePage implements OnInit {
         initialBreakpoint: 1,
         handle: true,
       });
-  
-      // Disable scrolling when the modal is opened
       await modal.present();
-      this.setDisableScroll(true); // Disable background scroll
-  
-      // Re-enable scrolling when the modal is dismissed
+      this.setDisableScroll(true); 
       modal.onDidDismiss().then(() => {
-        this.setDisableScroll(false); // Re-enable background scroll
+        this.setDisableScroll(false); 
       });
     } else {
       console.log("User Not Logged In!");
@@ -307,14 +410,10 @@ export class HomePage implements OnInit {
         breakpoints: [0, 1],
         initialBreakpoint: 1,
       });
-  
-      // Disable scrolling when the modal is opened
       await modal.present();
-      this.setDisableScroll(true); // Disable background scroll
-  
-      // Re-enable scrolling when the modal is dismissed
+      this.setDisableScroll(true); 
       modal.onDidDismiss().then(() => {
-        this.setDisableScroll(false); // Re-enable background scroll
+        this.setDisableScroll(false); 
       });
     } else {
       console.log("User Not Logged In!");
@@ -324,26 +423,21 @@ export class HomePage implements OnInit {
   async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message: message,
-      duration: 3000, // Duration in milliseconds
+      duration: 3000, 
       color: color,
       position: 'bottom',
     });
-    await toast.present(); // Make sure the toast is presented
+    await toast.present(); 
   }
 
   confirmDelete() {
     const training = this.selectedTraining;
     const index = this.selectedIndex;
-
-    // Close the dialog and immediately remove the training from the list
     this.isConfirmDialogVisible = false;
     training.fadeOut = true;
-
     setTimeout(() => {
       this.upcomingTrainings.splice(index, 1);
-    }, 300); // Match the animation duration
-
-    // Run the API request in the background
+    }, 300); 
     this.profileService.cancelBooking(training.bookingId).subscribe(
       (data: any) => {
         if (data.data.cancelBookingUnavailable) {
@@ -361,10 +455,9 @@ export class HomePage implements OnInit {
 
   animateAndDeleteTraining(training: any, index: number) {
     training.fadeOut = true;
-
     setTimeout(() => {
       this.deleteTraining(training.bookingId, index);
-    }, 300); // Match the animation duration
+    }, 300); 
   }
 
   deleteTraining(bookingId: string, index: number) {
@@ -393,6 +486,4 @@ export class HomePage implements OnInit {
   closeConfirmDialog() {
     this.isConfirmDialogVisible = false;
   }
-
-
 }

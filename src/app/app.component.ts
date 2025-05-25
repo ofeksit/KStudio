@@ -5,8 +5,6 @@ import { AmeliaService } from './services/amelia-api.service';
 import { Platform } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 import { HttpClient } from '@angular/common/http';
-import { StatusBar, Style } from '@capacitor/status-bar';
-
 
 
 
@@ -39,18 +37,6 @@ export class AppComponent implements OnInit {
 
   async initializeApp() {
     await this.platform.ready();
-
-    // Set background color to black
-    await StatusBar.setBackgroundColor({ color: '#000000' });
-
-    // Set light style for white icons
-    await StatusBar.setStyle({ style: Style.Light });
-
-    // Make sure it's visible
-    await StatusBar.show();
-
-    // Prevent content from going behind it
-    document.body.style.setProperty('padding-top', 'env(safe-area-inset-top)');
   }
 
   ngOnInit() {

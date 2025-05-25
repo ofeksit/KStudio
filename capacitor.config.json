@@ -3,10 +3,6 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
-    "StatusBar": {
-      "backgroundColor": "#000000",
-      "style": "LIGHT"
-    }
   },
   "cordova": {
     "preferences": {

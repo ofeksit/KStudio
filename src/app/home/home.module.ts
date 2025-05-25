@@ -15,6 +15,8 @@ import { CalendarPopupComponent } from '../calendar-popup/calendar-popup.compone
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 import { MusicModalComponent } from '../music-modal/music-modal.component';
 import { EditNoteComponent } from '../edit-note/edit-note.component';
+import { JoyrideArrowComponent, JoyrideModule } from 'ngx-joyride';
+
 
 
 @NgModule({
@@ -27,6 +29,7 @@ import { EditNoteComponent } from '../edit-note/edit-note.component';
     MatButtonModule,
     MatToolbarModule,
     MatCardModule,
+    JoyrideModule.forRoot()
   ],
   declarations: [HomePage, NotificationPopupComponent, ProfilePopupComponent, CalendarPopupComponent, ManagePackagesComponent, MusicModalComponent, EditNoteComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

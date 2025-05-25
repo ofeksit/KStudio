@@ -116,4 +116,132 @@ button {
     padding-top: constant(safe-area-inset-top); /* legacy */
     padding-top: env(safe-area-inset-top);
   }
-  
+
+
+  /* global.scss or styles.scss */
+
+/* --- Backdrop Styling (Screen Background) --- */
+/* ---- IMPORTANT: Replace .joyride-backdrop-placeholder with the ACTUAL class name ---- */
+.joyride-backdrop-placeholder {
+  /* Making it a lighter grey, or transparent */
+  background-color: rgba(224, 224, 224, 0.2) !important; /* Very light grey (e.g., MD Grey 200) with 20% opacity */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+/* כיסוי כללי */
+.backdrop-container .backdrop-content,
+.joyride-backdrop {
+  /*  ⬅︎ שנה כאן למה שמתאים לעיצוב שלך  */
+  background: rgba(0, 0, 0, 0.05) !important;  /* 35 % שחור */
+  backdrop-filter: none;                       /* אם לא רוצים טשטוש */
+}
+
+.joyride-button.joyride-button--primary {
+  background: #ff8366 !important;     /* כתום שלך */
+  color: #ffffff !important;
+}
+
+
+/* דוגמה לטשטוש רך במקום השחרה אטומה */
+.backdrop-container .backdrop-content {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* --- Pop-up Container Styling (Solid White - This seems okay) --- */
+.joyride-step__container {
+  background-color: #FFFFFF !important;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  max-width: 350px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  position: relative;
+  z-index: 1005;
+}
+
+/* --- Pop-up Header & Text Styling (Dark grey text on white background) --- */
+.joyride-step__header {
+  //padding-bottom: 16px;
+  padding: none !important;
+  border-bottom: 1px solid #eeeeee;
+  //margin-bottom: 16px;
+  padding-right: 25px !important;
+}
+
+.joyride-step__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #424242 !important; /* Dark Grey (e.g., Material Design Grey 800) */
+  line-height: 1.4;
+}
+
+.joyride-step__content {
+  font-size: 1rem;
+  color: #616161 !important; /* Medium-Dark Grey (e.g., Material Design Grey 700) */
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* --- Button Styling (Force dark grey button) --- */
+.joyride-step__button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Targeting the primary button specifically and forcefully */
+.joyride-button.joyride-button--primary, /* Be more specific if needed */
+app-home .joyride-button--primary { /* Example if your component has a host selector, adjust 'app-home' if needed */
+  background-color: #616161 !important; /* Dark Grey button background (e.g., MD Grey 700) */
+  color: #FFFFFF !important;            /* White text on the dark grey button */
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none !important; /* Ensure no border is overriding */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.joyride-button.joyride-button--primary:hover,
+app-home .joyride-button--primary:hover {
+  background-color: #424242 !important; /* Slightly darker Grey on hover (e.g., MD Grey 800) */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* --- Close Button Styling (Dark grey 'X') --- */
+.joyride-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent !important;
+  font-size: 1.5rem;
+  color: #757575 !important; /* Dark grey for 'X' (e.g., MD Grey 600) */
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.joyride-close-button:hover {
+  color: #424242 !important; /* Darker grey on hover */
+}
+
+/* --- Counter Styling (Dark gr --- */
+.joyride-step__counter {
+  font-size: 0.875rem;
+  color: #616161 !important; /* Darker grey for counter, ensure good contrast */
+}
+
+/* --- Arrow Styling --- */
+.joyride-step__arrow::after {
+  /* border-top-color: #FFFFFF; */
+}
