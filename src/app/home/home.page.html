@@ -10,6 +10,32 @@
       pullingIcon="false"
     ></ion-refresher-content>
   </ion-refresher>
+
+<!-- מסך הפתיחה -->
+<ion-modal [isOpen]="showIntro" cssClass="intro-modal">
+  <!-- *** חובה ng-template *** -->
+  <ng-template>
+    <ion-content class="ion-padding">
+      <div class="intro-wrapper">
+        <img src="assets/illustrations/welcome.svg" class="intro-illus" />
+
+        <h2 class="intro-title">ברוכים הבאים ל K Studio!</h2>
+
+        <p class="intro-text">
+          שנתחיל במדריך קצר שיחסוך לך שאלות על השימוש באפליקציה? 😁
+        </p>
+
+        <ion-button expand="block" (click)="startAppTutorial()">
+          יאללה, מגניב!
+        </ion-button>
+        <ion-button expand="block" (click)="closeAppTutorial()">
+          אוותר על התענוג
+        </ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
   
   <!-- Container for bell icon and title -->
   <div class="header-row">
@@ -34,10 +60,7 @@
       joyrideStep="upcomingTrainingsStep" 
       title="אימונים קרובים" 
       text="כאן תוכל לראות את האימונים הקרובים שלך.">
-    <!-- Your upcoming trainings content -->
-  </div>
-
-  <ion-card-title class="homepage-subtitle">אימונים קרובים</ion-card-title>
+      <ion-card-title class="homepage-subtitle">אימונים קרובים</ion-card-title>
 
   <div *ngIf="isLoadingTrainings">
     <div class="skeleton-container">
@@ -88,12 +111,15 @@
       </div>
     </div>
   </div>
-  
-  
-  
+
   <ion-card-content *ngIf="!isLoadingTrainings && (!upcomingTrainings || upcomingTrainings.length === 0)">
     <p class="no-trainings">אין אימונים קרובים כרגע</p>
   </ion-card-content>
+
+
+  </div>
+
+
 
   <!-- What's New Section -->
     <ion-card-title class="homepage-subtitle">מה חדש?</ion-card-title>
@@ -110,11 +136,9 @@
   <div id="home-tips-section" 
       joyrideStep="tipsStep" 
       title="טיפים חשובים" 
+      stepPosition="top"
       text="בכל פעם שתיכנס תקבל טיפ חדש שיעזור לך להתמיד ולהשתפר!">
-    <!-- Your tips content -->
-  </div>
-
-  <!-- Swiper Section for Fitness Tips -->
+      <!-- Swiper Section for Fitness Tips -->
   <div class="swiper-container">
     <div class="swiper-wrapper">
       <div class="swiper-slide" *ngFor="let tip of fitnessTips">
@@ -130,8 +154,11 @@
     <!-- Pagination -->
     <div class="swiper-pagination"></div>
   </div>
+  </div>
 
 </ion-content>
+
+
  
 
   <!-- Custom Bottom Navigation Bar -->

@@ -521,3 +521,25 @@ ion-refresher-content::part(refresher-pulling-icon),
 ion-refresher-content::part(refresher-refreshing-spinner) {
   font-size: 24px; /* Adjust size as needed */
 }
+/* intro-modal עצמּו – גודל, רדיוס, צל */
+.intro-modal {
+  --width: 85vw;
+  --height: 40vh;
+  --border-radius: 18px;
+  --background: #ffffff;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* הקונטיינר הפנימי */
+.intro-wrapper {
+  height: 100%;               /* תופס את כל גובה ה-modal */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;    /* ממורכז אנכית ואופקית */
+  text-align: center;
+}
+
+.intro-illus  { width: 50%; max-width: 180px; margin-bottom: 1.5rem; }
+.intro-title  { margin: 0 0 0.5rem; font-size: 1.4rem; font-weight: 700; }
+.intro-text   { margin: 0 0 1.5rem; line-height: 1.4; }

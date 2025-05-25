@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { Component, OnInit, viewChild, ViewChild } from '@angular/core';
+import { IonModal, ModalController } from '@ionic/angular';
 import Swiper from 'swiper';
 import { NotificationPopupComponent } from '../notification-popup/notification-popup.component';
 import { TrainingsPage } from '../trainings/trainings.page';
@@ -17,7 +17,7 @@ import {trigger, style, transition, animate} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 import { OnboardingService } from '../services/onboarding.service';
 import { JoyrideService } from 'ngx-joyride';
-import { Subscription } from 'rxjs';
+import { delay, Subscription } from 'rxjs';
 import { PopoverController } from '@ionic/angular';
 import { Router } from '@angular/router';
 
@@ -38,9 +38,14 @@ register();
 
 export class HomePage implements OnInit {
   @ViewChild('mainContent', { static: false }) mainContent: any;
+  @ViewChild('introModal', { static: true }) introModal!: IonModal;
+
+
+  showIntro = false;
+
   private joyrideSubscription: Subscription | undefined;
   private popoverForTutorial: HTMLIonPopoverElement | null | undefined;
-
+  
   // User data
   upcomingTrainings: UpcomingAppointment[] = [];
   isLoadingTrainings: boolean = true;
@@ -81,9 +86,8 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    console.log('HomePage ngOnInit: Initializing component.');
+    
 
-    console.log('HomePage ngOnInit: Calling fetchSubscriptionExpiryDate...');
     this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
       (data) => {
         console.log('HomePage ngOnInit: fetchSubscriptionExpiryDate success.');
@@ -93,13 +97,10 @@ export class HomePage implements OnInit {
         console.error("HomePage ngOnInit: Error fetching subscription expiry date", error);
       }
     );
-    console.log('HomePage ngOnInit: Subscribed to fetchSubscriptionExpiryDate.');
-
-    console.log('HomePage ngOnInit: Calling getBlocks...');
+    
     this.blocksService.getBlocks().subscribe(
       (data) => {
         this.fitnessTips = data; this.isLoading = false;
-        console.log('HomePage ngOnInit: getBlocks success.');
       },
       (error) => {
         // This console.error was already in your code
@@ -107,22 +108,17 @@ export class HomePage implements OnInit {
         this.isLoading = false; // Ensure loading state is handled on error
       }
     );
-    console.log('HomePage ngOnInit: Subscribed to getBlocks.');
 
-    console.log('HomePage ngOnInit: Calling fetchUserFavLocation...');
     this.authService.fetchUserFavLocation().subscribe(
       (data) => {
         this.authService.storeFavLocation(data.favorite_location);
-        console.log('HomePage ngOnInit: fetchUserFavLocation success.');
       },
       (error) => {
         // This console.error was already in your code
         console.error("HomePage ngOnInit: Error fetching user favorite location", error);
       }
     );
-    console.log('HomePage ngOnInit: Subscribed to fetchUserFavLocation.');
 
-    console.log('HomePage ngOnInit: Setting up Swiper 1 (swiper-container)...');
     setTimeout(() => {
       try {
         new Swiper('.swiper-container', {
@@ -136,14 +132,10 @@ export class HomePage implements OnInit {
             clickable: true,
           },
         });
-        console.log('HomePage ngOnInit: Swiper 1 (swiper-container) initialized.');
       } catch (e) {
         console.error('HomePage ngOnInit: Error initializing Swiper 1 (swiper-container)', e);
       }
     }, 0);
-    console.log('HomePage ngOnInit: Swiper 1 (swiper-container) setup scheduled.');
-
-    console.log('HomePage ngOnInit: Setting up Swiper 2 (upcoming-swiper-container)...');
     setTimeout(() => {
       try {
         new Swiper('.upcoming-swiper-container', {
@@ -158,51 +150,49 @@ export class HomePage implements OnInit {
             clickable: true,
           },
         });
-        console.log('HomePage ngOnInit: Swiper 2 (upcoming-swiper-container) initialized.');
       } catch (e) {
         console.error('HomePage ngOnInit: Error initializing Swiper 2 (upcoming-swiper-container)', e);
       }
     }, 0);
-    console.log('HomePage ngOnInit: Swiper 2 (upcoming-swiper-container) setup scheduled.');
 
-    console.log('HomePage ngOnInit: Calling loadUpcomingTrainings...');
     try {
       this.loadUpcomingTrainings();
-      console.log('HomePage ngOnInit: loadUpcomingTrainings called.');
     } catch (e) {
       console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e);
     }
 
-    console.log('HomePage ngOnInit: Calling setupOneSignal...');
     try {
       this.setupOneSignal();
-      console.log('HomePage ngOnInit: setupOneSignal called.');
     } catch (e) {
       console.error('HomePage ngOnInit: Error calling setupOneSignal', e);
     }
 
-    console.log('HomePage ngOnInit: Initialization complete. <--- LOOK FOR THIS LOG');
   }
 
   async ionViewDidEnter() {
-    console.log('HomePage ionViewDidEnter: View has entered.'); // Log ionViewDidEnter
     try {
       const hasSeenTutorial = await this.onboardingService.checkIfTutorialSeen();
-      console.log('HomePage ionViewDidEnter: Has seen tutorial?', hasSeenTutorial); // Log tutorial seen status
-
       if (!hasSeenTutorial) {
-        console.log('HomePage ionViewDidEnter: Tutorial not seen, attempting to start.'); // Log before starting
-        this.startAppTutorial();
-      } else {
-        console.log('HomePage ionViewDidEnter: Tutorial already seen.');
+        this.popupAppTutorial();
+        console.log("status:", this.showIntro)
       }
     } catch (error) {
       console.error('HomePage ionViewDidEnter: Error checking tutorial status.', error);
     }
   }
 
+  popupAppTutorial() {
+    this.showIntro = true;
+  }
+
+  closeAppTutorial() {
+    this.showIntro = false;
+    localStorage.setItem('CapacitorStorage.hasSeenTutorial', 'true');
+  }
+
   startAppTutorial() {
-    console.log('HomePage startAppTutorial: Method called.'); 
+    this.showIntro = false;
+    
     const stepNames = [
       'upcomingTrainingsStep', 
       'tipsStep',             

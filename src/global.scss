@@ -139,7 +139,7 @@ button {
 .backdrop-container .backdrop-content,
 .joyride-backdrop {
   /*  ⬅︎ שנה כאן למה שמתאים לעיצוב שלך  */
-  background: rgba(0, 0, 0, 0.05) !important;  /* 35 % שחור */
+  background: rgba(0, 0, 0, 0.35) !important;  /* 35 % שחור */
   backdrop-filter: none;                       /* אם לא רוצים טשטוש */
 }
 
@@ -151,8 +151,10 @@ button {
 
 /* דוגמה לטשטוש רך במקום השחרה אטומה */
 .backdrop-container .backdrop-content {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(4px);
+  //background: rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
+  border-radius: 25px !important;
+  backdrop-filter: none !important;
 }
 
 /* --- Pop-up Container Styling (Solid White - This seems okay) --- */
@@ -168,12 +170,17 @@ button {
 }
 
 /* --- Pop-up Header & Text Styling (Dark grey text on white background) --- */
-.joyride-step__header {
+body .joyride-step__header {   /* ספציפיות גבוהה יותר */
   //padding-bottom: 16px;
-  padding: none !important;
+  padding-bottom: 8px !important;
   border-bottom: 1px solid #eeeeee;
   //margin-bottom: 16px;
   padding-right: 25px !important;
+}
+
+body .joyride-step__body {
+  text-align: right !important;
+  margin-top: -30px;
 }
 
 .joyride-step__title {
@@ -241,7 +248,48 @@ app-home .joyride-button--primary:hover {
   color: #616161 !important; /* Darker grey for counter, ensure good contrast */
 }
 
-/* --- Arrow Styling --- */
-.joyride-step__arrow::after {
-  /* border-top-color: #FFFFFF; */
+/* global.scss – לשים בסוף הקובץ */
+button.joyride-button {
+  background-color: #2c2c2c !important;   //  ⬅︎ עוקף inline style
+  border-color:   #2c2c2c !important;
+  color: #fff !important;                 // טקסט לבן
+  border-radius: 25px;
+  margin-right: 7px;
+}
+
+button.joyride-button:hover,
+button.joyride-button:focus {
+  background-color: #59c7cd !important;   // גוון כהה יותר בהובר (לא חובה)
+}
+
+/* בסוף global.scss, אחרי כל @import-ים */
+.joyride-arrow__top {
+  border-bottom-color: #3c3c3c !important;   /* צבע חדש למשולש */
+}
+
+
+/* global.scss – בסוף הקובץ */
+.joyride-step__container {
+  width: 350px !important;          /* מלבני – אם אתה באמת רוצה רוחב קבוע   */
+  /* או  max-width: 350px !important;  כדי שיצטמצם כשצריך                    */
+
+  height: auto !important;          /* ↙︎ מבטל את height שהספרייה קבעה       */
+  padding: 8px 16px !important;     /* מה שכבר היה לך                       */
+  justify-content: flex-start !important;
+}
+
+/* במקרים מסוימים יש גם min-height על האלמנט העוטף */
+.joyride-step__holder {
+  min-height: 0 !important;         /* שיעזוב את הגובה לחופשי               */
+}
+
+/* 2. מבטל מרווחים בתוך ה-body */
+.joyride-step__body {
+  margin: 4px 0 !important;         /* היה 10px */
+  line-height: 1.3;                 /* טקסט צפוף יותר */
+}
+
+/* 3. מצמצם את החלק של הכפתורים */
+.joyride-step__footer {
+  margin-top: 4px !important;       /* היה 10px */
 }
