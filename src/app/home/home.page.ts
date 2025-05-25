@@ -15,6 +15,8 @@ import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
 import {trigger, style, transition, animate} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
+import { TutorialComponent } from '../tutorial/tutorial.component';
+import { OnboardingService } from '../services/onboarding.service';
 
 register();
 
@@ -51,7 +53,7 @@ export class HomePage implements OnInit {
   userEmail: string | null= '';
   customerId: string | null = '';
   
-  constructor(private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
+  constructor(private onboardingService: OnboardingService, private toastController: ToastController, private profileService: ProfileService, private ameliaService: AmeliaService, private blocksService: BlocksService, private modalCtrl: ModalController, private modalCtrl1: ModalController, private modalCtrl2: ModalController, private modalCtrl3: ModalController, private authService: AuthService) {
     this.userRole = this.authService.getUserRole();
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
@@ -105,6 +107,17 @@ export class HomePage implements OnInit {
     
     this.loadUpcomingTrainings();
     this.setupOneSignal();
+  }
+
+  async ionViewDidEnter() {
+    const hasSeenTutorial = await this.onboardingService.checkIfTutorialSeen();
+      if (!hasSeenTutorial) {
+        this.presentTutorial();
+      }
+  }
+
+  async presentTutorial() {
+    console.log("Presenting tutorial....");
   }
   
   setupOneSignal() {
