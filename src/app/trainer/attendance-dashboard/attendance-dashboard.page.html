@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Trainings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-segment [(ngModel)]="filterSegment" (ionChange)="segmentChanged($event)">
+    <ion-segment-button value="past">
+      <ion-label>Past</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="upcoming">
+      <ion-label>Upcoming</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding-top">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!isLoading">
+    <div *ngFor="let training of filteredTrainings" class="training-card" (click)="openAttendanceMarker(training)">
+      <div class="card-content">
+        <div class="training-details">
+          <span class="training-name">{{ training.title.name }}</span>
+          <span class="training-date">{{ training.start_time | date: 'dd/MM/yyyy @ HH:mm' }}</span>
+        </div>
+        <div class="status-icon">
+          <ion-icon *ngIf="training.hasBeenSubmitted" name="checkmark-circle" color="success"></ion-icon>
+          <ion-icon *ngIf="!training.hasBeenSubmitted && isPast(training.start_time)" name="ellipse-outline" color="medium"></ion-icon>
+        </div>
+      </div>
+    </div>
+  </ion-list>
+
+  <div *ngIf="!isLoading && filteredTrainings.length === 0" class="empty-state">
+    <p>No trainings found in this period.</p>
+  </div>
+</ion-content>

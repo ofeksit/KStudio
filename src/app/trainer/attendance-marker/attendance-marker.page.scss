@@ -1,0 +1,27 @@
+h2 {
+    font-weight: bold;
+  }
+  
+  p {
+    color: #666;
+    margin-top: -10px;
+    margin-bottom: 20px;
+  }
+  
+  .status-buttons ion-button {
+    --padding-start: 5px;
+    --padding-end: 5px;
+    opacity: 0.3;
+  }
+  
+  .status-buttons ion-button.selected {
+    opacity: 1;
+  }
+  
+  .status-buttons ion-icon {
+    font-size: 2.2em;
+  }
+  
+  ion-button[expand="block"] {
+    margin-top: 30px;
+  }

@@ -1,0 +1,38 @@
+.training-card {
+  margin: 10px 16px;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.training-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.training-name {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.training-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.status-icon ion-icon {
+  font-size: 2em;
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 50px;
+  color: #888;
+}
