@@ -20,6 +20,8 @@ import { JoyrideService } from 'ngx-joyride';
 import { delay, Subscription } from 'rxjs';
 import { PopoverController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { AttendanceDashboardPageModule } from '../trainer/attendance-dashboard/attendance-dashboard.module';
+import { AttendanceDashboardPage } from '../trainer/attendance-dashboard/attendance-dashboard.page';
 
 register();
 
@@ -76,6 +78,7 @@ export class HomePage implements OnInit {
     private modalCtrl1: ModalController, 
     private modalCtrl2: ModalController, 
     private modalCtrl3: ModalController, 
+    private modalCtrl4: ModalController,
     private authService: AuthService
   ) {
     console.log('HomePage constructor: JoyrideService injected?', !!this.joyrideService);
@@ -369,6 +372,22 @@ export class HomePage implements OnInit {
     } else {
       console.warn('setDisableScroll: mainContent or getScrollElement not available.');
     }
+  }
+
+  async openAttendance() {
+    const modal = await this.modalCtrl4.create({
+      component: AttendanceDashboardPage,
+      cssClass: 'attendance-popup',
+      presentingElement: await this.modalCtrl4.getTop(),  
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    await modal.present();
+    this.setDisableScroll(true);  
+    modal.onDidDismiss().then(() => {
+      this.setDisableScroll(false); 
+    });
+    return await modal.present();
   }
 
   async openProfile() {

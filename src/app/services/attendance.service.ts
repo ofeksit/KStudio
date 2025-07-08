@@ -13,15 +13,18 @@ export class AttendanceService {
   /**
    * Saves the attendance data for a specific appointment.
    * @param appointmentId The ID of the training/appointment.
-   * @param trainerId The Amelia Employee ID of the trainer submitting.
+   * @param trainerEmail The email of the trainer submitting.
    * @param attendance The list of customers and their status.
    */
-  saveAttendance(appointmentId: number, trainerId: number, attendance: { name: string, status: string }[]): Observable<any> {
+  saveAttendance(appointmentId: number, trainerEmail: string, attendance: { name: string, status: string }[]): Observable<any> {
     const payload = {
       appointment_id: appointmentId,
-      trainer_id: trainerId,
+      // Note: We send trainer_email but the backend handler will get the ID from it if needed.
+      // For our current setup, the email is stored.
+      trainer_email: trainerEmail, 
       attendance: attendance
     };
+    // This endpoint must match the one you created in api-endpoints.php
     return this.http.post(`${this.apiUrl}/attendance`, payload);
   }
 

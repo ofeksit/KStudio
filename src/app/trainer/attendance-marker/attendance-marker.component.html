@@ -1,0 +1,76 @@
+<ion-content class="popup-modal">
+  <div class="drag-handle"></div>
+  
+  <div class="page-content-wrapper">
+    <div class="sticky-header">
+      <div class="header-title">
+        <h3>סימון נוכחות</h3>
+        <ion-button fill="clear" (click)="closeModal()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div *ngIf="training" class="training-info">
+        <h4>{{ training.name }}</h4>
+        <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }}</p>
+      </div>
+
+      <div class="attendance-summary">
+        <div class="summary-item">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          <span>נוכחים: {{ presentCount }}</span>
+        </div>
+        <div class="summary-item">
+          <ion-icon name="close-circle-outline" color="danger"></ion-icon>
+          <span>נעדרו: {{ absentCount }}</span>
+        </div>
+        <div class="summary-item">
+          <ion-icon name="help-circle-outline" color="medium"></ion-icon>
+          <span>לא סומן: {{ notMarkedCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>טוען מתאמנים...</p>
+    </div>
+
+    <div *ngIf="!isLoading && attendees.length === 0" class="empty-state">
+      <ion-icon name="people-outline" size="large"></ion-icon>
+      <h3>אין מתאמנים רשומים</h3>
+      <p>לאימון זה לא רשומים מתאמנים.</p>
+    </div>
+
+    <ion-list *ngIf="!isLoading && attendees.length > 0" class="customers-list" lines="none">
+      <ion-card *ngFor="let customer of attendees; trackBy: trackById" class="customer-card">
+        <ion-card-header>
+          <div class="customer-info">
+            <div class="status-buttons">
+              <ion-button fill="clear" (click)="markStatus(customer, 'attended')" [color]="customer.status === 'attended' ? 'success' : 'medium'">
+                  <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" (click)="markStatus(customer, 'absent')" [color]="customer.status === 'absent' ? 'danger' : 'medium'">
+                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </div>
+            <div class="customer-details">
+              <h3>{{ customer.name }}</h3>
+              <p class="status-text" [attr.color]="getStatusColor(customer.status)">
+                <ion-icon [name]="getStatusIcon(customer.status)"></ion-icon>
+                {{ getStatusText(customer.status) }}
+              </p>
+            </div>
+          </div>
+        </ion-card-header>
+      </ion-card>
+    </ion-list>
+
+    <div *ngIf="!isLoading && attendees.length > 0" class="save-button-container">
+        <ion-button expand="block" (click)="saveAttendance()" [disabled]="!hasChanges || isSaving">
+            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving">שמירת נוכחות</span>
+        </ion-button>
+    </div>
+  </div>
+</ion-content> 

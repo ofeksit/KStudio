@@ -1,42 +1,52 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/profile"></ion-back-button>
-    </ion-buttons>
-    <ion-title>My Trainings</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
-  <ion-segment [(ngModel)]="filterSegment" (ionChange)="segmentChanged($event)">
-    <ion-segment-button value="past">
-      <ion-label>Past</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="upcoming">
-      <ion-label>Upcoming</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
-  <div *ngIf="isLoading" class="ion-text-center ion-padding-top">
-    <ion-spinner></ion-spinner>
-  </div>
-
-  <ion-list *ngIf="!isLoading">
-    <div *ngFor="let training of filteredTrainings" class="training-card" (click)="openAttendanceMarker(training)">
-      <div class="card-content">
-        <div class="training-details">
-          <span class="training-name">{{ training.title.name }}</span>
-          <span class="training-date">{{ training.start_time | date: 'dd/MM/yyyy @ HH:mm' }}</span>
+<ion-content class="popup-modal">
+  <div class="drag-handle"></div>
+  
+  <div class="page-content-wrapper">
+    <div class="sticky-header">
+        <div class="header-title">
+            <h3>ניהול נוכחות עבר</h3>
+            <ion-button fill="clear" (click)="closeModal()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
         </div>
-        <div class="status-icon">
-          <ion-icon *ngIf="training.hasBeenSubmitted" name="checkmark-circle" color="success"></ion-icon>
-          <ion-icon *ngIf="!training.hasBeenSubmitted && isPast(training.start_time)" name="ellipse-outline" color="medium"></ion-icon>
-        </div>
-      </div>
     </div>
-  </ion-list>
 
-  <div *ngIf="!isLoading && filteredTrainings.length === 0" class="empty-state">
-    <p>No trainings found in this period.</p>
+    <ion-refresher slot="fixed" (ionRefresh)="loadTrainings($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <ion-list *ngIf="isLoading" lines="none" class="skeleton-list">
+        <ion-card class="skeleton-card" *ngFor="let i of [1,2,3,4,5]">
+            <ion-card-header>
+                <div class="icon-container">
+                    <ion-skeleton-text [animated]="true" style="width: 30px; height: 30px; border-radius: 50%;"></ion-skeleton-text>
+                </div>
+                <ion-label class="training-details">
+                    <ion-skeleton-text [animated]="true" style="width: 70%; height: 20px;"></ion-skeleton-text>
+                    <ion-skeleton-text [animated]="true" style="width: 50%; height: 16px; margin-top: 4px;"></ion-skeleton-text>
+                </ion-label>
+            </ion-card-header>
+        </ion-card>
+    </ion-list>
+    
+    <div class="scrollable-list" *ngIf="!isLoading">
+        <ion-card *ngFor="let training of pastTrainings" (click)="openAttendanceMarker(training)" class="clickable">
+            <ion-card-header>
+                <div class="icon-container">
+                    <ion-icon *ngIf="training.hasBeenSubmitted" name="checkmark-circle-outline" color="success"></ion-icon>
+                    <ion-icon *ngIf="!training.hasBeenSubmitted" name="ellipse-outline" color="medium"></ion-icon>
+                </div>
+                <ion-label class="training-details">
+                    <h2>{{ training.training_name }}</h2>
+                    <p>{{ training.start_time | date: 'dd/MM/yyyy'}} | {{ training.start_time | date: 'HH:mm' }} </p>
+                </ion-label>
+            </ion-card-header>
+        </ion-card>
+
+        <div *ngIf="pastTrainings.length === 0" class="empty-state">
+            <h3>אין אימונים להצגה</h3>
+            <p>לא נמצאו אימוני עבר הדורשים סימון נוכחות.</p>
+        </div>
+    </div>
   </div>
 </ion-content>

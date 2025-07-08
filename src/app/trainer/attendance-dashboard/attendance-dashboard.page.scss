@@ -1,38 +1,121 @@
-.training-card {
-  margin: 10px 16px;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background: #fff;
+// Styles adapted from your profile-popup for consistency
+:host {
+    ion-content.popup-modal {
+        --background: #f4f5f8; // Use a light grey background
+    }
 }
 
-.card-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.drag-handle {
+  width: 50px;
+  height: 5px;
+  background-color: #dcdcdc;
+  border-radius: 2.5px;
+  margin: 10px auto;
+}
+
+.page-content-wrapper {
+    padding: 0 16px;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--ion-background-color, #f4f5f8);
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.header-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px 10px 5px;
+    h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+    ion-button {
+        --padding-start: 5px;
+        --padding-end: 5px;
+    }
+}
+
+ion-segment {
+    --background: #e9e9e9;
+    border-radius: 8px;
+}
+
+ion-segment-button {
+    --color: #777;
+    --color-checked: #fff;
+    --indicator-color: var(--ion-color-primary, #3880ff);
+    font-weight: 500;
+}
+
+ion-card {
+  margin: 12px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  
+  &.clickable {
+    cursor: pointer;
+  }
+  &.disabled {
+    opacity: 0.6;
+  }
+}
+
+ion-card-header {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    padding: 16px;
+}
+
+.icon-container {
+    margin-right: 16px;
+    ion-icon {
+        font-size: 2rem;
+    }
 }
 
 .training-details {
   display: flex;
   flex-direction: column;
-}
+  text-align: right;
+  width: 100%;
 
-.training-name {
-  font-weight: bold;
-  font-size: 1.1em;
-}
-
-.training-date {
-  color: #666;
-  font-size: 0.9em;
-}
-
-.status-icon ion-icon {
-  font-size: 2em;
+  h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  p {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 4px 0 0 0;
+  }
 }
 
 .empty-state {
   text-align: center;
-  margin-top: 50px;
+  margin-top: 40px;
   color: #888;
+  h3 {
+    font-weight: 600;
+  }
+  p {
+    font-size: 0.9rem;
+  }
+}
+
+.skeleton-list {
+    padding-top: 10px;
+}
+
+.skeleton-card {
+    margin: 12px 0;
 }

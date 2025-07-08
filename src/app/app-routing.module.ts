@@ -9,16 +9,11 @@ const routes: Routes = [
   {
     path: 'login',
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
-  },  {
-    path: 'attendance-dashboard',
-    loadChildren: () => import('./trainer/attendance-dashboard/attendance-dashboard.module').then( m => m.AttendanceDashboardPageModule)
   },
   {
-    path: 'attendance-marker',
-    loadChildren: () => import('./trainer/attendance-marker/attendance-marker.module').then( m => m.AttendanceMarkerPageModule)
+    path: 'attendance-dashboard',
+    loadChildren: () => import('./trainer/attendance-dashboard/attendance-dashboard.module').then( m => m.AttendanceDashboardPageModule)
   }
-
-
 ];
 
 @NgModule({

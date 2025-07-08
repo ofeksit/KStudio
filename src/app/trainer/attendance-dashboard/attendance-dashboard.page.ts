@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { HttpClient, HttpParams } from '@angular/common/http'; // Import HttpParams
+import { ModalController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../services/auth.service'; // Adjust path if needed
-import { AttendanceService } from '../../services/attendance.service'; // Adjust path if needed
+import { AttendanceMarkerComponent } from '../attendance-marker/attendance-marker.component';
+import { AuthService } from '../../services/auth.service'; // Import AuthService
 
 @Component({
   selector: 'app-attendance-dashboard',
@@ -13,84 +13,65 @@ import { AttendanceService } from '../../services/attendance.service'; // Adjust
 export class AttendanceDashboardPage implements OnInit {
   
   isLoading = true;
-  filterSegment = 'past';
-  allTrainings: any[] = [];
-  filteredTrainings: any[] = [];
-  trainerProviderId: number | null = null;
+  pastTrainings: any[] = [];
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService,
-    private attendanceService: AttendanceService,
-    private router: Router
+    private modalCtrl: ModalController,
+    private authService: AuthService // Inject AuthService
   ) {}
 
   ngOnInit() {
-    this.trainerProviderId = this.authService.getProviderId(); // Assuming this method exists
     this.loadTrainings();
   }
 
-  async loadTrainings() {
-    if (!this.trainerProviderId) {
-      console.error("Trainer Provider ID not found.");
-      this.isLoading = false;
-      return;
-    }
-    
+  async loadTrainings(event?: any) {
     this.isLoading = true;
-    const userId = this.authService.getUserID();
-    const location = encodeURIComponent(this.authService.getUserFavLocation() || 'בן יהודה');
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30); // Fetch upcoming 30 days
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30); // Fetch past 30 days
+    const url = `https://k-studio.co.il/wp-json/custom-api/v1/past-trainings`;
+    let params = new HttpParams();
 
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${this.formatDate(startDate)}&endDate=${this.formatDate(endDate)}&userID=${userId}&location=${location}`;
+    // Get user role and email from your AuthService
+    const userRole = this.authService.getUserRole(); // Assuming this method exists
+    const userEmail = this.authService.getUserEmail(); // Assuming this method exists
+
+    // If the user's role is 'team', add their email to the request parameters
+    if (userRole === 'team' && userEmail) {
+      params = params.set('trainer_email', userEmail);
+    }
 
     try {
-      const allData = await firstValueFrom(this.http.get<any[]>(url));
-      this.allTrainings = allData.filter(t => t.providerId === this.trainerProviderId && t.type === 'appointment');
-      
-      for (const training of this.allTrainings) {
-        const attendance = await firstValueFrom(this.attendanceService.getAttendance(training.id));
-        training.hasBeenSubmitted = attendance && attendance.length > 0;
-      }
-
-      this.segmentChanged(); // Apply initial filter
+      // Pass the params object in the http.get request
+      this.pastTrainings = await firstValueFrom(this.http.get<any[]>(url, { params }));
     } catch (error) {
-      console.error("Error loading trainings", error);
+      console.error("Error loading past trainings", error);
     } finally {
       this.isLoading = false;
+      if (event) {
+        event.target.complete();
+      }
     }
   }
 
-  segmentChanged() {
-    const now = new Date();
-    if (this.filterSegment === 'past') {
-      this.filteredTrainings = this.allTrainings
-        .filter(t => new Date(t.start_time) < now)
-        .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
-    } else { // Upcoming
-      this.filteredTrainings = this.allTrainings
-        .filter(t => new Date(t.start_time) >= now)
-        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  async openAttendanceMarker(training: any) {
+    const modal = await this.modalCtrl.create({
+      component: AttendanceMarkerComponent,
+      componentProps: {
+        training: { id: training.id, name: training.training_name, start_time: training.start_time }
+      },
+      cssClass: 'attendance-marker-modal',
+      breakpoints: [0, 0.5, 0.8, 1],
+      initialBreakpoint: 0.8
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data?.saved) {
+      this.loadTrainings();
     }
   }
 
-  isPast(dateString: string): boolean {
-    return new Date(dateString) < new Date();
-  }
-
-  openAttendanceMarker(training: any) {
-    if (this.isPast(training.start_time) && !training.hasBeenSubmitted) {
-      // Navigate to the marker page, passing the training data
-      this.router.navigate(['/trainer/attendance-marker'], {
-        state: { training: training }
-      });
-    }
-  }
-  
-  private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+  closeModal() {
+    this.modalCtrl.dismiss();
   }
 }
