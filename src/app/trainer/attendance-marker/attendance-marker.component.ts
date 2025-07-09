@@ -109,8 +109,8 @@ export class AttendanceMarkerComponent implements OnInit {
   
   getStatusText(status: string): string {
     switch (status) {
-      case 'attended': return 'נוכח/ת';
-      case 'absent': return 'נעדר/ת';
+      case 'attended': return 'הגיעה'; // Changed from 'נוכח/ת'
+      case 'absent': return 'לא הגיעה'; // Changed from 'נעדר/ת'
       default: return 'לא סומן';
     }
   }
@@ -140,7 +140,7 @@ export class AttendanceMarkerComponent implements OnInit {
       message: message,
       duration: 3000,
       color: color,
-      position: 'top'
+      position: 'bottom'
     });
     toast.present();
   }

@@ -4,49 +4,82 @@
   <div class="page-content-wrapper">
     <div class="sticky-header">
         <div class="header-title">
-            <h3>ניהול נוכחות עבר</h3>
-            <ion-button fill="clear" (click)="closeModal()">
-                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-            </ion-button>
+            <h3>ניהול נוכחות ושיבוצים</h3>
         </div>
+
+        <ion-segment *ngIf="userRole === 'administrator'" [value]="currentSegment" (ionChange)="segmentChanged($event)">
+          <ion-segment-button value="past">
+            <ion-label>אימוני עבר</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="upcoming">
+            <ion-label>שיבוץ מאמנים</ion-label>
+          </ion-segment-button>
+        </ion-segment>
     </div>
 
-    <ion-refresher slot="fixed" (ionRefresh)="loadTrainings($event)">
-      <ion-refresher-content></ion-refresher-content>
-    </ion-refresher>
-
-    <ion-list *ngIf="isLoading" lines="none" class="skeleton-list">
-        <ion-card class="skeleton-card" *ngFor="let i of [1,2,3,4,5]">
-            <ion-card-header>
-                <div class="icon-container">
-                    <ion-skeleton-text [animated]="true" style="width: 30px; height: 30px; border-radius: 50%;"></ion-skeleton-text>
-                </div>
-                <ion-label class="training-details">
-                    <ion-skeleton-text [animated]="true" style="width: 70%; height: 20px;"></ion-skeleton-text>
-                    <ion-skeleton-text [animated]="true" style="width: 50%; height: 16px; margin-top: 4px;"></ion-skeleton-text>
-                </ion-label>
-            </ion-card-header>
-        </ion-card>
-    </ion-list>
-    
-    <div class="scrollable-list" *ngIf="!isLoading">
+    <div [hidden]="currentSegment !== 'past'">
+      <ion-list *ngIf="isLoading" lines="none" class="skeleton-list">
+          <ion-card class="skeleton-card" *ngFor="let i of [1,2,3,4,5]">
+              </ion-card>
+      </ion-list>
+      
+      <div class="scrollable-list" *ngIf="!isLoading">
         <ion-card *ngFor="let training of pastTrainings" (click)="openAttendanceMarker(training)" class="clickable">
-            <ion-card-header>
-                <div class="icon-container">
-                    <ion-icon *ngIf="training.hasBeenSubmitted" name="checkmark-circle-outline" color="success"></ion-icon>
-                    <ion-icon *ngIf="!training.hasBeenSubmitted" name="ellipse-outline" color="medium"></ion-icon>
-                </div>
-                <ion-label class="training-details">
-                    <h2>{{ training.training_name }}</h2>
-                    <p>{{ training.start_time | date: 'dd/MM/yyyy'}} | {{ training.start_time | date: 'HH:mm' }} </p>
-                </ion-label>
-            </ion-card-header>
+          <ion-card-header>
+            <div class="icon-container">
+              <ion-icon 
+                [name]="training.hasBeenSubmitted ? 'checkmark-done-circle' : 'ellipse-outline'"
+                [color]="training.hasBeenSubmitted ? 'success' : 'medium'">
+              </ion-icon>
+            </div>
+            <ion-label class="training-details">
+                <h2>{{ training.training_name }}</h2>
+                <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }}</p>
+            </ion-label>
+          </ion-card-header>
         </ion-card>
 
-        <div *ngIf="pastTrainings.length === 0" class="empty-state">
-            <h3>אין אימונים להצגה</h3>
-            <p>לא נמצאו אימוני עבר הדורשים סימון נוכחות.</p>
+        <ion-infinite-scroll (ionInfinite)="loadMorePastTrainings($event)" [disabled]="allPastTrainingsLoaded">
+          <ion-infinite-scroll-content loadingSpinner="crescent">
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+
+          <div *ngIf="!isLoading && pastTrainings.length === 0" class="empty-state">
+              <h3>אין אימוני עבר להצגה</h3>
+          </div>
+      </div>
+    </div>
+
+    <div [hidden]="currentSegment !== 'upcoming'">
+      <ion-list *ngIf="isLoadingUpcoming" lines="none" class="skeleton-list">
+        <ion-card class="skeleton-card" *ngFor="let i of [1,2,3,4,5]">
+            </ion-card>
+      </ion-list>
+      
+      <div *ngIf="!isLoadingUpcoming">
+      <ion-card *ngFor="let training of upcomingTrainings" class="assignment-card">
+        <ion-card-header>
+            <ion-label class="training-details">
+                <h2>{{ training.training_name }}</h2>
+                <p>{{ training.start_time | date: 'dd/MM/yyyy'}} | {{ training.start_time | date: 'HH:mm' }} </p>
+                
+                <div *ngIf="training.assigned_trainer_name" class="assigned-trainer">
+                  <ion-icon name="person-circle" color="success"></ion-icon>
+                  <span>משובץ: {{ training.assigned_trainer_name }}</span>
+                </div>
+            </ion-label>
+
+            <ion-button fill="outline" (click)="openTrainerAssignmentModal(training)" class="assign-button">
+                <ion-icon slot="start" [name]="training.assigned_trainer_name ? 'swap-horizontal-outline' : 'person-add-outline'"></ion-icon>
+                {{ training.assigned_trainer_name ? 'שנה שיבוץ' : 'שבץ מאמן' }}
+            </ion-button>
+        </ion-card-header>
+      </ion-card>
+        
+        <div *ngIf="!isLoadingUpcoming && upcomingTrainings.length === 0" class="empty-state">
+            <h3>אין אימונים הממתינים לשיבוץ</h3>
         </div>
+      </div>
     </div>
   </div>
 </ion-content>

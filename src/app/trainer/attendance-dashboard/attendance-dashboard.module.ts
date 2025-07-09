@@ -6,6 +6,8 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { AttendanceDashboardPageRoutingModule } from './attendance-dashboard-routing.module';
 import { AttendanceDashboardPage } from './attendance-dashboard.page';
 import { AttendanceMarkerComponent } from '../attendance-marker/attendance-marker.component';
+import { AssignTrainerModalComponent } from '../../trainer/assign-trainer-modal/assign-trainer-modal.component';
+
 
 @NgModule({
   imports: [
@@ -14,7 +16,7 @@ import { AttendanceMarkerComponent } from '../attendance-marker/attendance-marke
     IonicModule,
     AttendanceDashboardPageRoutingModule
   ],
-  declarations: [AttendanceDashboardPage, AttendanceMarkerComponent],
+  declarations: [AttendanceDashboardPage, AttendanceMarkerComponent, AssignTrainerModalComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AttendanceDashboardPageModule {}

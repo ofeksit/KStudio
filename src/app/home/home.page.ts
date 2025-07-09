@@ -13,6 +13,7 @@ import { AmeliaService } from '../services/amelia-api.service';
 import { UpcomingAppointment } from '../Models/UpcomingAppointment';
 import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
+import { Observable } from 'rxjs';
 import {trigger, style, transition, animate} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 import { OnboardingService } from '../services/onboarding.service';
@@ -20,7 +21,7 @@ import { JoyrideService } from 'ngx-joyride';
 import { delay, Subscription } from 'rxjs';
 import { PopoverController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { AttendanceDashboardPageModule } from '../trainer/attendance-dashboard/attendance-dashboard.module';
+import { AttendanceBadgeService } from '../services/attendance-badge.service';
 import { AttendanceDashboardPage } from '../trainer/attendance-dashboard/attendance-dashboard.page';
 
 register();
@@ -65,6 +66,8 @@ export class HomePage implements OnInit {
   userEmail: string | null= '';
   customerId: string | null = '';
   
+  public attendanceBadgeCount$: Observable<number>;
+
   constructor(
     private readonly joyrideService: JoyrideService,
     private router: Router,
@@ -79,17 +82,22 @@ export class HomePage implements OnInit {
     private modalCtrl2: ModalController, 
     private modalCtrl3: ModalController, 
     private modalCtrl4: ModalController,
-    private authService: AuthService
+    private authService: AuthService,
+    private attendanceBadgeService: AttendanceBadgeService // 1. Inject the new service
   ) {
     console.log('HomePage constructor: JoyrideService injected?', !!this.joyrideService);
     this.userRole = this.authService.getUserRole();
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
     this.customerId = this.authService.getCustomerID();
+    this.attendanceBadgeCount$ = this.attendanceBadgeService.badgeCount$;
   }
 
   ngOnInit() {
     
+    if (this.userRole === 'team' || this.userRole === 'administrator') {
+        this.attendanceBadgeService.fetchAndSetBadgeCount();
+    }
 
     this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
       (data) => {
@@ -284,6 +292,9 @@ export class HomePage implements OnInit {
   refreshData(event: any) {
     setTimeout(() => {
       this.loadData(); 
+      if (this.userRole === 'team' || this.userRole === 'administrator') {
+        this.attendanceBadgeService.fetchAndSetBadgeCount();
+      }
       event.target.complete(); 
     }, 2000); 
   }
@@ -382,12 +393,17 @@ export class HomePage implements OnInit {
       breakpoints: [0, 1],
       initialBreakpoint: 1,
     });
+    
     await modal.present();
-    this.setDisableScroll(true);  
+    this.setDisableScroll(true);
+    
+    // When the modal closes, refresh the badge count
     modal.onDidDismiss().then(() => {
       this.setDisableScroll(false); 
+      if (this.userRole === 'team' || this.userRole === 'administrator') {
+        this.attendanceBadgeService.fetchAndSetBadgeCount();
+      }
     });
-    return await modal.present();
   }
 
   async openProfile() {

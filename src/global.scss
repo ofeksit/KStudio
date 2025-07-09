@@ -293,3 +293,22 @@ button.joyride-button:focus {
 .joyride-step__footer {
   margin-top: 4px !important;       /* היה 10px */
 }
+
+
+
+ion-modal.centered-assign-modal {
+    // Set variables for the modal's size and look
+    --width: 90vw;
+    --max-width: 400px;
+    --height: auto;
+    --border-radius: 12px;
+    --box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+
+    // This makes the backdrop a semi-transparent dark color
+    --backdrop-opacity: 0.5; 
+}
+
+// Also ensure the content inside has a solid background
+ion-modal.centered-assign-modal ion-content {
+    --background: #fff;
+}

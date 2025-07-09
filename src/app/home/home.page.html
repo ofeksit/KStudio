@@ -176,6 +176,12 @@
     <div class="nav-item" *ngIf="userRole === 'team' || userRole === 'administrator'" (click)="openAttendance()">
       <ion-icon name="clipboard-outline"></ion-icon>
       <ion-label>נוכחות</ion-label>
+      
+    <ng-container *ngIf="(attendanceBadgeCount$ | async) as count">
+      <ion-badge *ngIf="count > 0" color="danger">
+        {{ count }}
+      </ion-badge>
+    </ng-container>
     </div>
 
     <div class="nav-item" *ngIf="userRole === 'administrator'" (click)="openManagePackages()">

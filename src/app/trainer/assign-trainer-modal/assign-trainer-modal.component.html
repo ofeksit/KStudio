@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>שיבוץ מאמן</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="closeModal()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="training" class="training-info">
+    <h4>{{ training.training_name }}</h4>
+    <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }}</p>
+  </div>
+
+  <div *ngIf="isLoading" class="ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>טוען מאמנים...</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading">
+    <ion-radio-group [(ngModel)]="selectedTrainerEmail">
+      <ion-list-header>
+        <ion-label>בחר/י מאמן מהרשימה</ion-label>
+      </ion-list-header>
+
+      <ion-item *ngFor="let member of teamMembers">
+        <ion-radio [value]="member.email" slot="start"></ion-radio>
+        <ion-label>{{ member.name }}</ion-label>
+      </ion-item>
+    </ion-radio-group>
+  </ion-list>
+</ion-content>
+
+<ion-footer class="ion-padding">
+  <ion-button expand="block" (click)="saveAssignment()" [disabled]="isSaving || !selectedTrainerEmail">
+    <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+    <span *ngIf="!isSaving">שמור שיבוץ</span>
+  </ion-button>
+</ion-footer>
