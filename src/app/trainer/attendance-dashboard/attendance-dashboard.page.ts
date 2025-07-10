@@ -26,7 +26,7 @@ export class AttendanceDashboardPage implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private modalCtrl: ModalController,
+    private modalCtrl: ModalController,    
     private authService: AuthService,
     private attendanceBadgeService: AttendanceBadgeService
   ) {
@@ -46,7 +46,6 @@ export class AttendanceDashboardPage implements OnInit {
       componentProps: {
         training: training
       },
-      // ADD THIS CLASS AND REMOVE THE BREAKPOINTS
       cssClass: 'centered-assign-modal' 
     });
 
@@ -58,13 +57,16 @@ export class AttendanceDashboardPage implements OnInit {
     }
   }
 
-    // --- NEW Method to load upcoming trainings ---
-  // NOTE: This assumes you have a new API endpoint for this purpose.
   async loadUpcomingTrainingsForAssignment() {
     this.isLoadingUpcoming = true;
     const url = `https://k-studio.co.il/wp-json/custom-api/v1/upcoming-for-assignment`;
     try {
-      this.upcomingTrainings = await firstValueFrom(this.http.get<any[]>(url));
+      const data = await firstValueFrom(this.http.get<any[]>(url));
+      
+      // Add this line to log the raw API response
+      console.log('API Response for Upcoming Trainings:', data);
+      
+      this.upcomingTrainings = data;
     } catch (error) {
       console.error("Error loading upcoming trainings for assignment", error);
     } finally {
@@ -138,7 +140,7 @@ export class AttendanceDashboardPage implements OnInit {
         training: { id: training.id, name: training.training_name, start_time: training.start_time }
       },
       cssClass: 'attendance-marker-modal',
-      breakpoints: [0, 0.5, 0.8, 1],
+      breakpoints: [0, 0.8],
       initialBreakpoint: 0.8
     });
 

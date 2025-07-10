@@ -15,6 +15,7 @@ interface TeamMember {
 })
 export class AssignTrainerModalComponent implements OnInit {
   @Input() training: any;
+  
 
   teamMembers: TeamMember[] = [];
   selectedTrainerEmail: string = '';
@@ -35,13 +36,22 @@ export class AssignTrainerModalComponent implements OnInit {
     this.isLoading = true;
     const url = `https://k-studio.co.il/wp-json/custom-api/v1/team-members`;
     try {
-      this.teamMembers = await firstValueFrom(this.http.get<TeamMember[]>(url));
+      const response = await firstValueFrom(this.http.get<any[]>(url));
+      this.teamMembers = response.map(member => ({
+        email: member.email,
+        name: member.name
+      }));
+      console.log('Team members loaded:', this.teamMembers);
     } catch (error) {
       console.error("Error loading team members", error);
       this.presentToast('Failed to load trainers.', 'danger');
     } finally {
       this.isLoading = false;
     }
+  }
+
+  trackByEmail(index: number, member: TeamMember): string {
+    return member.email;
   }
 
   async saveAssignment() {
