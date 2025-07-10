@@ -56,6 +56,7 @@ export class AssignTrainerModalComponent implements OnInit {
 
   async saveAssignment() {
     if (!this.selectedTrainerEmail) {
+      await this.modalCtrl.dismiss({ assigned: true });  // close first
       this.presentToast('Please select a trainer.', 'warning');
       return;
     }

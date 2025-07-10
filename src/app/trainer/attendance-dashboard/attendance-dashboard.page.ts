@@ -40,22 +40,30 @@ export class AttendanceDashboardPage implements OnInit {
   }
 
     
-  async openTrainerAssignmentModal(training: any) {
-    const modal = await this.modalCtrl.create({
-      component: AssignTrainerModalComponent,
-      componentProps: {
-        training: training
-      },
-      cssClass: 'centered-assign-modal' 
-    });
+async openTrainerAssignmentModal(training: any) {
+  // Make sure the launch button loses focus
+  (document.activeElement as HTMLElement)?.blur();
 
-    await modal.present();
+  const parent = await this.modalCtrl.getTop();   // outer sheet
 
-    const { data } = await modal.onDidDismiss();
-    if (data?.assigned) {
-      this.loadUpcomingTrainingsForAssignment();
-    }
+  const modal = await this.modalCtrl.create({
+    presentingElement: parent,          // ← tell Ionic it's nested
+    component: AssignTrainerModalComponent,
+    componentProps: { training },
+
+    // Let Ionic decide the height dynamically
+    breakpoints: [0, 0.6, 0.9],         // 60 % when opened, can drag to 90 %
+    initialBreakpoint: 0.6
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+  if (data?.assigned) {
+    this.loadUpcomingTrainingsForAssignment();
   }
+}
+  
 
   async loadUpcomingTrainingsForAssignment() {
     this.isLoadingUpcoming = true;
