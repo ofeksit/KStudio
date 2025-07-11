@@ -15,11 +15,28 @@
       
       <div *ngIf="training" class="training-info">
         <div class="training-card">
-          <h4>{{ training.training_name }}</h4>
           <div class="training-meta">
+            <h4>{{ training.training_name }}</h4>
             <span class="date">{{ training.start_time | date:'dd/MM/yyyy' }}</span>
             <span class="time">{{ training.start_time | date:'HH:mm' }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Current Assignment Status -->
+      <div *ngIf="currentAssignedTrainer && !isLoading" class="current-assignment">
+        <div class="assignment-info">
+          <div class="assignment-header">
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <span>מאמן נוכחי</span>
+          </div>
+          <div class="trainer-details">
+            <div class="trainer-name">{{ currentAssignedTrainer.name }}</div>
+            <div class="trainer-email">{{ currentAssignedTrainer.email }}</div>
+          </div>
+          <button class="remove-button" (click)="removeAssignment()" [disabled]="isSaving">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
         </div>
       </div>
     </div>
@@ -44,7 +61,7 @@
     <!-- Trainers List -->
     <div *ngIf="!isLoading && teamMembers.length" class="trainers-container">
       <div class="section-title">
-        <h4>בחר מאמן</h4>
+        <h4>{{ currentAssignedTrainer ? 'בחר מאמן חדש' : 'בחר מאמן' }}</h4>
         <span class="count">{{ teamMembers.length }} מאמנים זמינים</span>
       </div>
       
@@ -52,6 +69,7 @@
         <div *ngFor="let member of teamMembers; trackBy: trackByEmail"
              class="trainer-card"
              [class.selected]="isSelected(member.email)"
+             [class.currently-assigned]="isCurrentlyAssigned(member.email)"
              (click)="selectTrainer(member.email)">
           
           <div class="trainer-avatar">
@@ -63,25 +81,26 @@
           <div class="trainer-info">
             <h5>{{ member.name }}</h5>
             <p>{{ member.email }}</p>
+            <span *ngIf="isCurrentlyAssigned(member.email)" class="current-badge">מאמן נוכחי</span>
           </div>
           
           <div class="selection-indicator" [class.active]="isSelected(member.email)">
             <ion-icon name="checkmark-outline"></ion-icon>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Save Button -->
-    <div class="save-button-container" [class.visible]="selectedTrainerEmail">
-      <ion-button 
-        expand="block" 
-        (click)="saveAssignment()" 
-        [disabled]="isSaving || !selectedTrainerEmail" 
-        class="save-button">
-        <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
-        <span *ngIf="!isSaving">שמור שיבוץ</span>
-      </ion-button>
+        <!-- Save Button -->
+        <div class="save-button-container" [class.visible]="selectedTrainerEmail">
+          <ion-button 
+            expand="block" 
+            (click)="saveAssignment()" 
+            [disabled]="isSaving || !selectedTrainerEmail || !hasChanges" 
+            class="save-button">
+            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving">{{ saveButtonText }}</span>
+          </ion-button>
+        </div>
+      </div>
     </div>
 
   </div>

@@ -15,15 +15,15 @@
       <div class="attendance-summary">
         <div class="summary-item">
           <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
-          <span>נוכחים: {{ presentCount }}</span>
+          <span>נוכחים<br>{{ presentCount }}</span>
         </div>
         <div class="summary-item">
           <ion-icon name="close-circle-outline" color="danger"></ion-icon>
-          <span>נעדרו: {{ absentCount }}</span>
+          <span>נעדרו<br>{{ absentCount }}</span>
         </div>
         <div class="summary-item">
           <ion-icon name="help-circle-outline" color="medium"></ion-icon>
-          <span>לא סומן: {{ notMarkedCount }}</span>
+          <span>לא סומן<br>{{ notMarkedCount }}</span>
         </div>
       </div>
     </div>
@@ -34,21 +34,27 @@
     </div>
 
     <div *ngIf="!isLoading && attendees.length === 0" class="empty-state">
-      <ion-icon name="people-outline" size="large"></ion-icon>
+      <ion-icon name="people-outline"></ion-icon>
       <h3>אין מתאמנים רשומים</h3>
       <p>לאימון זה לא רשומים מתאמנים.</p>
     </div>
 
-    <ion-list *ngIf="!isLoading && attendees.length > 0" class="customers-list" lines="none">
+    <div *ngIf="!isLoading && attendees.length > 0" class="customers-list">
       <ion-card *ngFor="let customer of attendees; trackBy: trackById" class="customer-card">
         <ion-card-header>
           <div class="customer-info">
             <div class="status-buttons">
-              <ion-button fill="clear" (click)="markStatus(customer, 'attended')" [color]="customer.status === 'attended' ? 'success' : 'medium'">
-                  <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+              <ion-button 
+                fill="solid" 
+                (click)="markStatus(customer, 'attended')" 
+                [color]="customer.status === 'attended' ? 'success' : 'medium'">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" (click)="markStatus(customer, 'absent')" [color]="customer.status === 'absent' ? 'danger' : 'medium'">
-                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              <ion-button 
+                fill="solid" 
+                (click)="markStatus(customer, 'absent')" 
+                [color]="customer.status === 'absent' ? 'danger' : 'medium'">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
               </ion-button>
             </div>
             <div class="customer-details">
@@ -61,13 +67,13 @@
           </div>
         </ion-card-header>
       </ion-card>
-    </ion-list>
+    </div>
 
-    <div *ngIf="!isLoading && attendees.length > 0" class="save-button-container">
-        <ion-button expand="block" (click)="saveAttendance()" [disabled]="!hasChanges || isSaving">
-            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
-            <span *ngIf="!isSaving">שמירת נוכחות</span>
-        </ion-button>
+    <div *ngIf="!isLoading && attendees.length > 0" class="save-button-container" [class.visible]="hasChanges">
+      <ion-button expand="block" (click)="saveAttendance()" [disabled]="!hasChanges || isSaving">
+        <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+        <span *ngIf="!isSaving">שמירת נוכחות</span>
+      </ion-button>
     </div>
   </div>
-</ion-content> 
+</ion-content>

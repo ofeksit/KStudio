@@ -25,6 +25,11 @@ export class AttendanceDashboardPage implements OnInit {
   upcomingTrainings: any[] = [];
   pastTrainingsPage = 1;
   allPastTrainingsLoaded = false;
+  AMELIA_API_KEY = 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk';
+  private weeklyMain:   Record<string, {time: string; title: string}[]> = {};
+  private weeklySecond: Record<string, {time: string; title: string}[]> = {};
+
+
 
   constructor(
     private http: HttpClient,
@@ -36,9 +41,55 @@ export class AttendanceDashboardPage implements OnInit {
     this.userRole = this.authService.getUserRole();
   }
 
+  private pullWeeklyFromStorage() {
+    try {
+      this.weeklyMain   = JSON.parse(localStorage.getItem('weeklyTrainings_main')   ?? '{}');
+      this.weeklySecond = JSON.parse(localStorage.getItem('weeklyTrainings_second') ?? '{}');
+    } catch { /* no schedule yet – leave objects empty */ }
+  }
+
   ngOnInit() {
+    this.pullWeeklyFromStorage()
     this.loadInitialData();
     console.log("pastTrainings:", this.pastTrainings);
+  }
+
+  scheduleForProvider(id?: number) {
+    return [169, 172].includes(id ?? -1) ? this.weeklyMain : this.weeklySecond;
+  }
+
+  async enrichTraining(t: any): Promise<void> {
+  try {
+    const details: any = await firstValueFrom(
+      this.http.get(
+        `https://k-studio.co.il/wp-json/custom-api/v1/appointment/${t.id}`
+      )
+    );
+
+    const pid = details?.data?.appointment?.providerId;
+    t.providerId = pid;
+
+    /* NEW – overwrite the name if we have one in the weekly schedule */
+    const title = this.lookupTitle(t.start_time, pid);
+    if (title) { t.training_name = title; }
+
+  } catch (err) {
+    console.warn('enrichTraining failed', t.id, err);
+  }
+}
+
+  lookupTitle(startIso: string, providerId?: number): string | null {
+    const dn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const d  = new Date(startIso.replace(' ', 'T'));        // ISO-safe parse
+    const day = dn[d.getDay()];                             // e.g. "Sunday"
+    const hhmm = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}); // "07:30"
+
+    const slot = this.scheduleForProvider(providerId)[day]?.find(s => s.time === hhmm);
+    return slot ? slot.title : null;
+  }
+
+  branchFromProvider(id: number): 'main' | 'second' {
+  return [169, 172].includes(id) ? 'main' : 'second';
   }
 
   // attendance-dashboard.page.ts
@@ -49,7 +100,7 @@ export class AttendanceDashboardPage implements OnInit {
       component: AssignTrainerModalComponent,
       componentProps: { training },
       cssClass: 'popup-modal',
-      breakpoints: [0, 0.95],
+      breakpoints: [0, 0.95, 1],
       initialBreakpoint: 0.95,
       handle: true,
       backdropDismiss: false
@@ -64,21 +115,17 @@ export class AttendanceDashboardPage implements OnInit {
   }
 
   
-  
-  
-
   async loadUpcomingTrainingsForAssignment() {
     this.isLoadingUpcoming = true;
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/upcoming-for-assignment`;
     try {
-      const data = await firstValueFrom(this.http.get<any[]>(url));
-      
-      // Add this line to log the raw API response
-      console.log('API Response for Upcoming Trainings:', data);
-      
-      this.upcomingTrainings = data;
-    } catch (error) {
-      console.error("Error loading upcoming trainings for assignment", error);
+      const raw = await firstValueFrom(
+        this.http.get<any[]>('https://k-studio.co.il/wp-json/custom-api/v1/upcoming-trainings')
+      );
+
+      await Promise.all(raw.map(t => this.enrichTraining(t)));   // <-- NEW
+      this.upcomingTrainings = raw;
+    } catch (err) {
+      console.error('Error loading upcoming trainings', err);
     } finally {
       this.isLoadingUpcoming = false;
     }
@@ -106,6 +153,8 @@ export class AttendanceDashboardPage implements OnInit {
 
     try {
       const newTrainings = await firstValueFrom(this.http.get<any[]>(url, { params }));
+
+      await Promise.all(newTrainings.map(t => this.enrichTraining(t))); // <-- NEW
 
       // Append new data instead of replacing it
       this.pastTrainings.push(...newTrainings);
@@ -150,8 +199,8 @@ export class AttendanceDashboardPage implements OnInit {
         training: { id: training.id, name: training.training_name, start_time: training.start_time }
       },
       cssClass: 'attendance-marker-modal',
-      breakpoints: [0, 0.8],
-      initialBreakpoint: 0.8
+      breakpoints: [0, 1],
+      initialBreakpoint: 1
     });
 
     await modal.present();
@@ -163,6 +212,8 @@ export class AttendanceDashboardPage implements OnInit {
       try {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/past-training/${training.id}`;
         const freshTrainingData: any = await firstValueFrom(this.http.get(url));
+        await this.enrichTraining(freshTrainingData);   // <-- add
+
 
         // Find the index of the old training object in the array.
         const index = this.pastTrainings.findIndex(t => t.id === training.id);
