@@ -6,6 +6,8 @@ import { AttendanceMarkerComponent } from '../attendance-marker/attendance-marke
 import { AuthService } from '../../services/auth.service'; // Import AuthService
 import { AttendanceBadgeService } from 'src/app/services/attendance-badge.service';
 import { AssignTrainerModalComponent } from '../../trainer/assign-trainer-modal/assign-trainer-modal.component';
+import { logOverlays } from '../../overlay-debug';   // adjust the path if needed
+
 
 
 @Component({
@@ -39,30 +41,30 @@ export class AttendanceDashboardPage implements OnInit {
     console.log("pastTrainings:", this.pastTrainings);
   }
 
-    
-async openTrainerAssignmentModal(training: any) {
-  // Make sure the launch button loses focus
-  (document.activeElement as HTMLElement)?.blur();
+  // attendance-dashboard.page.ts
+  async openTrainerAssignmentModal(training: any) {
+    (document.activeElement as HTMLElement)?.blur();
 
-  const parent = await this.modalCtrl.getTop();   // outer sheet
+    const modal = await this.modalCtrl.create({
+      component: AssignTrainerModalComponent,
+      componentProps: { training },
+      cssClass: 'popup-modal',
+      breakpoints: [0, 0.95],
+      initialBreakpoint: 0.95,
+      handle: true,
+      backdropDismiss: false
+    });
 
-  const modal = await this.modalCtrl.create({
-    presentingElement: parent,          // ← tell Ionic it's nested
-    component: AssignTrainerModalComponent,
-    componentProps: { training },
+    await modal.present();
 
-    // Let Ionic decide the height dynamically
-    breakpoints: [0, 0.6, 0.9],         // 60 % when opened, can drag to 90 %
-    initialBreakpoint: 0.6
-  });
-
-  await modal.present();
-
-  const { data } = await modal.onDidDismiss();
-  if (data?.assigned) {
-    this.loadUpcomingTrainingsForAssignment();
+    const { data } = await modal.onDidDismiss();
+    if (data?.assigned) {
+      this.loadUpcomingTrainingsForAssignment();
+    }
   }
-}
+
+  
+  
   
 
   async loadUpcomingTrainingsForAssignment() {

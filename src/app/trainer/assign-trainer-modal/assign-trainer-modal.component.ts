@@ -16,7 +16,6 @@ interface TeamMember {
 export class AssignTrainerModalComponent implements OnInit {
   @Input() training: any;
   
-
   teamMembers: TeamMember[] = [];
   selectedTrainerEmail: string = '';
   isLoading = true;
@@ -54,9 +53,18 @@ export class AssignTrainerModalComponent implements OnInit {
     return member.email;
   }
 
+  // Method to handle trainer selection
+  selectTrainer(email: string) {
+    this.selectedTrainerEmail = email;
+  }
+
+  // Method to check if trainer is selected
+  isSelected(email: string): boolean {
+    return this.selectedTrainerEmail === email;
+  }
+
   async saveAssignment() {
     if (!this.selectedTrainerEmail) {
-      await this.modalCtrl.dismiss({ assigned: true });  // close first
       this.presentToast('Please select a trainer.', 'warning');
       return;
     }

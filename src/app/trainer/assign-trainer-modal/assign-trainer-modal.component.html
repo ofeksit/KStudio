@@ -1,53 +1,88 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="closeModal()" fill="clear" aria-label="סגור חלון">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+<ion-content class="popup-modal">
+  <div class="drag-handle"></div>
+
+  <div class="page-content-wrapper">
+
+    <!-- Header -->
+    <div class="sticky-header">
+      <div class="header-content">
+        <button class="close-button" (click)="closeModal()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <h3>שיבוץ מאמן</h3>
+        <div class="spacer"></div>
+      </div>
+      
+      <div *ngIf="training" class="training-info">
+        <div class="training-card">
+          <h4>{{ training.training_name }}</h4>
+          <div class="training-meta">
+            <span class="date">{{ training.start_time | date:'dd/MM/yyyy' }}</span>
+            <span class="time">{{ training.start_time | date:'HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-content">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>טוען מאמנים...</p>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && teamMembers.length === 0" class="empty-state">
+      <div class="empty-content">
+        <ion-icon name="people-outline" size="large"></ion-icon>
+        <h3>לא נמצאו מאמנים זמינים</h3>
+        <p>אנא נסה שוב מאוחר יותר</p>
+      </div>
+    </div>
+
+    <!-- Trainers List -->
+    <div *ngIf="!isLoading && teamMembers.length" class="trainers-container">
+      <div class="section-title">
+        <h4>בחר מאמן</h4>
+        <span class="count">{{ teamMembers.length }} מאמנים זמינים</span>
+      </div>
+      
+      <div class="trainers-grid">
+        <div *ngFor="let member of teamMembers; trackBy: trackByEmail"
+             class="trainer-card"
+             [class.selected]="isSelected(member.email)"
+             (click)="selectTrainer(member.email)">
+          
+          <div class="trainer-avatar">
+            <div class="avatar-placeholder">
+              {{ member.name.charAt(0).toUpperCase() }}
+            </div>
+          </div>
+          
+          <div class="trainer-info">
+            <h5>{{ member.name }}</h5>
+            <p>{{ member.email }}</p>
+          </div>
+          
+          <div class="selection-indicator" [class.active]="isSelected(member.email)">
+            <ion-icon name="checkmark-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="save-button-container" [class.visible]="selectedTrainerEmail">
+      <ion-button 
+        expand="block" 
+        (click)="saveAssignment()" 
+        [disabled]="isSaving || !selectedTrainerEmail" 
+        class="save-button">
+        <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+        <span *ngIf="!isSaving">שמור שיבוץ</span>
       </ion-button>
-    </ion-buttons>
-    <ion-title>שיבוץ מאמן</ion-title>
-  </ion-toolbar>
-</ion-header>
+    </div>
 
-<ion-content class="ion-padding-horizontal" role="main">
-  <div *ngIf="training" class="training-info">
-    <h4>{{ training.training_name }}</h4>
-    <p>{{ training.start_time | date: 'dd/MM/yyyy' }} • {{ training.start_time | date: 'HH:mm' }}</p>
-  </div>
-
-  <div *ngIf="isLoading" class="ion-text-center ion-padding" role="status" aria-live="polite">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>טוען מאמנים...</p>
-  </div>
-
-  <ion-list *ngIf="!isLoading && teamMembers.length > 0" role="radiogroup" aria-labelledby="trainer-list-header">
-    <ion-list-header id="trainer-list-header">
-      <ion-label>בחר/י מאמן מהרשימה</ion-label>
-    </ion-list-header>
-
-    <ion-radio-group [(ngModel)]="selectedTrainerEmail">
-      <ion-item *ngFor="let member of teamMembers; trackBy: trackByEmail" role="radio" 
-                [attr.aria-checked]="selectedTrainerEmail === member.email"
-                button="true">
-        <ion-radio slot="start" [value]="member.email" [attr.aria-label]="'בחר מאמן ' + member.name"></ion-radio>
-        <ion-label>
-          <h3>{{ member.name }}</h3>
-          <p>{{ member.email }}</p>
-        </ion-label>
-      </ion-item>
-    </ion-radio-group>
-  </ion-list>
-
-  <div *ngIf="!isLoading && teamMembers.length === 0" class="ion-text-center ion-padding" role="alert">
-    <p>לא נמצאו מאמנים זמינים</p>
   </div>
 </ion-content>
-
-<ion-footer>
-  <ion-button expand="block" (click)="saveAssignment()" 
-              [disabled]="isSaving || !selectedTrainerEmail"
-              [attr.aria-label]="isSaving ? 'שומר שיבוץ...' : 'שמור שיבוץ מאמן'">
-    <ion-spinner *ngIf="isSaving" name="crescent" aria-hidden="true"></ion-spinner>
-    <span *ngIf="!isSaving">שמור שיבוץ</span>
-  </ion-button>
-</ion-footer>
