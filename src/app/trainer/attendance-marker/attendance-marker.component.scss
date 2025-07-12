@@ -219,7 +219,7 @@
           --min-width: 48px;
           --min-height: 48px;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 2px solid #f1f5f9;
+          //border: 2px solid #f1f5f9;
           background: #f8fafc;
 
           &:hover {
@@ -231,7 +231,7 @@
             --background-activated: #059669;
             --color: white;
             --box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-            border-color: #10b981;
+            //border-color: #10b981;
 
             &:hover {
               --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
@@ -243,7 +243,7 @@
             --background-activated: #dc2626;
             --color: white;
             --box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
-            border-color: #ef4444;
+            //border-color: #ef4444;
 
             &:hover {
               --box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);

@@ -85,7 +85,6 @@ export class HomePage implements OnInit {
     private authService: AuthService,
     private attendanceBadgeService: AttendanceBadgeService // 1. Inject the new service
   ) {
-    console.log('HomePage constructor: JoyrideService injected?', !!this.joyrideService);
     this.userRole = this.authService.getUserRole();
     this.userId = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
@@ -94,12 +93,20 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    
     if (this.userRole === 'team' || this.userRole === 'administrator') {
         this.attendanceBadgeService.fetchAndSetBadgeCount();
     }
 
-    this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
+
+    if (this.userRole === 'activesubscription') {
+  
+      try {
+        this.loadUpcomingTrainings();
+      } catch (e) {
+        console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e);
+      }
+
+      this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
       (data) => {
         console.log('HomePage ngOnInit: fetchSubscriptionExpiryDate success.');
       },
@@ -108,6 +115,8 @@ export class HomePage implements OnInit {
         console.error("HomePage ngOnInit: Error fetching subscription expiry date", error);
       }
     );
+    }
+    
     
     this.blocksService.getBlocks().subscribe(
       (data) => {
@@ -165,12 +174,6 @@ export class HomePage implements OnInit {
         console.error('HomePage ngOnInit: Error initializing Swiper 2 (upcoming-swiper-container)', e);
       }
     }, 0);
-
-    try {
-      this.loadUpcomingTrainings();
-    } catch (e) {
-      console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e);
-    }
 
     try {
       this.setupOneSignal();
@@ -300,27 +303,34 @@ export class HomePage implements OnInit {
   }
   
   loadData() {
-    this.isLoadingTrainings = true;
-    this.loadUpcomingTrainings();
-    this.authService.fetchUserFavLocation().subscribe(
-      (data) => {},
-      (error) => { console.error ("Error fetching user favorite location", error); }
-    );
+    if (this.userRole === 'activesubscription') {
+      this.isLoadingTrainings = true;
+      this.loadUpcomingTrainings();
+
+      this.authService.fetchUserFavLocation().subscribe(
+        (data) => {},
+        (error) => { console.error ("Error fetching user favorite location", error); }
+      );
+      
+      this.authService.fetchPackageCustomerId(this.customerId).subscribe(
+        (data) => {},
+        (error) => { console.error("Error fetching package customer ID", error)}
+      );
+
+      this.profileService.fetchSubscriptionData(this.userId, this.customerId).subscribe(
+        (data) => {},
+        (error) => {}
+      );
+    }
+
     this.blocksService.getBlocks().subscribe(
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
     );
-    this.authService.fetchPackageCustomerId(this.customerId).subscribe(
-      (data) => {},
-      (error) => { console.error("Error fetching package customer ID", error)}
-    );
+
     this.authService.fetchUserRole().subscribe(
       (data) => { this.authService.storeUserRole(data.roles[0]); },
       (error) => { console.error("Error fetching role:", error)}
-    );
-    this.profileService.fetchSubscriptionData(this.userId, this.customerId).subscribe(
-      (data) => {},
-      (error) => {}
     );
   }
 

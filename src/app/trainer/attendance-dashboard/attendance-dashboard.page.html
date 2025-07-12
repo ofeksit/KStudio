@@ -32,7 +32,16 @@
               </ion-icon>
             </div>
             <div class="training-details">
-              <h2>{{ training.training_name }}</h2>
+              <h2>
+                {{ training.training_name }}
+                <span 
+                  *ngIf="training.providerName" 
+                  class="provider-tag"
+                  [ngClass]="getProviderClass(training.providerName)">
+                  {{ training.providerName }}
+                </span>
+              </h2>
+              <p> מאמנת: {{ training.trainer_name }}</p>
               <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }}</p>
             </div>
           </ion-card-header>
@@ -65,7 +74,16 @@
             </ion-button>
             
             <div class="training-details">
-              <h2>{{ training.training_name }}</h2>
+              <h2>
+                {{ training.training_name }}
+                <span 
+                  *ngIf="training.providerName" 
+                  class="provider-tag"
+                  [ngClass]="getProviderClass(training.providerName)">
+                  {{ training.providerName }}
+                </span>
+              </h2>
+              <p>מאמנת: {{ training.trainer_name }} </p>
               <p>{{ training.start_time | date: 'dd/MM/yyyy'}} | {{ training.start_time | date: 'HH:mm' }}</p>
               
               <div *ngIf="training.assigned_trainer_name" class="assigned-trainer">

@@ -8,8 +8,6 @@ import { AttendanceBadgeService } from 'src/app/services/attendance-badge.servic
 import { AssignTrainerModalComponent } from '../../trainer/assign-trainer-modal/assign-trainer-modal.component';
 import { logOverlays } from '../../overlay-debug';   // adjust the path if needed
 
-
-
 @Component({
   selector: 'app-attendance-dashboard',
   templateUrl: './attendance-dashboard.page.html',
@@ -25,11 +23,36 @@ export class AttendanceDashboardPage implements OnInit {
   upcomingTrainings: any[] = [];
   pastTrainingsPage = 1;
   allPastTrainingsLoaded = false;
-  AMELIA_API_KEY = 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk';
   private weeklyMain:   Record<string, {time: string; title: string}[]> = {};
   private weeklySecond: Record<string, {time: string; title: string}[]> = {};
 
+  // Provider ID to Name mapping - customize these as needed
+  private providerNames: Record<number, string> = {
+    169: 'בן יהודה',
+    172: 'בן יהודה',
+    643: 'הירקון',
+    644: 'הירקון'
+    // Add more provider mappings as needed
+  };
 
+  getProviderClass(providerName: string): string {
+  switch (providerName) {
+    case 'בן יהודה':
+      return 'provider-ben-yehuda';
+    case 'הירקון':
+      return 'provider-hayarkon';
+    case 'דיזנגוף':
+      return 'provider-dizengoff';
+    case 'רוטשילד':
+      return 'provider-rothschild';
+    case 'אלנבי':
+      return 'provider-allenby';
+    case 'כרמל':
+      return 'provider-carmel';
+    default:
+      return '';
+  }
+}
 
   constructor(
     private http: HttpClient,
@@ -37,8 +60,12 @@ export class AttendanceDashboardPage implements OnInit {
     private authService: AuthService,
     private attendanceBadgeService: AttendanceBadgeService
   ) {
-    // THIS IS THE FIX: Get the role as soon as the component is created.
     this.userRole = this.authService.getUserRole();
+  }
+
+  // Method to get provider name by ID
+  getProviderName(providerId: number): string {
+    return this.providerNames[providerId] || `ספק ${providerId}`;
   }
 
   private pullWeeklyFromStorage() {
@@ -49,47 +76,52 @@ export class AttendanceDashboardPage implements OnInit {
   }
 
   ngOnInit() {
-    this.pullWeeklyFromStorage()
+    this.pullWeeklyFromStorage();
+    console.log("weekly main:", this.weeklyMain);
+    console.log("weekly second:", this.weeklySecond);
     this.loadInitialData();
-    console.log("pastTrainings:", this.pastTrainings);
   }
 
   scheduleForProvider(id?: number) {
-    return [169, 172].includes(id ?? -1) ? this.weeklyMain : this.weeklySecond;
+    console.log("ID is:", id);
+    // Check which schedule actually contains the data for this provider
+    if (id === 169) return this.weeklySecond;  // Based on your debug output
+    if (id === 172) return this.weeklySecond;    // Adjust as needed
+    return this.weeklyMain; // default
   }
 
-  async enrichTraining(t: any): Promise<void> {
-  try {
-    const details: any = await firstValueFrom(
-      this.http.get(
-        `https://k-studio.co.il/wp-json/custom-api/v1/appointment/${t.id}`
-      )
-    );
+async enrichTraining(t: any): Promise<void> {
+    // 1️⃣  Provider already present – no need to hit the API again
+    if (t.providerId) {
+      t.providerName = this.getProviderName(t.providerId);
+      const title = this.lookupTitle(t.start_time, t.providerId);
+      if (title) t.training_name = title;
+      return;
+    }
 
-    const pid = details?.data?.appointment?.providerId;
-    t.providerId = pid;
-
-    /* NEW – overwrite the name if we have one in the weekly schedule */
-    const title = this.lookupTitle(t.start_time, pid);
-    if (title) { t.training_name = title; }
-
-  } catch (err) {
-    console.warn('enrichTraining failed', t.id, err);
+    // 2️⃣  Fallback – older objects that came without providerId
+    try {
+      const details: any = await firstValueFrom(
+        this.http.get(`https://k-studio.co.il/wp-json/custom-api/v1/appointment/${t.id}`)
+      );
+      t.providerId   = details?.providerId ?? null;
+      t.providerName = this.getProviderName(t.providerId);
+      const title    = this.lookupTitle(t.start_time, t.providerId);
+      if (title) t.training_name = title;
+    } catch (err) {
+      console.warn('enrichTraining failed', t.id, err);
+    }
   }
-}
 
   lookupTitle(startIso: string, providerId?: number): string | null {
+    console.log('lookupTitle called with:', { startIso, providerId });
     const dn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const d  = new Date(startIso.replace(' ', 'T'));        // ISO-safe parse
-    const day = dn[d.getDay()];                             // e.g. "Sunday"
-    const hhmm = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}); // "07:30"
-
-    const slot = this.scheduleForProvider(providerId)[day]?.find(s => s.time === hhmm);
+    const d = new Date(startIso);
+    const day = dn[d.getDay()];   
+    const hhmm = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    const schedule = this.scheduleForProvider(providerId);
+    const slot = schedule[day]?.find(s => s.time === hhmm);    
     return slot ? slot.title : null;
-  }
-
-  branchFromProvider(id: number): 'main' | 'second' {
-  return [169, 172].includes(id) ? 'main' : 'second';
   }
 
   // attendance-dashboard.page.ts
@@ -114,16 +146,20 @@ export class AttendanceDashboardPage implements OnInit {
     }
   }
 
-  
   async loadUpcomingTrainingsForAssignment() {
+    const params = new HttpParams().set('days', '7');
     this.isLoadingUpcoming = true;
     try {
-      const raw = await firstValueFrom(
-        this.http.get<any[]>('https://k-studio.co.il/wp-json/custom-api/v1/upcoming-trainings')
-      );
+    const raw = await firstValueFrom(
+      this.http.get<any[]>(
+        'https://k-studio.co.il/wp-json/custom-api/v1/upcoming-trainings',
+        { params }              // <-- added
+      )
+    );
 
-      await Promise.all(raw.map(t => this.enrichTraining(t)));   // <-- NEW
+      await Promise.all(raw.map(t => this.enrichTraining(t)));
       this.upcomingTrainings = raw;
+      console.log("upcomingTrainings:", this.upcomingTrainings)
     } catch (err) {
       console.error('Error loading upcoming trainings', err);
     } finally {
@@ -131,7 +167,7 @@ export class AttendanceDashboardPage implements OnInit {
     }
   }
 
-    // --- NEW Method to handle segment changes ---
+  // --- NEW Method to handle segment changes ---
   segmentChanged(event: any) {
     this.currentSegment = event.detail.value;
   }
@@ -173,9 +209,10 @@ export class AttendanceDashboardPage implements OnInit {
     } finally {
       this.isLoading = false;
     }
+    console.log("pastTrainings:", this.pastTrainings)
   }
 
-    // Add this new function to handle the infinite scroll event
+  // Add this new function to handle the infinite scroll event
   loadMorePastTrainings(event: any) {
     this.pastTrainingsPage++; // Increment the page number
     this.loadTrainings(event); // Load the next page
@@ -186,17 +223,17 @@ export class AttendanceDashboardPage implements OnInit {
     this.pastTrainingsPage = 1;
     this.allPastTrainingsLoaded = false;
     this.loadTrainings(); // Load first page
-
+    
     if (this.userRole === 'administrator') {
       this.loadUpcomingTrainingsForAssignment();
     }
   }
 
-  async openAttendanceMarker(training: any) {
+  async openAttendanceMarker(training: any) { 
     const modal = await this.modalCtrl.create({
       component: AttendanceMarkerComponent,
       componentProps: {
-        training: { id: training.id, name: training.training_name, start_time: training.start_time }
+        training: { id: training.id, name: training.training_name, start_time: training.start_time, trainer_name: training.trainer_name }
       },
       cssClass: 'attendance-marker-modal',
       breakpoints: [0, 1],
@@ -213,7 +250,6 @@ export class AttendanceDashboardPage implements OnInit {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/past-training/${training.id}`;
         const freshTrainingData: any = await firstValueFrom(this.http.get(url));
         await this.enrichTraining(freshTrainingData);   // <-- add
-
 
         // Find the index of the old training object in the array.
         const index = this.pastTrainings.findIndex(t => t.id === training.id);

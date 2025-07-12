@@ -7,13 +7,13 @@
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
   overflow: hidden;
 
-.drag-handle {
-  width: 40px;
-  height: 5px;
-  background-color: transparent;
-  border-radius: 2.5px;
-  margin: 0 auto 15px auto;
-}
+  .drag-handle {
+    width: 40px;
+    height: 5px;
+    background-color: transparent;
+    border-radius: 2.5px;
+    margin: 0 auto 15px auto;
+  }
 
   .page-content-wrapper {
     display: flex;
@@ -51,7 +51,6 @@
       border-radius: 16px;
       padding: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      /* margin-right: 20px; */
       margin-left: 40px;
       height: 60px;
 
@@ -207,13 +206,73 @@
           font-weight: 600;
           color: #1e293b;
           margin: 0 0 4px 0;
-          letter-spacing: -0.025em;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          .provider-tag {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: auto;
+            text-align: center;
+            line-height: 1.2;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            
+            // Default provider tag styling
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            // Ben Yehuda provider - Blue/Teal gradient
+            &.provider-ben-yehuda {
+              background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+              box-shadow: 0 1px 3px rgba(6, 182, 212, 0.3);
+            }
+            
+            // Hayarkon provider - Green/Emerald gradient
+            &.provider-hayarkon {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+            }
+            
+            // Additional provider colors for future use
+            &.provider-dizengoff {
+              background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+              box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+            }
+            
+            &.provider-rothschild {
+              background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+              box-shadow: 0 1px 3px rgba(236, 72, 153, 0.3);
+            }
+            
+            &.provider-allenby {
+              background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+              box-shadow: 0 1px 3px rgba(139, 92, 246, 0.3);
+            }
+            
+            &.provider-carmel {
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+              box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+            }
+            
+            // Hover effects for better interactivity
+            &:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+            }
+          }
         }
 
         p {
           font-size: 0.875rem;
           color: #64748b;
           margin: 0;
+          text-align: right;
         }
 
         .assigned-trainer {
@@ -227,6 +286,26 @@
           border-radius: 20px;
           font-size: 0.8125rem;
           color: #059669;
+          font-weight: 500;
+          width: fit-content;
+          margin-left: auto;
+
+          ion-icon {
+            font-size: 16px;
+          }
+        }
+
+        .provider-info {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 6px;
+          margin-top: 8px;
+          padding: 6px 12px;
+          background: rgba(102, 126, 234, 0.1);
+          border-radius: 20px;
+          font-size: 0.8125rem;
+          color: #667eea;
           font-weight: 500;
           width: fit-content;
           margin-left: auto;

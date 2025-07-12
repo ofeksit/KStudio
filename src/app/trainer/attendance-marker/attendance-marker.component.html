@@ -9,7 +9,7 @@
 
       <div *ngIf="training" class="training-info">
         <h4>{{ training.name }}</h4>
-        <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }}</p>
+        <p>{{ training.start_time | date: 'dd/MM/yyyy' }} | {{ training.start_time | date: 'HH:mm' }} | {{ training.trainer_name }} </p>
       </div>
 
       <div class="attendance-summary">
@@ -43,6 +43,13 @@
       <ion-card *ngFor="let customer of attendees; trackBy: trackById" class="customer-card">
         <ion-card-header>
           <div class="customer-info">
+            <div class="customer-details">
+              <h3>{{ customer.name }}</h3>
+              <p class="status-text" [attr.color]="getStatusColor(customer.status)">
+                <ion-icon [name]="getStatusIcon(customer.status)"></ion-icon>
+                {{ getStatusText(customer.status) }}
+              </p>
+            </div>
             <div class="status-buttons">
               <ion-button 
                 fill="solid" 
@@ -56,13 +63,6 @@
                 [color]="customer.status === 'absent' ? 'danger' : 'medium'">
                 <ion-icon slot="icon-only" name="close-outline"></ion-icon>
               </ion-button>
-            </div>
-            <div class="customer-details">
-              <h3>{{ customer.name }}</h3>
-              <p class="status-text" [attr.color]="getStatusColor(customer.status)">
-                <ion-icon [name]="getStatusIcon(customer.status)"></ion-icon>
-                {{ getStatusText(customer.status) }}
-              </p>
             </div>
           </div>
         </ion-card-header>
