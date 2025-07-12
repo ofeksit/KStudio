@@ -249,6 +249,7 @@ async enrichTraining(t: any): Promise<void> {
       try {
         const url = `https://k-studio.co.il/wp-json/custom-api/v1/past-training/${training.id}`;
         const freshTrainingData: any = await firstValueFrom(this.http.get(url));
+        console.log("freshTraining:", freshTrainingData)
         await this.enrichTraining(freshTrainingData);   // <-- add
 
         // Find the index of the old training object in the array.

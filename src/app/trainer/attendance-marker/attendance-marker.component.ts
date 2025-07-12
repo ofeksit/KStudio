@@ -39,7 +39,6 @@ export class AttendanceMarkerComponent implements OnInit {
 
   ngOnInit() {
     this.loadAttendees();
-    console.log("Training: ", this.training)
   }
 
   async loadAttendees() {
