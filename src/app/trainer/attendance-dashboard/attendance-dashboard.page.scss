@@ -45,30 +45,30 @@
       }
     }
 
-    ion-segment {
-      margin-top: 20px;
-      --background: #f8fafc;
-      border-radius: 16px;
-      padding: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      margin-left: 40px;
-      height: 60px;
+    ion-segment {  
+    --background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin: auto;
+    padding-top: 10px;
+    height: 65px;
+    width: 95%;
 
       ion-segment-button {
         --color: #64748b;
         --color-checked: #ffffff;
         --indicator-color: transparent;
-        --indicator-color-checked: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
+        --indicator-color-checked: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);
         font-weight: 500;
         font-size: 0.875rem;
         margin: 0;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 20px;
 
         &.segment-button-checked {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);
           box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
           transform: translateY(-1px);
+          border-radius: 20px;
         }
       }
     }
@@ -145,8 +145,8 @@
     &.assignment-card {
       .assign-button {
         --border-radius: 12px;
-        --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --background-activated: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        --background: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);
+        --background-activated: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);
         --box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
         --color: white;
         font-weight: 500;
@@ -225,7 +225,7 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
             
             // Default provider tag styling
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);
             
             // Ben Yehuda provider - Blue/Teal gradient
             &.provider-ben-yehuda {

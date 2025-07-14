@@ -264,7 +264,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     else if (role === 'inactive')
       return 'לא פעילה';
     else if (role === 'shalom-trainer')
-      return 'מאמן שלום עליכם';
+      return 'מאמן הירקון';
     else if (role === 'personal')
       return 'מתאמנת אישית';
     return '';

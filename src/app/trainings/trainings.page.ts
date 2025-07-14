@@ -188,7 +188,7 @@ export class TrainingsPage implements AfterViewInit {
       // Set the initial tab based on userFavLocation
       if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
           this.selectedFilterAllFav = 'all';
-      } else if (this.userFavLocation === 'שלום עליכם') {
+      } else if (this.userFavLocation === 'הירקון') {
           this.selectedFilterAllFav = 'shalom';
       }
 
@@ -329,7 +329,7 @@ export class TrainingsPage implements AfterViewInit {
       this.updateFilteredAppointments();
       return;
     }
-    if (selectedLocation === 'שלום עליכם' && this.shalomLoaded) {
+    if (selectedLocation === 'הירקון' && this.shalomLoaded) {
       this.combinedList = [...this.shalomAppointments];
       this.unfilteredList = [...this.combinedList];
       this.updateFilteredAppointments();
@@ -363,7 +363,7 @@ export class TrainingsPage implements AfterViewInit {
       if (selectedLocation === 'בן יהודה') {
         this.benYehudaAppointments = [...this.combinedList];
         this.benYehudaLoaded = true;
-      } else if (selectedLocation === 'שלום עליכם') {
+      } else if (selectedLocation === 'הירקון') {
         this.shalomAppointments = [...this.combinedList];
         this.shalomLoaded = true;
       }
@@ -516,7 +516,7 @@ private updateIndicatorPosition() {
   
     const locationMap: { [key: string]: string } = {
       all: 'בן יהודה',
-      shalom: 'שלום עליכם'
+      shalom: 'הירקון'
     };
   
     const selectedLocation = locationMap[selectedTab];
@@ -779,6 +779,8 @@ private updateIndicatorPosition() {
       customer_id: customerId,
       email: email
     };
+
+    console.log("data", data);
   
     this.http.post(url, data).subscribe(() => {
       //console.log('User added to standby list', response);      
