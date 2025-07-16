@@ -44,6 +44,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+.training-title-and-participants {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 /* Individual positioning */
 .calendar-button {
   margin-left: 16px;
@@ -552,13 +558,10 @@ ion-tab-button {
 }
 
 .progress-bar-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  
 }
 
-.progress-bar {
-  width: 80%;
+.progress-bar {  
   background-color: #E0E0E0;
   border-radius: 8px;
   height: 6px;

@@ -124,7 +124,27 @@
             </div>
           </div>         
         
+          <div class="training-title-and-participants">
           <h3 class="training-title">{{ appointment.title.name }}</h3>
+                    
+            
+        <div class="participants-container">
+          <div class="participants" (mouseenter)="showParticipantsPopup(appointment)" (mouseleave)="hideParticipantsPopup()">
+              {{ appointment.booked }}/{{ appointment.total_participants }}
+              <ion-icon name="people-outline"></ion-icon>
+    
+              <!-- Wikipedia-like popup for participant names -->
+              <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
+                <ul>
+                  <li *ngFor="let participant of appointment.current_participants">
+                    {{ participant }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
             <!-- Show the badge if there is at least one song -->
             <!-- <ion-badge  color="primary" class="song-count-badge"> -->
@@ -141,23 +161,6 @@
                   'background-color': selectedFilterAllFav === 'shalom' ? '#ff8366' : '#59c7cd'
                 }"
               ></div>
-            </div>
-          
-            
-            <div class="participants-container">
-              <div class="participants" (mouseenter)="showParticipantsPopup(appointment)" (mouseleave)="hideParticipantsPopup()">
-                {{ appointment.booked }}/{{ appointment.total_participants }}
-                <ion-icon name="people-outline"></ion-icon>
-      
-                <!-- Wikipedia-like popup for participant names -->
-                <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
-                  <ul>
-                    <li *ngFor="let participant of appointment.current_participants">
-                      {{ participant }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
         </div>
