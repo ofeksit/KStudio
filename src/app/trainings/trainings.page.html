@@ -90,7 +90,7 @@
       </div>
 
       <!--Skeleton Section-->
-      <ion-list *ngIf="showSkeleton">
+      <ion-list *ngIf="showSkeleton" class="custom-style-ion-list">
         <ion-list-header>
           <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
         </ion-list-header>
@@ -158,7 +158,7 @@
                 class="progress"
                 [style.width]="calculateProgress(appointment) + '%'"
                 [ngStyle]="{
-                  'background-color': selectedFilterAllFav === 'shalom' ? '#ff8366' : '#59c7cd'
+                  'background': selectedFilterAllFav === 'shalom' ? '#ff8366' : 'linear-gradient(90deg, #59c7cd 0%, #4d4d4d 100%)'
                 }"
               ></div>
             </div>
