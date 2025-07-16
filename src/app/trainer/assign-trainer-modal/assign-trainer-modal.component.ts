@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
@@ -23,14 +23,17 @@ interface TrainingWithTrainer {
   templateUrl: './assign-trainer-modal.component.html',
   styleUrls: ['./assign-trainer-modal.component.scss'],
 })
-export class AssignTrainerModalComponent implements OnInit {
+export class AssignTrainerModalComponent implements OnInit, AfterViewInit {
   @Input() training!: TrainingWithTrainer;
+  @ViewChild('modalContent', { static: false }) modalContent!: ElementRef;
   
   teamMembers: TeamMember[] = [];
   selectedTrainerEmail: string = '';
   isLoading = true;
   isSaving = false;
   currentAssignedTrainer: TeamMember | null = null;
+  isModalFullyExpanded = false;
+  modalHeight = 0;
 
   constructor(
     private modalCtrl: ModalController,
@@ -42,6 +45,44 @@ export class AssignTrainerModalComponent implements OnInit {
     console.log('Training data received:', this.training);
     this.loadTeamMembers();
     this.initializeSelectedTrainer();
+  }
+
+  ngAfterViewInit() {
+    this.setupModalHeightObserver();
+  }
+
+  setupModalHeightObserver() {
+    if (this.modalContent) {
+      // Use ResizeObserver to detect modal height changes
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          this.modalHeight = entry.contentRect.height;
+          this.isModalFullyExpanded = this.modalHeight > window.innerHeight * 0.7;
+          console.log('Modal height:', this.modalHeight, 'Fully expanded:', this.isModalFullyExpanded);
+        }
+      });
+
+      resizeObserver.observe(this.modalContent.nativeElement);
+    }
+
+    // Alternative: Listen to scroll events to detect modal state
+    setTimeout(() => {
+      this.detectModalState();
+    }, 500);
+  }
+
+  detectModalState() {
+    // Check if modal is at different breakpoints
+    const modalElement = document.querySelector('ion-modal');
+    if (modalElement) {
+      const modalRect = modalElement.getBoundingClientRect();
+      const screenHeight = window.innerHeight;
+      
+      // If modal takes up more than 70% of screen, consider it fully expanded
+      this.isModalFullyExpanded = modalRect.height > screenHeight * 0.7;
+      
+      console.log('Modal state - Height:', modalRect.height, 'Screen:', screenHeight, 'Fully expanded:', this.isModalFullyExpanded);
+    }
   }
 
   initializeSelectedTrainer() {
@@ -79,9 +120,11 @@ export class AssignTrainerModalComponent implements OnInit {
       }
     } catch (error) {
       console.error("Error loading team members", error);
-      this.presentToast('Failed to load trainers.', 'danger');
+      this.presentToast('שגיאה', 'danger');
     } finally {
       this.isLoading = false;
+      // Detect modal state after loading
+      setTimeout(() => this.detectModalState(), 100);
     }
   }
 
@@ -92,6 +135,8 @@ export class AssignTrainerModalComponent implements OnInit {
   // Method to handle trainer selection
   selectTrainer(email: string) {
     this.selectedTrainerEmail = email;
+    // Re-detect modal state when trainer is selected
+    setTimeout(() => this.detectModalState(), 100);
   }
 
   // Method to check if trainer is selected
@@ -114,11 +159,11 @@ export class AssignTrainerModalComponent implements OnInit {
 
     try {
       await firstValueFrom(this.http.post(url, payload));
-      this.presentToast('Trainer assignment removed successfully!', 'success');
+      this.presentToast('מחיקה בוצעה בהצלחה', 'success');
       this.modalCtrl.dismiss({ assigned: false, removed: true });
     } catch (error) {
-      console.error('Error removing trainer assignment', error);
-      this.presentToast('Error removing trainer assignment.', 'danger');
+      console.error('שגיאה', error);
+      this.presentToast('שגיאה', 'danger');
     } finally {
       this.isSaving = false;
     }
@@ -126,13 +171,13 @@ export class AssignTrainerModalComponent implements OnInit {
 
   async saveAssignment() {
     if (!this.selectedTrainerEmail) {
-      this.presentToast('Please select a trainer.', 'warning');
+      this.presentToast('אנא בחר מאמן', 'warning');
       return;
     }
 
     // Check if the selected trainer is already assigned
     if (this.currentAssignedTrainer?.email === this.selectedTrainerEmail) {
-      this.presentToast('This trainer is already assigned to this training.', 'warning');
+      this.presentToast('המאמן כבר שובץ לאימון זה', 'warning');
       return;
     }
 
@@ -145,12 +190,12 @@ export class AssignTrainerModalComponent implements OnInit {
 
     try {
       await firstValueFrom(this.http.post(url, payload));
-      const actionType = this.currentAssignedTrainer ? 'reassigned' : 'assigned';
-      this.presentToast(`Trainer ${actionType} successfully!`, 'success');
+      const actionType = this.currentAssignedTrainer ? 'שובץ' : 'שובץ';
+      this.presentToast(`המאמן ${actionType} בהצלחה!`, 'success');
       this.modalCtrl.dismiss({ assigned: true, reassigned: !!this.currentAssignedTrainer });
     } catch (error) {
-      console.error('Error assigning trainer', error);
-      this.presentToast('Error assigning trainer.', 'danger');
+      console.error('שגיאה', error);
+      this.presentToast('שגיאה', 'danger');
     } finally {
       this.isSaving = false;
     }
@@ -161,7 +206,7 @@ export class AssignTrainerModalComponent implements OnInit {
       message,
       duration: 3000,
       color,
-      position: 'top',
+      position: 'bottom',
     });
     toast.present();
   }

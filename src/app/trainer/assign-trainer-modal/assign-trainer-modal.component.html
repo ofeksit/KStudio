@@ -1,7 +1,7 @@
 <ion-content class="popup-modal">
   <div class="drag-handle"></div>
 
-  <div class="page-content-wrapper">
+  <div class="page-content-wrapper" #modalContent>
 
     <!-- Header -->
     <div class="sticky-header">
@@ -41,66 +41,72 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="isLoading" class="loading-container">
-      <div class="loading-content">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>טוען מאמנים...</p>
+    <!-- Scrollable Content Area -->
+    <div class="scrollable-content">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="loading-content">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>טוען מאמנים...</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div *ngIf="!isLoading && teamMembers.length === 0" class="empty-state">
-      <div class="empty-content">
-        <ion-icon name="people-outline" size="large"></ion-icon>
-        <h3>לא נמצאו מאמנים זמינים</h3>
-        <p>אנא נסה שוב מאוחר יותר</p>
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && teamMembers.length === 0" class="empty-state">
+        <div class="empty-content">
+          <ion-icon name="people-outline" size="large"></ion-icon>
+          <h3>לא נמצאו מאמנים זמינים</h3>
+          <p>אנא נסה שוב מאוחר יותר</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Trainers List -->
-    <div *ngIf="!isLoading && teamMembers.length" class="trainers-container">
-      <div class="section-title">
-        <h4>{{ currentAssignedTrainer ? 'בחר מאמן חדש' : 'בחר מאמן' }}</h4>
-        <span class="count">{{ teamMembers.length }} מאמנים זמינים</span>
-      </div>
-      
-      <div class="trainers-grid">
-        <div *ngFor="let member of teamMembers; trackBy: trackByEmail"
-             class="trainer-card"
-             [class.selected]="isSelected(member.email)"
-             [class.currently-assigned]="isCurrentlyAssigned(member.email)"
-             (click)="selectTrainer(member.email)">
-          
-          <div class="trainer-avatar">
-            <div class="avatar-placeholder">
-              {{ member.name.charAt(0).toUpperCase() }}
+      <!-- Trainers List -->
+      <div *ngIf="!isLoading && teamMembers.length" class="trainers-container">
+        <div class="section-title">
+          <h4>{{ currentAssignedTrainer ? 'בחר מאמן חדש' : 'בחר מאמן' }}</h4>
+          <span class="count">{{ teamMembers.length }} מאמנים זמינים</span>
+        </div>
+        
+        <div class="trainers-grid">
+          <div *ngFor="let member of teamMembers; trackBy: trackByEmail"
+               class="trainer-card"
+               [class.selected]="isSelected(member.email)"
+               [class.currently-assigned]="isCurrentlyAssigned(member.email)"
+               (click)="selectTrainer(member.email)">
+            
+            <div class="trainer-avatar">
+              <div class="avatar-placeholder">
+                {{ member.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+            
+            <div class="trainer-info">
+              <h5>{{ member.name }}</h5>
+              <p>{{ member.email }}</p>
+              <span *ngIf="isCurrentlyAssigned(member.email)" class="current-badge">מאמן נוכחי</span>
+            </div>
+            
+            <div class="selection-indicator" [class.active]="isSelected(member.email)">
+              <ion-icon name="checkmark-outline"></ion-icon>
             </div>
           </div>
-          
-          <div class="trainer-info">
-            <h5>{{ member.name }}</h5>
-            <p>{{ member.email }}</p>
-            <span *ngIf="isCurrentlyAssigned(member.email)" class="current-badge">מאמן נוכחי</span>
-          </div>
-          
-          <div class="selection-indicator" [class.active]="isSelected(member.email)">
-            <ion-icon name="checkmark-outline"></ion-icon>
-          </div>
-        </div>
-
-        <!-- Save Button -->
-        <div class="save-button-container" [class.visible]="selectedTrainerEmail">
-          <ion-button 
-            expand="block" 
-            (click)="saveAssignment()" 
-            [disabled]="isSaving || !selectedTrainerEmail || !hasChanges" 
-            class="save-button">
-            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
-            <span *ngIf="!isSaving">{{ saveButtonText }}</span>
-          </ion-button>
         </div>
       </div>
+    </div>
+
+    <!-- Fixed Save Button at Bottom with Modal State Awareness -->
+    <div class="save-button-container" 
+         [class.visible]="selectedTrainerEmail"
+         [class.floating]="!isModalFullyExpanded"
+         [class.compact]="modalHeight < 400">
+      <ion-button 
+        expand="block" 
+        (click)="saveAssignment()" 
+        [disabled]="isSaving || !selectedTrainerEmail || !hasChanges" 
+        class="save-button">
+        <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+        <span *ngIf="!isSaving">{{ saveButtonText }}</span>
+      </ion-button>
     </div>
 
   </div>

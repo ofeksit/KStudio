@@ -456,22 +456,70 @@ ion-tab-button {
 
 
 .card {
-  background-color: white;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 12px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+}
+
+.card::before {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 4px;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 10px;
 }
 
-.card-header h3 {
+.btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #dee2e6;
+}
+
+.btn-primary {
+  background: #2f2f2f;
+  color: white;
+}
+
+.btn-primary:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+.training-title {
   font-size: 1.4em;
-  font-weight: bold;
+  margin-bottom: -5px;
+  margin-top: 5px;
   //margin-top: -30px;
   color: #333;
   font-family: 'Alef';
@@ -489,8 +537,14 @@ ion-tab-button {
 }
 
 .time-date {
-  font-size: 14px;
-  color: gray;
+    color: gray;
+    background: linear-gradient(90deg, #ff6b6b 0%, #ffa726 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 15px;
+    display: inline;
 }
 
 .segment-button:not(.segment-button-checked)::after {
@@ -538,19 +592,31 @@ ion-tab-button {
 
 .card-footer {
   margin-top: 10px;
+  display: flex;
 }
 
 .action-button {
-  width: 100%;
-  background-color: #454545;
-  color: white;
+  flex: 1;
+  padding: 12px 16px;
   border: none;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
+  border-radius: 12px;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn.loading {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.btn.success {
+  background-color: #4caf50;
 }
 
 .action-button.loading {
@@ -642,8 +708,9 @@ ion-spinner {
 }
 
 .action-button.standby-enrolled {
-  background-color: #e0e0e0; /* Light gray */
-  color: #757575; /* Dark gray text */
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #dee2e6;
   cursor: not-allowed; /* Show disabled cursor */
 }
 

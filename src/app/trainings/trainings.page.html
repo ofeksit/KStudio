@@ -114,21 +114,24 @@
       
       <!--Appointments Section-->
       <div *ngFor="let appointment of filteredAppointments" class="card">
-        <div class="card-header">
-          <h3>{{ appointment.title.name }}</h3>
-          <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
-          <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
+         <div class="card-header">
+          <div class="time-date">
+          {{ appointment.start_time | date: 'HH:mm' }}
+          </div>
+            <div class="icons-header">
+              <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
+              <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
+            </div>
+          </div>         
+        
+          <h3 class="training-title">{{ appointment.title.name }}</h3>
+
             <!-- Show the badge if there is at least one song -->
             <!-- <ion-badge  color="primary" class="song-count-badge"> -->
             <!-- {{ appointment.songsCount }} -->
             <!-- </ion-badge> -->
-        </div>
         
         <div class="card-content">
-          <div class="time-date">
-            {{ appointment.start_time | date: 'HH:mm' }}
-          </div>
-      
           <div class="progress-bar-container">
             <div class="progress-bar">
               <div
@@ -162,7 +165,7 @@
         <div class="card-footer">
           <!-- Check if user is already booked -->
           <ng-container *ngIf="appointment.isUserBooked">
-            <button class="action-button enrolled-button" disabled>
+            <button class="btn btn-secondary action-button" disabled>
               <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
               רשום
             </button>
@@ -173,7 +176,7 @@
             <!-- Show standby button if appointment is full -->
             <button 
               *ngIf="appointment.booked === appointment.total_participants" 
-              class="action-button" 
+              class="btn btn-primary action-button" 
               [ngClass]="{
                 'standby-enrolled': appointment.isStandbyEnrolled,
                 'loading': appointment.isStandbyLoading && !appointment.isStandbyEnrolled,
@@ -201,7 +204,7 @@
             <!-- Show regular enroll button if slots are available -->
             <button *ngIf="appointment.booked < appointment.total_participants" 
               (click)="enrollUser(appointment)" 
-              class="action-button" 
+              class="btn btn-primary action-button" 
               [disabled]="appointment.isLoading || appointment.isSuccess"
               [ngClass]="{'loading': appointment.isLoading, 'success': appointment.isSuccess}"
             >

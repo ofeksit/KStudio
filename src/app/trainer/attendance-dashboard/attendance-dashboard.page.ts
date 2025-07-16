@@ -8,6 +8,7 @@ import { AttendanceBadgeService } from 'src/app/services/attendance-badge.servic
 import { AssignTrainerModalComponent } from '../../trainer/assign-trainer-modal/assign-trainer-modal.component';
 import { logOverlays } from '../../overlay-debug';   // adjust the path if needed
 
+
 @Component({
   selector: 'app-attendance-dashboard',
   templateUrl: './attendance-dashboard.page.html',
@@ -173,43 +174,53 @@ async enrichTraining(t: any): Promise<void> {
   }
 
   async loadTrainings(event?: any) {
-    // For the very first load, show the skeleton loader
+
     if (this.pastTrainingsPage === 1) {
       this.isLoading = true;
     }
 
-    const url = `https://k-studio.co.il/wp-json/custom-api/v1/past-trainings`;
-    let params = new HttpParams().set('page', this.pastTrainingsPage.toString());
+    const url   = 'https://k-studio.co.il/wp-json/custom-api/v1/past-trainings';
+    let  params = new HttpParams().set('page', this.pastTrainingsPage.toString());
 
-    // ... your existing logic to set trainer_email param ...
     const userEmail = this.authService.getUserEmail();
     if (this.userRole === 'team' && userEmail) {
       params = params.set('trainer_email', userEmail);
     }
 
     try {
-      const newTrainings = await firstValueFrom(this.http.get<any[]>(url, { params }));
+      const rawTrainings = await firstValueFrom(
+        this.http.get<any[]>(url, { params })
+      );
 
-      await Promise.all(newTrainings.map(t => this.enrichTraining(t))); // <-- NEW
+      /* ---------- סינון לעבר בלבד ---------- */
+      const pastOnly = rawTrainings.filter(t => {
+      // מוסיף 'T' כדי שיהיה תקין ל‑Date, ומניח שהשעה היא מקומית
+      const trainingDate = new Date(t.start_time.replace(' ', 'T'));
+      return trainingDate <= new Date();
+    });
+   
+      // אם אין אימונים רלבנטיים, דלג על enrichTraining וחסוך קריאות נוספות
+      if (pastOnly.length) {
+        await Promise.all(pastOnly.map(t => this.enrichTraining(t)));
+        this.pastTrainings.push(...pastOnly);
+        this.attendanceBadgeService.updateCountFromLoadedData(this.pastTrainings);
+      }
 
-      // Append new data instead of replacing it
-      this.pastTrainings.push(...newTrainings);
-      this.attendanceBadgeService.updateCountFromLoadedData(this.pastTrainings);
-
-      // Check if all data has been loaded
-      if (newTrainings.length < 15) { // 15 is the limit we set in the backend
+      // האם סיימנו למשוך דפים?
+      if (rawTrainings.length < 15) {   // 15 = limit ב‑backend
         this.allPastTrainingsLoaded = true;
       }
 
-      // Complete the infinite scroll event
       event?.target.complete();
 
-    } catch (error) {
-      console.error("Error loading past trainings", error);
+    } catch (err) {
+      console.error('Error loading past trainings', err);
+
     } finally {
       this.isLoading = false;
     }
-    console.log("pastTrainings:", this.pastTrainings)
+
+    console.log('pastTrainings:', this.pastTrainings);
   }
 
   // Add this new function to handle the infinite scroll event
