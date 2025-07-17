@@ -359,6 +359,11 @@ ion-item {
   background: #ff8366; /* Use the desired color for the הירקון tab */
 }
 
+.filter-button-segment::after {
+  background: #575757;
+}
+
+
 /* Favorites specific style */
 .segment-button-checked-fav::after {
   background: #373737; /* Use the desired color for the הירקון tab */
@@ -480,7 +485,7 @@ ion-tab-button {
 }
 
 .card::before {
-    background: linear-gradient(-90deg, #59c7cd 0%, #4d4d4d 100%);
+    background: #59c7cd;
     content: "";
     position: absolute;
     left: 0;
@@ -489,6 +494,19 @@ ion-tab-button {
     height: 4px;
     border-top-right-radius: 20px;
     border-top-left-radius: 20px;
+}
+
+.card--shalom::before {
+  background: #ff8366;
+  /* same shared ::before rules; extract to mixin if DRY needed */
+}
+
+.card--other::before {
+  background: #59c7cd;
+}
+
+.card--no-bar::before {
+  content: none;
 }
 
 .card-header {
@@ -518,15 +536,18 @@ ion-tab-button {
   border: 1px solid #dee2e6;
 }
 
+.btn-enrolled {
+  background: #4cb050;
+  color: #ffffff;
+  border: 1px solid #dee2e6;
+}
+
 .btn-primary {
   background: #2f2f2f;
   color: white;
 }
 
-.btn-primary:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
+
 .training-title {
   font-size: 1.4em;
   margin-bottom: -5px;
@@ -627,6 +648,17 @@ ion-tab-button {
 }
 
 .action-button.loading {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   background-color: #f0f0f0;
   cursor: not-allowed;
 }
@@ -641,8 +673,8 @@ ion-tab-button {
 }
 
 ion-spinner {
-  height: 10px;
-  width: 10px;
+  height: 15px;
+  width: 15px;
 }
 
 .action-button.full {
@@ -658,10 +690,52 @@ ion-spinner {
 
 
 .participants-container {
-  background-color: #c5c5c563;
-  position: relative;
-  width: 50px;
-  border-radius: 7px;
+    background: rgba(0,0,0,.08); // default / neutral
+    color: inherit;              // let parent decide
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+
+/* 0% */
+.participants-container.empty {
+  background: rgba(0,0,0,.08);
+  color: inherit;
+}
+
+/* 0-24% */
+.participants-container.low {
+  background: rgba(0, 200, 83, 0.2);  // greenish
+  color: #0e7a3b;
+}
+
+/* 25-74% */
+.participants-container.medium {
+  background: rgba(255, 171, 0, 0.25); // amber
+  color: #b26a00;
+}
+
+/* 75-99% */
+.participants-container.high {
+  background: rgba(255, 131, 102, 0.35); // pulls in your #ff8366 family
+  color: #d85635;
+}
+
+/* 100% */
+.participants-container.full {
+  background: rgba(255, 48, 0, 0.45); // end color from your gradient (#ff3000)
+  color: #fff;                        // ensure contrast
+}
+
+/* >100% safeguard */
+.participants-container.over {
+  background: repeating-linear-gradient(
+    135deg,
+    #ff3000 0 8px,
+    #000 8px 16px
+  );
+  color: #fff;
 }
 
 .participant-popup {
@@ -758,17 +832,23 @@ ion-spinner {
   width: 100%;
   overflow: hidden;
   position: relative;
-  padding: 8px 0;
+  //padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .segment-scroll {
   display: flex;
   overflow-x: auto;
-  gap: 32px;
-  padding: 0 16px;
+  gap: 8px;
+  //padding: 0 16px;
   position: relative;
-  border-bottom: 2px #c7c7c7 solid;
-  padding-bottom: 10px;
   font-family: 'Alef';
   
   &::-webkit-scrollbar {
@@ -781,17 +861,19 @@ ion-spinner {
   flex-direction: column;
   align-items: center;
   min-width: fit-content;
-  background: transparent;
-  border: none;
+  background: #f8f9fa;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 4px 0;
+  padding: 8px 12px;
+  text-align: center;
   
   &.active {
-    color: black;
+    color: white;
+    text-align: center;
+    border-radius: 8px;
     
     .segment-label {
-      font-weight: 600;
       font-size: 16px;
     }
   }

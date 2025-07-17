@@ -6,6 +6,8 @@ import { Observable } from 'rxjs';
 import { Appointment } from '../Models/appointment';
 import { AuthService } from './auth.service';
 import { UpcomingAppointment } from '../Models/UpcomingAppointment';
+import { AppointmentsCacheService, CachedApptSummary } from './appointments-cache.service';
+
 
 interface BranchTrainings {
   [key: string]: DayTrainings[];
@@ -26,16 +28,35 @@ export class AmeliaService {
   private readonly DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   private readonly API_URL = 'https://k-studio.co.il/wp-json/custom-api/v1/get-appointment-title';
   private baseUrl = 'https://k-studio.co.il/wp-json/custom-api/v1';
+  // Shared stream of cached upcoming appointments (user + trainer)
+  getCachedUpcoming$ = this.apptCache.items$;
+
 
   trainingsByBranch: Record<BranchType, BranchTrainings> = {
     main: this.initializeEmptyDays(),
     second: this.initializeEmptyDays()
   };
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService, private apptCache: AppointmentsCacheService) {}
 
   private initializeEmptyDays(): BranchTrainings {
     return this.DAYS.reduce((acc, day) => ({ ...acc, [day]: [] }), {});
+  }
+
+
+    // Ensure cache primed (call on app load or page init)
+  ensureAppointmentsCache(force = false) {
+    return this.apptCache.ensureLoaded(force);
+  }
+
+  // Manual refresh (pull-to-refresh)
+  refreshAppointmentsCache() {
+    return this.apptCache.refresh();
+  }
+
+  // get participants on demand (trainer modal)
+  getAppointmentParticipants(apptId: number) {
+    return this.apptCache.loadParticipants(apptId);
   }
 
   async fetchTitleTrainings(branch: BranchType = 'main'): Promise<void> {
@@ -106,6 +127,7 @@ export class AmeliaService {
       try {
         this.http.get<UpcomingAppointment[]>(`${this.baseUrl}/user-appointments/${userID}/${customerID}`).subscribe(
           (response) => {
+            console.log("response", response);
             observer.next(response);
             observer.complete();
           },

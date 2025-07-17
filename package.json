@@ -43,6 +43,7 @@
     "@ebarooni/capacitor-calendar": "^7.2.0",
     "@fortawesome/fontawesome-free": "^6.6.0",
     "@ionic/angular": "^8.3.0",
+    "@ionic/storage-angular": "^4.0.0",
     "@types/gapi": "^0.0.47",
     "@types/gapi.auth2": "^0.0.60",
     "cordova-plugin-advanced-http": "^3.3.1",

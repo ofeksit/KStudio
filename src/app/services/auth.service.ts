@@ -1,22 +1,57 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
-import { Observable} from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject} from 'rxjs';
+import { tap, filter  } from 'rxjs/operators';
+
+export interface UserContext {
+  userId: number | null;
+  customerId: number | null;
+  role: string | null;
+  email: string | null;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private _userCtx$ = new BehaviorSubject<UserContext | null>(null);
+  /** זורם כשהמשתמש זמין (ctx != null) */
+  userReady$ = this._userCtx$.pipe(filter((ctx): ctx is UserContext => !!ctx));
   private apiUrl = 'https://k-studio.co.il/wp-json/jwt-auth/v1/token';
   private apiCustomURL = 'https://k-studio.co.il/wp-json/custom-api/v1';
   
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+      // אם כבר יש session מאוחסן (אפליקציה נפתחה מחדש)
+  if (this.isLoggedIn() && this.getUserID()) {
+    this._userCtx$.next(this.buildUserCtx());
+  }
+  }
 
   login(username: string, password: string): Observable<any> {
     return this.http.post(this.apiUrl, {
       username,
       password
     });
+    
+  }
+
+  private buildUserCtx(): UserContext {
+    const userId = this.getUserIDNum();
+    const customerId = this.getCustomerIDNum();
+    const role = this.getUserRole();
+    const email = this.getUserEmail();
+    return { userId, customerId, role, email };
+  }
+
+  getUserIDNum(): number | null {
+  const v = this.getUserID();
+  return v ? Number(v) : null;
+  } 
+
+  getCustomerIDNum(): number | null {
+    const v = this.getCustomerID();
+    return v ? Number(v) : null;
   }
 
   storeToken(token: string): void {
@@ -103,7 +138,7 @@ export class AuthService {
     localStorage.removeItem('user_email');
     localStorage.removeItem('packageCustomerId');
     localStorage.removeItem('userFilterChoice');
-
+    this._userCtx$.next(null);
   }
 
   isLoggedIn(): boolean {

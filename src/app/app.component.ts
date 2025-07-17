@@ -5,6 +5,8 @@ import { AmeliaService } from './services/amelia-api.service';
 import { Platform } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 import { HttpClient } from '@angular/common/http';
+import { AppointmentsCacheService } from './services/appointments-cache.service';
+import { take } from 'rxjs';
 
 
 
@@ -27,7 +29,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService, 
     private router: Router, 
     private platform: Platform,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private apptCache: AppointmentsCacheService
       ) {
     
     // Force light theme on app startup
@@ -37,6 +40,12 @@ export class AppComponent implements OnInit {
 
   async initializeApp() {
     await this.platform.ready();
+
+    this.authService.userReady$.pipe(take(1)).subscribe(() => {
+      console.log('Auth check', this.authService.getUserID(), this.authService.getCustomerID(), this.authService.getUserRole());
+      this.apptCache.ensureLoaded(); // פרטי משתמש קיימים → נטען
+    });
+  
   }
 
   ngOnInit() {

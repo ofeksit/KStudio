@@ -93,19 +93,19 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    try {
+      this.loadUpcomingTrainings(); } catch (e) {
+      console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e); }
+
+    try {
+      this.setupOneSignal(); } catch (e) {
+      console.error('HomePage ngOnInit: Error calling setupOneSignal', e); }
+
     if (this.userRole === 'team' || this.userRole === 'administrator') {
         this.attendanceBadgeService.fetchAndSetBadgeCount();
     }
 
-
     if (this.userRole === 'activesubscription') {
-  
-      try {
-        this.loadUpcomingTrainings();
-      } catch (e) {
-        console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e);
-      }
-
       this.profileService.fetchSubscriptionExpiryDate(this.userId).subscribe(
       (data) => {
         console.log('HomePage ngOnInit: fetchSubscriptionExpiryDate success.');
@@ -116,7 +116,6 @@ export class HomePage implements OnInit {
       }
     );
     }
-    
     
     this.blocksService.getBlocks().subscribe(
       (data) => {
@@ -174,12 +173,6 @@ export class HomePage implements OnInit {
         console.error('HomePage ngOnInit: Error initializing Swiper 2 (upcoming-swiper-container)', e);
       }
     }, 0);
-
-    try {
-      this.setupOneSignal();
-    } catch (e) {
-      console.error('HomePage ngOnInit: Error calling setupOneSignal', e);
-    }
 
   }
 
@@ -304,15 +297,7 @@ export class HomePage implements OnInit {
   
   loadData() {
     if (this.userRole === 'activesubscription') {
-      this.isLoadingTrainings = true;
-      this.loadUpcomingTrainings();
-
-      this.authService.fetchUserFavLocation().subscribe(
-        (data) => {},
-        (error) => { console.error ("Error fetching user favorite location", error); }
-      );
-      
-      this.authService.fetchPackageCustomerId(this.customerId).subscribe(
+     this.authService.fetchPackageCustomerId(this.customerId).subscribe(
         (data) => {},
         (error) => { console.error("Error fetching package customer ID", error)}
       );
@@ -323,6 +308,13 @@ export class HomePage implements OnInit {
       );
     }
 
+    this.authService.fetchUserFavLocation().subscribe(
+      (data) => {},
+      (error) => { console.error ("Error fetching user favorite location", error); }
+    );
+
+    this.loadUpcomingTrainings();
+
     this.blocksService.getBlocks().subscribe(
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
@@ -332,6 +324,7 @@ export class HomePage implements OnInit {
       (data) => { this.authService.storeUserRole(data.roles[0]); },
       (error) => { console.error("Error fetching role:", error)}
     );
+    
   }
 
   
