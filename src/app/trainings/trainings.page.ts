@@ -1047,10 +1047,11 @@ toggleFavorite(training: any) {
 
   //Calculate progress bar
   calculateProgress(appointment: any): number {
-    if (!appointment.current_participants || !appointment.total_participants) {
+    if (!appointment.booked || !appointment.total_participants) {
       return 0;
     }
-    const progress = (appointment.current_participants.length / appointment.total_participants) * 100;
+    const progress = (appointment.booked / appointment.total_participants) * 100;
+    
     return progress > 100 ? 100 : progress; // Ensure the progress doesn't exceed 100%
   }
 
