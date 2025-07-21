@@ -132,10 +132,10 @@ export class AppointmentsCacheService {
   private async fetchAndCache(userId: number, customerId: number): Promise<CachedApptSummary[]> {
     if (!this.inFlight) {
       const url = `${this.API_BASE}/app-appointments/${userId}/${customerId}`;
-      console.log('[ApptCache] upcoming fetch', url);
+      //console.log('[ApptCache] upcoming fetch', url);
       this.inFlight = firstValueFrom(this.http.get<CachedApptSummary[]>(url))
         .then(items => {
-          console.log('[ApptCache] upcoming fetched', items?.length ?? 0);
+          //console.log('[ApptCache] upcoming fetched', items?.length ?? 0);
           const payload: AppointmentsCachePayload = {
             version: 1,
             fetchedAt: Date.now(),
@@ -225,10 +225,10 @@ export class AppointmentsCacheService {
   private async fetchAndCacheSchedule(days: number, userId: number, customerId: number): Promise<ScheduleItem[]> {
     if (!this.schedInFlight) {
       const url = `${this.API_BASE}/trainings-schedule/${userId}/${customerId}?days=${days}`;
-      console.log('[ApptCache] schedule fetch', url);
+      
       this.schedInFlight = firstValueFrom(this.http.get<ScheduleItem[]>(url))
         .then(items => {
-          console.log('[ApptCache] schedule fetched', items?.length ?? 0);
+          
           
           // Process items to add progressPercentage
           const processedItems = (items ?? []).map(item => ({

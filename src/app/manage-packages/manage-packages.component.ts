@@ -463,7 +463,7 @@ export class ManagePackagesComponent  implements OnInit {
       bookingStart: bookingStart,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
-    console.log("enrollData:", enrollData)
+    //console.log("enrollData:", enrollData)
     this.http.post('https://k-studio.co.il/wp-json/wn/v1/bookTrainingNEW', enrollData, {
       headers: { 'Content-Type': 'application/json' },
     }).subscribe(

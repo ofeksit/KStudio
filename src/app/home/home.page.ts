@@ -65,6 +65,7 @@ export class HomePage implements OnInit {
   userId: string | null = '';
   userEmail: string | null= '';
   customerId: string | null = '';
+  private swiper: any;
   
   public attendanceBadgeCount$: Observable<number>;
 
@@ -93,6 +94,11 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.fetchUserRole().subscribe(
+      (data) => { this.authService.storeUserRole(data.roles[0]); },
+      (error) => { console.error("Error fetching role:", error)}
+    );
+
     try {
       this.loadUpcomingTrainings(); } catch (e) {
       console.error('HomePage ngOnInit: Error calling loadUpcomingTrainings', e); }
@@ -154,39 +160,73 @@ export class HomePage implements OnInit {
         console.error('HomePage ngOnInit: Error initializing Swiper 1 (swiper-container)', e);
       }
     }, 0);
-    setTimeout(() => {
-      try {
-        new Swiper('.upcoming-swiper-container', {
-          modules: [Pagination],
-          slidesPerView: 'auto',
-          spaceBetween: 10,
-          centeredSlides: false,
-          loop: false,
-          freeMode: false,
-          pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-          },
-        });
-      } catch (e) {
-        console.error('HomePage ngOnInit: Error initializing Swiper 2 (upcoming-swiper-container)', e);
-      }
-    }, 0);
-
   }
 
   async ionViewDidEnter() {
     try {
       const hasSeenTutorial = await this.onboardingService.checkIfTutorialSeen();
       if (!hasSeenTutorial) {
-        this.popupAppTutorial();
-        console.log("status:", this.showIntro)
+        //this.popupAppTutorial();
+        //console.log("status:", this.showIntro)
       }
     } catch (error) {
       console.error('HomePage ionViewDidEnter: Error checking tutorial status.', error);
     }
   }
 
+  ngAfterViewInit() {
+  // נותן ל‑DOM להשלים את הרנדור לפני האתחול
+  setTimeout(() => {
+    this.swiper = new Swiper('.upcoming-swiper-container', {
+      modules: [Pagination],
+      // יגרום ל‑Swiper להתעדכן אוטומטית כשה‑DOM משתנה
+      observer: true,
+      observeParents: true,
+      observeSlideChildren: true,
+
+      slidesPerView: 'auto',
+      spaceBetween: 10,
+      centeredSlides: false,
+      loop: false,
+
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    });
+  }, 0);
+  }
+
+  setupOneSignal() {
+    OneSignal.Debug.setLogLevel(6)
+    OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
+    if (this.userEmail) {
+      OneSignal.User.addTag("email", this.userEmail);
+    }
+    else {
+      OneSignal.User.addTag("email", "error");
+    }
+    OneSignal.Notifications.addEventListener('click', async (event) => {
+      let notificationData = event.notification;
+      this.storeNotification(notificationData); 
+      console.log('Notification clicked: ', notificationData);
+    });
+    OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
+      console.log("Notification permission granted " + success);
+    })
+  }
+
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000, 
+      color: color,
+      position: 'bottom',
+    });
+    await toast.present(); 
+  }
+
+  //#region Tutorial Popup
   popupAppTutorial() {
     this.showIntro = true;
   }
@@ -245,45 +285,113 @@ export class HomePage implements OnInit {
     console.log('HomePage startAppTutorial: Tour subscription created.');
   }
 
-  // ... (rest of your methods remain the same) ...
   async presentTutorial() {
     console.log("Presenting tutorial....");
   }
-  
-  setupOneSignal() {
-    OneSignal.Debug.setLogLevel(6)
-    OneSignal.initialize("83270e8d-d7ee-4904-91a7-47d1f71e9dd6");
-    if (this.userEmail) {
-      OneSignal.User.addTag("email", this.userEmail);
-    }
-    else {
-      OneSignal.User.addTag("email", "error");
-    }
-    OneSignal.Notifications.addEventListener('click', async (event) => {
-      let notificationData = event.notification;
-      this.storeNotification(notificationData); 
-      console.log('Notification clicked: ', notificationData);
-    });
-    OneSignal.Notifications.requestPermission(true).then((success: Boolean) => {
-      console.log("Notification permission granted " + success);
-    })
-  }
-  
+  //#endregion
+
+  //#region Upcoming Trainings
   private loadUpcomingTrainings() {
     this.isLoadingTrainings = true;
-    this.ameliaService.getUpcomingTrainings().subscribe(
-      (trainings) => {
+
+    this.ameliaService.getUpcomingTrainings().subscribe({
+      next: (trainings) => {
         this.upcomingTrainings = trainings;
         this.isLoadingTrainings = false;
-        console.log('HomePage loadUpcomingTrainings: Successfully loaded trainings.');
+        // רענון ה‑Swiper אחרי שה‑array התמלא
+        setTimeout(() => this.syncSwiper(), 0);
       },
-      (error) => {
-        console.error('HomePage loadUpcomingTrainings: Error loading upcoming trainings:', error);
+      error: (err) => {
+        console.error('loadUpcomingTrainings:', err);
         this.isLoadingTrainings = false;
-      }
-    );
+      },
+    });
   }
 
+  private syncSwiper() {
+  if (!this.swiper) { return; }
+
+  this.swiper.update();        // ריענון כללי
+  // אם השקופית הפעילה “עברה” את סוף הרשימה – קפוץ לשקופית האחרונה
+  if (this.swiper.activeIndex >= this.upcomingTrainings.length) {
+    this.swiper.slideTo(Math.max(this.upcomingTrainings.length - 1, 0));
+  }
+  }
+
+  confirmDelete() {
+    const { selectedTraining: t, selectedIndex: i } = this;
+    this.isConfirmDialogVisible = false;
+    t.fadeOut = true;                            // אנימציית דהייה
+
+    this.profileService.cancelBooking(t.bookingId).subscribe({
+      next: (res: any) => {
+        if (res.data.cancelBookingUnavailable) {
+          t.fadeOut = false;
+          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
+          return;
+        }
+
+        this.presentToast('האימון בוטל בהצלחה', 'success');
+        // השהייה קצרה כדי לאפשר לאנימציה להסתיים
+        setTimeout(() => {
+          this.swiper.removeSlide(i);            // מוחק מה‑Swiper
+          this.upcomingTrainings.splice(i, 1);   // מוחק מה‑Array
+          this.syncSwiper();                     // רענון כללי
+        }, 300);
+      },
+      error: () => {
+        t.fadeOut = false;
+        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
+      },
+    });
+  }
+
+  animateAndDeleteTraining(training: any, index: number) {
+    training.fadeOut = true;
+    setTimeout(() => {
+      this.deleteTraining(training.bookingId, index);
+    }, 300); 
+  }
+
+  deleteTraining(bookingId: string, index: number) {
+    const t = this.upcomingTrainings[index];
+    t.fadeOut = true;
+
+    this.profileService.cancelBooking(bookingId).subscribe({
+      next: (res: any) => {
+        if (res.data.cancelBookingUnavailable) {
+          t.fadeOut = false;
+          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
+          return;
+        }
+
+        this.presentToast('האימון בוטל בהצלחה', 'success');
+        setTimeout(() => {
+          this.swiper.removeSlide(index);
+          this.upcomingTrainings.splice(index, 1);
+          this.syncSwiper();
+        }, 300);
+      },
+      error: () => {
+        t.fadeOut = false;
+        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
+      },
+    });
+  }
+
+  openConfirmDialog(training: UpcomingAppointment, index: number) {
+    this.selectedTraining = training;
+    this.selectedIndex    = index;
+    this.isConfirmDialogVisible = true;
+  }
+
+  closeConfirmDialog() {
+    this.isConfirmDialogVisible = false;
+  }
+  //#endregion
+
+  //#region Pull to Refresh
+  //Pull to refresh functionality
   refreshData(event: any) {
     setTimeout(() => {
       this.loadData(); 
@@ -294,7 +402,13 @@ export class HomePage implements OnInit {
     }, 2000); 
   }
   
+  // Load data for the home page after pulling to refresh
   loadData() {
+    this.authService.fetchUserRole().subscribe(
+      (data) => { this.authService.storeUserRole(data.roles[0]); },
+      (error) => { console.error("Error fetching role:", error)}
+    );
+
     if (this.userRole === 'activesubscription') {
      this.authService.fetchPackageCustomerId(this.customerId).subscribe(
         (data) => {},
@@ -317,16 +431,12 @@ export class HomePage implements OnInit {
     this.blocksService.getBlocks().subscribe(
       (data) => { this.fitnessTips = data; this.isLoading = false; },
       (error) => { console.error("Error fetching blocks", error); this.isLoading = false; }
-    );
-
-    this.authService.fetchUserRole().subscribe(
-      (data) => { this.authService.storeUserRole(data.roles[0]); },
-      (error) => { console.error("Error fetching role:", error)}
-    );
-    
+    );    
   }
 
-  
+  //#endregion
+
+  //#region OpenModals
   storeNotification(notificationData: any) {    
     let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
     notifications.unshift({
@@ -446,71 +556,5 @@ export class HomePage implements OnInit {
       console.log("User Not Logged In!");
     }
   }
-
-  async presentToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 3000, 
-      color: color,
-      position: 'bottom',
-    });
-    await toast.present(); 
-  }
-
-  confirmDelete() {
-    const training = this.selectedTraining;
-    const index = this.selectedIndex;
-    this.isConfirmDialogVisible = false;
-    training.fadeOut = true;
-    setTimeout(() => {
-      this.upcomingTrainings.splice(index, 1);
-    }, 300); 
-    this.profileService.cancelBooking(training.bookingId).subscribe(
-      (data: any) => {
-        if (data.data.cancelBookingUnavailable) {
-          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
-        } else {
-          this.presentToast('האימון בוטל בהצלחה', 'success');
-        }
-      },
-      (error) => {
-        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
-        console.error('Error occurred while canceling the booking', error);
-      }
-    );
-  }
-
-  animateAndDeleteTraining(training: any, index: number) {
-    training.fadeOut = true;
-    setTimeout(() => {
-      this.deleteTraining(training.bookingId, index);
-    }, 300); 
-  }
-
-  deleteTraining(bookingId: string, index: number) {
-    this.profileService.cancelBooking(bookingId).subscribe(
-      (data: any) => {
-        if (data.data.cancelBookingUnavailable) {
-          this.presentToast('לא ניתן לבטל אימון זה', 'danger');
-        } else {
-          this.presentToast('האימון בוטל בהצלחה', 'success');
-          this.upcomingTrainings.splice(index, 1);
-        }
-      },
-      (error) => {
-        this.presentToast('לא ניתן לבטל אימון זה, אנא נסה שנית', 'danger');
-        console.error('Error occurred while canceling the booking', error);
-      }
-    );
-  }
-
-  openConfirmDialog(training: any, index: number) {
-    this.selectedTraining = training;
-    this.selectedIndex = index;
-    this.isConfirmDialogVisible = true;
-  }
-
-  closeConfirmDialog() {
-    this.isConfirmDialogVisible = false;
-  }
+  //#endregion
 }

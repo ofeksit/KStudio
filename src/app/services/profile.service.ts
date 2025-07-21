@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError,  forkJoin, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError,  forkJoin, from, map, of, tap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from 'src/environments/environment';
 import { Platform  } from '@ionic/angular';
@@ -120,6 +120,38 @@ export class ProfileService {
       });
     });
   }
+
+  getMonthlyApprovedTrainingCount(): Observable<number> {
+
+    const today        = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const customerId   = Number(this.authService.getCustomerID());
+
+    const params  = `&dates=${this.formatDate(startOfMonth)},${this.formatDate(today)}&skipServices=1&skipProviders=1`;
+    const url     = `${environment.apiBaseUrl}/appointments${params}`;
+    const headers = { Amelia: 'C7YZnwLJ90FF42GOCkEFT9z856v6r5SQ2QWpdhGBexQk' };
+
+    const countApproved = (raw: any) => {
+      const appointments = raw?.data?.appointments ?? {};
+      return Object.values(appointments)             // יום → אובייקט
+        .flatMap((d: any) => d.appointments ?? [])   // מערך תורים באותו יום
+        .flatMap((a: any) => a.bookings ?? [])       // כל ה‑bookings
+        .filter((b: any) =>
+                ((b.customer?.id ?? b.customerId) === customerId) &&
+                b.status === 'approved')
+        .length;
+    };
+
+    const source$ = this.platform.is('cordova')
+        ? from(this.httpA.get(url, {}, headers).then(r => JSON.parse(r.data)))
+        : this.http.get(url, { headers });
+
+    return source$.pipe(
+            map(countApproved),
+            catchError(err => { console.error(err); return of(0); })
+          );
+  }
+
   
   fetchSubscriptionExpiryDate(userId: string | null): Observable<{ expiryDate: string }> {
     const url = `https://k-studio.co.il/wp-json/custom-api/v1/subscription-dates/?user_id=${userId}`;

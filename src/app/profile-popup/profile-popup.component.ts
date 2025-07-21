@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, NgZone   } from '@angular/core';
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, OnInit   } from '@angular/core';
 import { GestureController, ModalController, ActionSheetController } from '@ionic/angular';
 import { ProfileService } from '../services/profile.service';
 import { AuthService } from '../services/auth.service';
@@ -24,7 +24,7 @@ interface Note {
   templateUrl: './profile-popup.component.html',
   styleUrls: ['./profile-popup.component.scss'],
 })
-export class ProfilePopupComponent implements AfterViewInit {
+export class ProfilePopupComponent implements OnInit {
   @ViewChild('popup') popup!: ElementRef;
   
 
@@ -38,7 +38,6 @@ export class ProfilePopupComponent implements AfterViewInit {
   //#endregion
 
   //#region Trainings/Purchases Variables
-  knownTrainingTypes: string[] = [ 'פילאטיס', 'יוגה', 'אימון כוח', 'Parallel 15', 'Spinning', 'TRX', 'Booty&ABS', 'All In', 'HiiT', 'POWER', '' ]; // Array of known training types
   nextRenewalDate?: string;  // Subscription specific
   slotsLeft?: number;  // Amelia package specific
   selectedTab: string = 'trainings';  // Default selected tab
@@ -96,7 +95,7 @@ export class ProfilePopupComponent implements AfterViewInit {
     private cdRef: ChangeDetectorRef
   ) {
     this.userName = this.authService.getUserFullName();    
-    this.userRole = this.translateUserRole(this.authService.getUserRole());
+    this.userRole = this.authService.getUserRole();
     this.customerID = this.authService.getCustomerID();
     this.userID = this.authService.getUserID();
     this.userEmail = this.authService.getUserEmail();
@@ -129,25 +128,30 @@ export class ProfilePopupComponent implements AfterViewInit {
     
   async ngOnInit() {
     this.isLoadingSubscriptionData = false;
-    this.profileService.fetchSubscriptionData(this.userID, this.customerID).subscribe(
-      ({ subscriptionId, expiryDate, availableSlots }) => {
-          this.nextRenewalDate = this.formatDate(expiryDate);
-          this.slotsLeft = availableSlots;
-          this.isLoadingSubscriptionData = true;
-      },
-      (error) => {
-          console.error('Error fetching subscription data:', error);
-          this.slotsLeft = 0;
-          this.nextRenewalDate = '';
-          this.isLoadingSubscriptionData = true;
+    if (this.userRole === 'activesubscription') {
+      this.profileService.fetchSubscriptionData(this.userID, this.customerID).subscribe(
+        ({ subscriptionId, expiryDate, availableSlots }) => {
+            this.nextRenewalDate = this.formatDate(expiryDate);
+            this.slotsLeft = availableSlots;
+            this.isLoadingSubscriptionData = true;
+        },
+        (error) => {
+            console.error('Error fetching subscription data:', error);
+            this.slotsLeft = 0;
+            this.nextRenewalDate = '';
+            this.isLoadingSubscriptionData = true;
+        }
+    );
+    } else if (this.userRole === 'trainer') {
+        this.profileService.getMonthlyApprovedTrainingCount()
+      .subscribe(c => { this.slotsLeft = c; this.isLoadingSubscriptionData = true; });
+      
       }
-  );
   
     //Fetching Notes For Specific User
     this.fetchNotes();
-    console.log("slotsLeft:", this.slotsLeft);
+    
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
-    //this.profileService.getUserPackageCustomerID(); - SHOULD CHECK IF WORKS WITHOUT IT, FETCHING USER PACKAGECUSTOMERID
     
     // Check if the titles have already been fetched
     if (!this.trainingsByDay || Object.keys(this.trainingsByDay).every(key => this.trainingsByDay[key].length === 0)) {
@@ -161,8 +165,9 @@ export class ProfilePopupComponent implements AfterViewInit {
     if (savedFilter) {
       this.availabilityFilter = savedFilter;
     }
-    this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = this.translateUserRole(data.roles[0]);});
+    this.authService.fetchUserRole().subscribe(data => {this.authService.storeUserRole(data.roles[0]); this.userRole = data.roles[0];});
     this.loadUserAppointmentsLast60Days();
+    
     // Apply the filter after loading appointments
     this.updateFilteredAppointments();
   }
@@ -245,29 +250,6 @@ export class ProfilePopupComponent implements AfterViewInit {
       }
     }
     return 'כללי'; // Return null if no match found
-  }
-  
-  //Fetch user role to hebrew description
-  translateUserRole (role: string | null): string {
-    if (role === 'author')
-      return 'מתאמנת';
-    else if (role === 'administrator')
-      return 'מנהל';
-    else if (role === 'activesubscription')
-      return 'מנוי פעיל';
-    else if (role === 'trainer')
-      return 'מאמן';
-    else if (role === 'team')
-      return 'צוות';
-    else if (role === 'trial-users')
-      return 'מתאמנת ניסיון';
-    else if (role === 'inactive')
-      return 'לא פעילה';
-    else if (role === 'shalom-trainer')
-      return 'מאמן הירקון';
-    else if (role === 'personal')
-      return 'מתאמנת אישית';
-    return '';
   }
 
   ngAfterViewInit() {

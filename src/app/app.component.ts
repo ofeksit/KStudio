@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
     await this.platform.ready();
 
     this.authService.userReady$.pipe(take(1)).subscribe(() => {
-      console.log('Auth check', this.authService.getUserID(), this.authService.getCustomerID(), this.authService.getUserRole());
+      //console.log('Auth check', this.authService.getUserID(), this.authService.getCustomerID(), this.authService.getUserRole());
       this.apptCache.ensureLoaded(); // פרטי משתמש קיימים → נטען
     });
   

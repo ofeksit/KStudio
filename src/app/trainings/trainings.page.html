@@ -61,7 +61,7 @@
         [@buttonState]="getDropdownState()">
             <i class="filter-icon"><ion-icon name="filter-outline" class="filter-icon"></ion-icon></i>
           </button>
-          <button class="icon-button calendar-button">
+          <button class="icon-button calendar-button" *ngIf="userRole !== 'trainer'">
             <i class="calendar-icon"><ion-icon name="calendar-outline" class="calendar-icon" (click)="openCalendarPopup()" *ngIf="!this.isTrainer"></ion-icon></i>
           </button>
         </div>        

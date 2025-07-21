@@ -168,7 +168,7 @@
       <ion-label>בית</ion-label>
     </div>
 
-    <div class="nav-item" (click)="openTrainings()">
+    <div class="nav-item" (click)="openTrainings()" *ngIf="userRole === 'activesubscription' || userRole === 'trainer'">
       <ion-icon name="barbell-outline"></ion-icon>
       <ion-label>אימונים</ion-label>
     </div>

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations'
 import { ModalController, SegmentValue } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -72,7 +72,7 @@ interface TrainingCard {
     ])
   ]
 })
-export class TrainingsPage implements AfterViewInit {
+export class TrainingsPage implements OnInit {
   
   private readonly USE_APPT_CACHE = true;  // flip to false אם בעיה
   cachedAppointments: CachedApptSummary[] = [];
@@ -123,8 +123,8 @@ export class TrainingsPage implements AfterViewInit {
   unfilteredList: Appointment[] = [];
   trainingsByDay: any;
 
-  private readonly PROVIDER_BEN_YEHUDA = 169; // בן יהודה
-  private readonly PROVIDER_HAYARKON   = 643; // הירקון
+  private PROVIDER_BEN_YEHUDA = 169; // בן יהודה
+  private PROVIDER_HAYARKON   = 643; // הירקון
 
   //Enrolling Variables
   isLoading: boolean = true; // Set loading to true initially
@@ -184,16 +184,14 @@ export class TrainingsPage implements AfterViewInit {
               private http: HttpClient,
               private authService: AuthService,
               private modalCalendar: ModalController,
-              private profileService: ProfileService,
               private apptCache: AppointmentsCacheService
              )
     {
-      if (this.authService.getUserRole() === 'trainer') { this.isTrainer = true; }
       this.userId = this.authService.getUserID();
       this.userEmail = this.authService.getUserEmail();
       this.customerID = this.authService.getCustomerID();
       this.userFavLocation = this.authService.getUserFavLocation();    
-
+      this.userRole = this.authService.getUserRole();
       this.authService.fetchPackageCustomerId(this.customerID).subscribe({
         error: (error) => {
           console.error("Error fetching package id", error);
@@ -202,231 +200,228 @@ export class TrainingsPage implements AfterViewInit {
   }
   
 
-  ngAfterViewInit() {
-    /* NEED TO DELETE
-    setTimeout(() => {
-      this.updateIndicatorPosition();
-    }, 100); // Small delay for rendering*/
-  }
-
     //OnInit function - Checks: userLocation, userRole, trainingsTitles, starting Fetching Trainings
-async ngOnInit() {    
-  this.isLoading = true;
-  try {
-    if (this.userRole === 'inactive') {
-      this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
-      return;
-    } else if (this.userRole === 'trial-users') {
-      this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
-      return;
+  async ngOnInit() {    
+    this.isLoading = true;
+    try {
+      if (this.userRole === 'trainer') {
+        this.PROVIDER_BEN_YEHUDA = 172;
+        this.PROVIDER_HAYARKON = 644;
+      }
+      else if (this.userRole === 'activesubscription') {
+        this.PROVIDER_BEN_YEHUDA = 169;
+        this.PROVIDER_HAYARKON = 643;
+      }
+      else if (this.userRole === 'inactive') {
+        this.presentToast('לא ניתן לטעון אימונים, המשתמש לא פעיל', 'danger');
+        return;
+      } else if (this.userRole === 'trial-users') {
+        this.presentToast('לא ניתן לטעון אימונים, משתמש ניסיון', 'danger');
+        return;
+      }
+      
+      // Wait for the favorite location to be fetched before proceeding
+      const locationResponse = this.authService.getUserFavLocation();
+      this.userFavLocation = locationResponse;
+
+      // Set the initial tab based on userFavLocation
+      if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
+          this.selectedFilterAllFav = 'all';
+      } else if (this.userFavLocation === 'הירקון') {
+          this.selectedFilterAllFav = 'shalom';
+      }
+      
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        this.presentToast('שגיאה במשיכת נתונים', 'danger');
+    } finally {
+        this.isLoading = false;
+    }
+  }
+
+  async ionViewWillEnter() {
+    //Check if cache mode is ON
+    if (this.USE_APPT_CACHE) {
+      const usedCache = await this.loadScheduleFromCacheIfPossible();
+      if (usedCache) {
+        //console.log('[TrainingsPage] schedule loaded from cache; skipping network.');
+        // Apply initial filters after cache load - pass proper event format
+        this.filterFavAll({ detail: { value: this.selectedFilterAllFav } });
+        return;
+      }
     }
 
-    // Wait for the favorite location to be fetched before proceeding
-    const locationResponse = this.authService.getUserFavLocation();
-    this.userFavLocation = locationResponse;
-
-    // Set the initial tab based on userFavLocation
-    if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-        this.selectedFilterAllFav = 'all';
-    } else if (this.userFavLocation === 'הירקון') {
-        this.selectedFilterAllFav = 'shalom';
-    }
+    // Fallback to legacy loading
+    console.warn('[TrainingsPage] Cache empty or disabled → fallback legacy load');
+    //await this.loadInitialData();
     
-  } catch (error) {
-      console.error('Error during initialization:', error);
-      this.presentToast('שגיאה במשיכת נתונים', 'danger');
-  } finally {
-      this.isLoading = false;
-  }
-}
-
-async ionViewWillEnter() {
-  // Set initial tab based on user's favorite location
-  /*Duplicate! NEED TO DELETE
-  if (this.userFavLocation === 'בן יהודה' || this.userFavLocation === 'הכל') {
-    this.selectedFilterAllFav = 'all';
-  } else if (this.userFavLocation === 'הירקון') {
-    this.selectedFilterAllFav = 'shalom';
-  }*/
-
-  //Check if cache mode is ON
-  if (this.USE_APPT_CACHE) {
-    const usedCache = await this.loadScheduleFromCacheIfPossible();
-    if (usedCache) {
-      console.log('[TrainingsPage] schedule loaded from cache; skipping network.');
-      // Apply initial filters after cache load
-      this.filterFavAll(this.selectedFilterAllFav);
-      return;
+    // Subscribe to cache updates
+    if (this.USE_APPT_CACHE) {
+      this.apptCache.schedule$.subscribe(list => {
+        if (!list?.length) return;
+        this.scheduleItems = list;
+        this.appointments = this.mapScheduleToTrainingCards(list);
+        console.log("appointments1:", this.appointments);
+        this.indexScheduleByDate();
+        this.applyScheduleToUI();
+        // Reapply current filters when cache updates
+        this.filterFavAll(this.selectedFilterAllFav);
+      });
     }
   }
 
-  // Fallback to legacy loading
-  console.warn('[TrainingsPage] Cache empty or disabled → fallback legacy load');
-  //await this.loadInitialData();
-  
-  // Subscribe to cache updates
-  if (this.USE_APPT_CACHE) {
-    this.apptCache.schedule$.subscribe(list => {
-      if (!list?.length) return;
-      this.scheduleItems = list;
-      this.appointments = this.mapScheduleToTrainingCards(list);
-      this.indexScheduleByDate();
-      this.applyScheduleToUI();
-      // Reapply current filters when cache updates
-      this.filterFavAll(this.selectedFilterAllFav);
-    });
-  }
-}
+  private async loadScheduleFromCacheIfPossible(): Promise<boolean> {
+    try {
+      const items = await this.apptCache.ensureScheduleLoaded(20);
+      if (!items || !items.length) {
+        console.log('[TrainingsPage] Cache is empty');
+        return false;
+      }
 
-private async loadScheduleFromCacheIfPossible(): Promise<boolean> {
-  try {
-    const items = await this.apptCache.ensureScheduleLoaded(20);
-    if (!items || !items.length) {
-      console.log('[TrainingsPage] Cache is empty');
+      //console.log('[TrainingsPage] Loading from cache:', items.length, 'items');
+      
+      // Map cache data to UI format
+      this.scheduleItems = items;
+      this.appointments = this.mapScheduleToTrainingCards(items);
+      
+      this.combinedList = [...this.appointments];
+      this.unfilteredList = [...this.appointments];
+      
+      // Index data by date
+      this.indexScheduleByDate();
+      
+      // Extract available days for the date picker
+      this.extractAvailableDaysFromCache();
+      
+      // Apply to UI
+      this.applyScheduleToUI();
+      
+      // Turn off loading states
+      this.isBenYehudaLoading = false;
+      this.isShalomLoading = false;
+      this.isLoading = false;
+      
+      // Apply current filters
+      this.updateFilteredAppointments();
+      
+      return true;
+    } catch (error) {
+      console.error('[TrainingsPage] Cache load failed:', error);
       return false;
     }
-
-    console.log('[TrainingsPage] Loading from cache:', items.length, 'items');
-    
-    // Map cache data to UI format
-    this.scheduleItems = items;
-    this.appointments = this.mapScheduleToTrainingCards(items);
-    this.combinedList = [...this.appointments];
-    this.unfilteredList = [...this.appointments];
-    
-    // Index data by date
-    this.indexScheduleByDate();
-    
-    // Extract available days for the date picker
-    this.extractAvailableDaysFromCache();
-    
-    // Apply to UI
-    this.applyScheduleToUI();
-    
-    // Turn off loading states
-    this.isBenYehudaLoading = false;
-    this.isShalomLoading = false;
-    this.isLoading = false;
-    
-    // Apply current filters
-    this.updateFilteredAppointments();
-    
-    return true;
-  } catch (error) {
-    console.error('[TrainingsPage] Cache load failed:', error);
-    return false;
-  }
-}
-
-private extractAvailableDaysFromCache() {
-  const hebrewDays = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'ש\''];
-  const today = new Date().toISOString().split('T')[0];
-
-  // Determine which provider we're filtering for
-  let providerId: number | null = null;
-  if (this.selectedFilterAllFav === 'all') {
-    providerId = this.PROVIDER_BEN_YEHUDA;
-  } else if (this.selectedFilterAllFav === 'shalom') {
-    providerId = this.PROVIDER_HAYARKON;
   }
 
-  // Filter schedule items by provider if needed
-  let filteredItems = this.scheduleItems;
-  if (providerId !== null) {
-    filteredItems = this.scheduleItems.filter(item => item.providerId === providerId);
-  }
+  private extractAvailableDaysFromCache() {
+    const hebrewDays = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'ש\''];
+    const today = new Date().toISOString().split('T')[0];
 
-  // Get unique dates from filtered items
-  const uniqueDates = Array.from(new Set(
-    filteredItems.map(item => item.date).filter(date => date)
-  ));
-
-  const newDays = uniqueDates.map(date => {
-    const parsedDate = new Date(date);
-    const dayOfWeek = hebrewDays[parsedDate.getDay()];
-    const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
-
-    return { date, day: dayOfWeek, formattedDate };
-  });
-
-  // Sort days with today first
-  newDays.sort((a, b) => {
-    if (a.date === today) return -1;
-    if (b.date === today) return 1;
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
-  });
-
-  this.days = newDays;
-  this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
-}
-
-private mapScheduleToTrainingCards(items: ScheduleItem[]): TrainingCard[] {
-  const favoriteTrainings = this.getFavoriteTrainings();
-  console.log("items:", items);
-  return items.map(s => ({
-    id: s.appointmentId,
-    type: 'training',
-    appointmentId: s.appointmentId,
-    providerId: s.providerId,
-    serviceId: s.serviceId ?? 0,
-    start_time: s.startTime,
-    title: { name: s.serviceName },
-    booked: s.booked ?? 0,
-    total_participants: s.capacity ?? (s.booked ?? 0),
-    current_participants: [],
-    isUserBooked: !!s.isUserBooked,
-    isTrainer: !!s.isTrainer,
-    favorite: favoriteTrainings.includes(s.appointmentId), // This now properly checks localStorage
-    songsCount: 0,
-    progressPercentage: s.progressPercentage ?? 0, 
-  }));
-}
-
-
-private indexScheduleByDate() {
-  const map: Record<string, ScheduleItem[]> = {};
-  for (const item of this.scheduleItems) {
-    if (!item.date) continue;
-    (map[item.date] ||= []).push(item);
-  }
-  
-  // Sort within each day by startTime
-  for (const date in map) {
-    map[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }
-  
-  this.scheduleByDate = map;
-}
-
-private applyScheduleToUI() {
-  if (!this.days?.length) return;
-  
-  for (const day of this.days) {
-    const date = day.date;
-    const daySchedule = this.scheduleByDate[date] || [];
-    
-    // Filter by current tab if needed
-    let filteredSchedule = daySchedule;
+    // Determine which provider we're filtering for
+    let providerId: number | null = null;
     if (this.selectedFilterAllFav === 'all') {
-      filteredSchedule = daySchedule.filter(item => item.providerId === this.PROVIDER_BEN_YEHUDA); // Changed from providerId to providerId
+      providerId = this.PROVIDER_BEN_YEHUDA;
     } else if (this.selectedFilterAllFav === 'shalom') {
-      filteredSchedule = daySchedule.filter(item => item.providerId === this.PROVIDER_HAYARKON); // Changed from providerId to providerId
+      providerId = this.PROVIDER_HAYARKON;
     }
     
-    (day as any).scheduleItems = filteredSchedule;
-  }
-}
+    // Filter schedule items by provider if needed
+    let filteredItems = this.scheduleItems;
+    if (providerId !== null) {
+      filteredItems = this.scheduleItems.filter(item => item.providerId === providerId);
+    }
 
-/*NEED TO CHECK*/
-async openTrainerAppointment(appt: CachedApptSummary) {
-  try {
-    const participants = await this.apptCache.loadParticipants(appt.appointmentId);
-    this.presentParticipantsModal(appt, participants);
-  } catch (err) {
-    console.error('Failed to load participants', err);
-    // אפשר Toast
+    // Get unique dates from filtered items
+    const uniqueDates = Array.from(new Set(
+      filteredItems.map(item => item.date).filter(date => date)
+    ));
+
+    const newDays = uniqueDates.map(date => {
+      const parsedDate = new Date(date);
+      const dayOfWeek = hebrewDays[parsedDate.getDay()];
+      const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
+
+      return { date, day: dayOfWeek, formattedDate };
+    });
+
+    // Sort days with today first
+    newDays.sort((a, b) => {
+      if (a.date === today) return -1;
+      if (b.date === today) return 1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
+    this.days = newDays;
+    this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
   }
-}
+
+  private mapScheduleToTrainingCards(items: ScheduleItem[]): TrainingCard[] {
+    const favoriteTrainings = this.getFavoriteTrainings();
+    
+    return items.map(s => ({
+      id: s.appointmentId,
+      type: 'training',
+      appointmentId: s.appointmentId,
+      providerId: s.providerId,
+      serviceId: s.serviceId ?? 0,
+      start_time: s.startTime,
+      title: { name: s.serviceName },
+      booked: s.booked ?? 0,
+      total_participants: s.capacity ?? (s.booked ?? 0),
+      current_participants: [],
+      isUserBooked: !!s.isUserBooked,
+      isTrainer: !!s.isTrainer,
+      favorite: favoriteTrainings.includes(s.appointmentId), // This now properly checks localStorage
+      songsCount: 0,
+      progressPercentage: s.progressPercentage ?? 0, 
+    }));
+  }
+
+
+  private indexScheduleByDate() {
+    
+    const map: Record<string, ScheduleItem[]> = {};
+    for (const item of this.scheduleItems) {
+      if (!item.date) continue;
+      (map[item.date] ||= []).push(item);
+    }
+    
+    // Sort within each day by startTime
+    for (const date in map) {
+      map[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }
+    
+    this.scheduleByDate = map;
+    
+  }
+
+  private applyScheduleToUI() {
+    if (!this.days?.length) return;
+    
+    for (const day of this.days) {
+      const date = day.date;
+      const daySchedule = this.scheduleByDate[date] || [];
+      
+      // Filter by current tab if needed
+      let filteredSchedule = daySchedule;
+      if (this.selectedFilterAllFav === 'all') {
+        filteredSchedule = daySchedule.filter(item => item.providerId === this.PROVIDER_BEN_YEHUDA); // Changed from providerId to providerId
+      } else if (this.selectedFilterAllFav === 'shalom') {
+        filteredSchedule = daySchedule.filter(item => item.providerId === this.PROVIDER_HAYARKON); // Changed from providerId to providerId
+      }
+      
+      (day as any).scheduleItems = filteredSchedule;
+    }
+  }
+
+  /*NEED TO CHECK*/
+  async openTrainerAppointment(appt: CachedApptSummary) {
+    try {
+      const participants = await this.apptCache.loadParticipants(appt.appointmentId);
+      this.presentParticipantsModal(appt, participants);
+    } catch (err) {
+      console.error('Failed to load participants', err);
+      // אפשר Toast
+    }
+  }
 
   presentParticipantsModal(appt: CachedApptSummary, participants: any[]): void {
     console.log('Participants for appt', appt.appointmentId, participants);
@@ -450,322 +445,31 @@ async openTrainerAppointment(appt: CachedApptSummary) {
     await toast.present();
   }
 
-  /*Extract 
-  extractAvailableDays() {
-    console.log("ALERT!!!!!! extractAvailableDays");
-    const hebrewDays = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'ש\''];
-    const today = new Date().toISOString().split('T')[0];
-
-    const allDates = this.combinedList
-      .filter(item => !isNaN(new Date(item.start_time).getTime()))
-      .map(item => new Date(item.start_time).toISOString().split('T')[0]);
-
-    const newDays = Array.from(new Set(allDates)).map(date => {
-      const parsedDate = new Date(date);
-      const dayOfWeek = hebrewDays[parsedDate.getDay()];
-      const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
-
-      return { date, day: dayOfWeek, formattedDate };
-    });
-
-    newDays.sort((a, b) => {
-      if (a.date === today) return -1;
-      if (b.date === today) return 1;
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    });
-
-    // Store days in appropriate array
-    if (this.selectedFilterAllFav === 'all') {
-      this.benYehudaDays = newDays;
-    } else if (this.selectedFilterAllFav === 'shalom') {
-      this.shalomDays = newDays;
-    }
-
-    // Set days based on current tab
-    this.days = this.selectedFilterAllFav === 'all' ? this.benYehudaDays : this.shalomDays;
-    this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
-  }*/
-
   extractAvailableTypes() {
-    console.log("ALERT!!!!!! extractAvailableTypes");
     const typesSet = new Set(this.filteredAppointments.map(appointment => appointment.title.name));
     this.availableTypes = Array.from(typesSet);
   }
   
-  /* Filter the combined list by selected day
-  getAppointmentsForSelectedDay() {
-    console.log("ALERT!!!!!! get appointments for selected day");
-    return this.combinedList.filter(item => {
-      const date = moment(item.start_time);
-      return (
-        date.isValid() && // Ensure valid date
-        date.format('YYYY-MM-DD') === this.selectedDay
-      );
-    });    
-  }*/
-
-  /* Old method to load initial data  
-  private async loadInitialData() {
-    console.log("ALERT!!!!!! load initinal data");
-        // Set loading state before any data fetching
-        if (this.selectedFilterAllFav === 'all') {
-          this.isBenYehudaLoading = true;
-          // Force change detection
-          setTimeout(() => {}, 0);
-        } else if (this.selectedFilterAllFav === 'shalom') {
-          this.isShalomLoading = true;
-        }
-    try {
-      const today = new Date();
-      const maxEndDate = new Date(today);
-      maxEndDate.setDate(today.getDate() + 20);
-      let expiryDate = this.profileService.getSubscriptionExpiryDate();
-      let endDate = maxEndDate;
-      
-      if (expiryDate)
-      {
-        const [day, month, year] = expiryDate.split("/").map(Number);
-        var expiryDateFormatted = new Date(year, month - 1, day);
-      
-        // Function to find the closer date
-        const closerDate = (endDate: any, expiryDateFormatted: any, today: any) => {
-          return Math.abs(endDate - today) < Math.abs(expiryDateFormatted - today) ? endDate : expiryDateFormatted;
-        };
-
-        endDate = closerDate(endDate, expiryDateFormatted, today);
-      }
-
-      
-      this.currentDateRange = {
-          start: today,
-          end: endDate
-      };
-  
-      let firstToFetch = this.userFavLocation;
-      
-      if (this.userFavLocation == "הכל")
-          firstToFetch = "בן יהודה";
-  
-      console.time("fetchTime");
-      await this.fetchTrainingsForDateRange(today, endDate, firstToFetch);
-      console.timeEnd("fetchTime");
-    } catch (error) {
-        console.error('Error loading initial data:', error);
-        await this.presentToast('שגיאה בטעינת אימונים', 'danger');
-    } finally {
-        if (this.selectedFilterAllFav === 'all') {
-          this.isBenYehudaLoading = false;
-          // Force change detection
-          setTimeout(() => {}, 0);
-        } else if (this.selectedFilterAllFav === 'shalom') {
-          this.isShalomLoading = false;
-        }
-    }
-  }*/
-
-  /*private async fetchTrainingsForDateRange(startDate: Date, endDate: Date, selectedLocation: string) {
-    console.log("ALERT!!!!!! FETCHTRAININGS FOR DATE RANGE");
-    // If data is already loaded for this location, use the cached data
-    if (selectedLocation === 'בן יהודה' && this.benYehudaLoaded) {
-      this.combinedList = [...this.benYehudaAppointments];
-      this.unfilteredList = [...this.combinedList];
-      this.updateFilteredAppointments();
-      return;
-    }
-    if (selectedLocation === 'הירקון' && this.shalomLoaded) {
-      this.combinedList = [...this.shalomAppointments];
-      this.unfilteredList = [...this.combinedList];
-      this.updateFilteredAppointments();
-      return;
-    }
-
-    const userID = this.authService.getUserID();
-    const formatDate = (date: Date): string => moment(date).format('YYYY-MM-DD');
-    
-    try {
-      const startDateFormatted = formatDate(startDate);
-      const endDateFormatted = formatDate(endDate);
-      console.log("endDateFormatted:", endDateFormatted)
-      const encodedLocation = encodeURIComponent(selectedLocation);
-      
-      const url = `https://k-studio.co.il/wp-json/custom-api/v1/get-trainings?startDate=${startDateFormatted}&endDate=${endDateFormatted}&userID=${userID}&location=${encodedLocation}`;
-      
-      const response = await firstValueFrom(this.http.get<any[]>(url));
-
-      // Update available days
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dayStr = formatDate(new Date(d));
-        if (!this.allAvailableDays.includes(dayStr)) {
-          this.allAvailableDays.push(dayStr);
-        }
-      }
-
-      // Process the response and store in appropriate list
-      await this.combineTimeslotsAndAppointments(response);
-      
-      if (selectedLocation === 'בן יהודה') {
-        this.benYehudaAppointments = [...this.combinedList];
-        this.benYehudaLoaded = true;
-      } else if (selectedLocation === 'הירקון') {
-        this.shalomAppointments = [...this.combinedList];
-        this.shalomLoaded = true;
-      }
-      
-    } catch (error) {
-      console.error('Error fetching trainings:', error);
-      throw error;
-    }
-  }*/
-
-    /*
-  async combineTimeslotsAndAppointments(response: any[]) {
-    try {
-        // Split the response into timeslots and appointments
-        const currentTimeslots = response.filter(item => item.type === 'timeslot');
-        const currentAppointments = response.filter(item => item.type === 'appointment');
-        
-        // Determine which location we're processing
-        const isProcessingBenYehuda = this.selectedFilterAllFav === 'all';
-        
-        // Store in appropriate arrays
-        if (isProcessingBenYehuda) {
-            this.benYehudaTimeslots = currentTimeslots;
-            this.benYehudaAppointments = currentAppointments;
-        } else {
-            this.shalomTimeslots = currentTimeslots;
-            this.shalomAppointments = currentAppointments;
-        }
-        
-        // Combine the lists based on current selected location
-        this.combinedList = [
-            ...(isProcessingBenYehuda ? this.benYehudaTimeslots : this.shalomTimeslots),
-            ...(isProcessingBenYehuda ? this.benYehudaAppointments : this.shalomAppointments)
-        ];
-        
-        // Sort the combined list by start_time
-        this.combinedList.sort((a, b) => {
-            const timeA = new Date(a.start_time).getTime();
-            const timeB = new Date(b.start_time).getTime();
-            return timeA - timeB;
-        });
-
-        // Create a fresh copy of the sorted list for unfiltered
-        this.unfilteredList = [...this.combinedList];
-
-        // Extract available days for filtering
-        this.extractAvailableDays();
-
-        // Get the logged-in customer's full name
-        const loggedInCustomerFN = this.authService.getUserFullName();
-
-        const promises = this.combinedList.map(async (training) => {
-            if (!training.start_time || isNaN(Date.parse(training.start_time))) {
-                console.error(`Invalid start_time for training:`, training);
-                return;
-            }
-
-            if (training.booked >= training.total_participants && training.id !== undefined) {
-                training.isStandbyEnrolled = await this.checkStandbyEnrollment(this.userEmail!, training.id);
-            } else {
-                training.isStandbyEnrolled = false;
-            }
-
-            if (Array.isArray(training.current_participants)) {
-                training.isUserBooked = training.current_participants.some(
-                    (booking: any) => booking === loggedInCustomerFN
-                );
-            } else {
-                console.warn(`current_participants is not an array for training:`, training);
-                training.isUserBooked = false;
-            }
-        });
-
-        await Promise.all(promises);
-
-        // Make sure filteredAppointments is also sorted
-        this.filteredAppointments = [...this.combinedList];
-        //console.log("filtered", this.filteredAppointments)
-        // Update filtered appointments
-        this.updateFilteredAppointments();
-
-    } catch (error) {
-        console.error('Error combining timeslots and appointments:', error);
-    }
-  }*/
-
   // Modified onDayChange to properly handle async operations
   onDayChange(selectedDay: SegmentValue) {
     const dayStr = String(selectedDay || '');
     this.selectedDay = dayStr;
     
-    //NEED TO DELETE this.updateIndicatorPosition();
     this.updateFilteredAppointments();
-    
-    // Additional debug
-      this.filteredAppointments.filter(a => 
-        moment(a.start_time).format('YYYY-MM-DD') === dayStr
-      ).map(a => ({
-        id: a.id,
-        title: a.title.name,
-        time: a.start_time,
-        provider: a.providerId === this.PROVIDER_BEN_YEHUDA ? 'Ben Yehuda' : 'Hayarkon'
-      }));  
   }
-
-  /*
-  NEED TO DELETE
-  private updateIndicatorPosition() {
-    setTimeout(() => {
-      if (!this.segmentButtons || this.segmentButtons.length === 0) {
-        return;
-      }
-
-      const index = this.days.findIndex(s => s.date === this.selectedDay);
-      
-      if (index !== -1) {
-        const button = this.segmentButtons.toArray()[index]?.nativeElement;
-        
-        if (button && this.segmentScroll?.nativeElement) {
-          const rect = button.getBoundingClientRect();
-          const scrollRect = this.segmentScroll.nativeElement.getBoundingClientRect();
-          
-          // Calculate center position of the button
-          this.indicatorPosition = (rect.left - scrollRect.left) + (button.offsetWidth / 2) - (this.indicatorWidth / 2);
-          
-          // Add this property to your component
-          this.renderer.setStyle(this.indicator.nativeElement, 'transform', `translateX(${this.indicatorPosition}px)`);
-        }
-      }
-    }, 50);
-  }
-  */
-
-  /*NEED TO DELETE
-  getIndicatorPosition(): number {
-    return this.indicatorPosition;
-  }*/
 
   // Modify the filterFavAll method
   async filterFavAll(event: any) {
-    
-    const selectedTab: 'all' | 'shalom' | 'favorites' = event.detail.value;
+    const selectedTab: 'all' | 'shalom' | 'favorites' = typeof event === 'string' ? event : event.detail.value;
     
     this.selectedFilterAllFav = selectedTab;
-    this.combinedList = [];
-    this.filteredAppointments = [];
-    this.days = [];
     
     if (selectedTab === 'favorites') {
-      // Get current favorites from localStorage
       const favoriteIds = this.getFavoriteTrainings();
-      
-      // Filter the unfilteredList to only include favorites
       this.filteredAppointments = this.unfilteredList.filter(appointment => 
         favoriteIds.includes(appointment.id)
       );
-      
-      // Extract available days for the favorite appointments
-      //this.extractAvailableDays();
+      this.extractAvailableDaysFromCache();
       return;
     }
 
@@ -775,30 +479,54 @@ async openTrainerAppointment(appt: CachedApptSummary) {
 
     try {
       if (this.USE_APPT_CACHE && this.scheduleItems.length > 0) {
-        // Filter by providerId based on selected tab
         const providerId = selectedTab === 'all' ? this.PROVIDER_BEN_YEHUDA : this.PROVIDER_HAYARKON;
         
-        // Filter schedule items by providerId and map to training cards
+        // Filter schedule items by providerId
         const filteredSchedule = this.scheduleItems.filter(item => item.providerId === providerId);
+        
+        // Map to training cards
         this.combinedList = this.mapScheduleToTrainingCards(filteredSchedule);
+        
         this.unfilteredList = [...this.combinedList];
         
-        // Extract days only for this provider
-        this.extractAvailableDaysFromCache();
+        // Extract days from the filtered data
+        this.extractAvailableDaysFromFilteredData(filteredSchedule);
         
         // Update UI
         this.updateFilteredAppointments();
-          
-    
-      } else {
-        // Fallback to legacy loading
-        // ... existing legacy loading logic ...
       }
     } finally {
       if (selectedTab === 'all') this.isBenYehudaLoading = false;
       else this.isShalomLoading = false;
     }
-    
+  }
+
+  private extractAvailableDaysFromFilteredData(filteredItems: ScheduleItem[]) {
+    const hebrewDays = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'ש\''];
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get unique dates from filtered items
+    const uniqueDates = Array.from(new Set(
+      filteredItems.map(item => item.date).filter(date => date)
+    ));
+
+    const newDays = uniqueDates.map(date => {
+      const parsedDate = new Date(date);
+      const dayOfWeek = hebrewDays[parsedDate.getDay()];
+      const formattedDate = `${parsedDate.getDate()}.${parsedDate.getMonth() + 1}`;
+
+      return { date, day: dayOfWeek, formattedDate };
+    });
+
+    // Sort days with today first
+    newDays.sort((a, b) => {
+      if (a.date === today) return -1;
+      if (b.date === today) return 1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
+    this.days = newDays;
+    this.selectedDay = this.days.length > 0 ? this.days[0].date : '';
   }
   
   // Add this function to trigger on availability filter change
@@ -1062,7 +790,7 @@ async openTrainerAppointment(appt: CachedApptSummary) {
     appointment.isLoading = true;
     appointment.isSuccess = false; // Reset success state
     appointment.isError = false; // Add an error state
-    console.log("enrollUser called with appointment:", appointment);
+    
     let serviceID = appointment.serviceId;
     let bookingStart = appointment.start_time;
     const formattedBookingStart = bookingStart.slice(0, 16); // Ensure ISO 8601 format if required
@@ -1099,7 +827,7 @@ async openTrainerAppointment(appt: CachedApptSummary) {
       bookingStart: formattedBookingStart,
       timeZone: timeZone,
     };
-    console.log("enrollData", enrollData)
+    //console.log("enrollData", enrollData)
     this.platform.ready().then(() => {
       const body = JSON.stringify(enrollData);
       this.http.post('https://k-studio.co.il/wp-json/wn/v1/enrollTraining', body, {

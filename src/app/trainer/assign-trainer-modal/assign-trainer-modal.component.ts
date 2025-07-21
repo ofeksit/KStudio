@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
@@ -23,7 +23,7 @@ interface TrainingWithTrainer {
   templateUrl: './assign-trainer-modal.component.html',
   styleUrls: ['./assign-trainer-modal.component.scss'],
 })
-export class AssignTrainerModalComponent implements OnInit, AfterViewInit {
+export class AssignTrainerModalComponent implements OnInit {
   @Input() training!: TrainingWithTrainer;
   @ViewChild('modalContent', { static: false }) modalContent!: ElementRef;
   
