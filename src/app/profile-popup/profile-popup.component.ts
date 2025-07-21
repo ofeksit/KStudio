@@ -145,7 +145,7 @@ export class ProfilePopupComponent implements AfterViewInit {
   
     //Fetching Notes For Specific User
     this.fetchNotes();
-
+    console.log("slotsLeft:", this.slotsLeft);
     this.trainingsByDay = this.ameliaService.getTrainingsTitles();
     //this.profileService.getUserPackageCustomerID(); - SHOULD CHECK IF WORKS WITHOUT IT, FETCHING USER PACKAGECUSTOMERID
     

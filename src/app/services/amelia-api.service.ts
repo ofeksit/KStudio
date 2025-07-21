@@ -127,7 +127,6 @@ export class AmeliaService {
       try {
         this.http.get<UpcomingAppointment[]>(`${this.baseUrl}/user-appointments/${userID}/${customerID}`).subscribe(
           (response) => {
-            console.log("response", response);
             observer.next(response);
             observer.complete();
           },

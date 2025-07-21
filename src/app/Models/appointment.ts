@@ -2,7 +2,7 @@ export interface Appointment {
   id: number;
   type: string;
   title: { name: string }; // Optional for timeslots
-  serviceID?: number;
+  serviceId?: number;
   start_time: string;
   booked: number;
   capacity?: number;

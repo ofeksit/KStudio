@@ -111,7 +111,6 @@ export class HomePage implements OnInit {
         console.log('HomePage ngOnInit: fetchSubscriptionExpiryDate success.');
       },
       (error) => {
-        // This console.error was already in your code, ensure you check the browser console for it
         console.error("HomePage ngOnInit: Error fetching subscription expiry date", error);
       }
     );

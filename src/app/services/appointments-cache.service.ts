@@ -25,6 +25,7 @@ export interface ScheduleItem extends CachedApptSummary {
   serviceId?: number;
   trainerEmail?: string | null;
   isUserBooked?: boolean;
+  progressPercentage?: number; // Add this line
 }
 
 interface AppointmentsCachePayload {
@@ -106,7 +107,9 @@ export class AppointmentsCacheService {
         return cached.items;
       }
     }
+    this.fetchAndCacheSchedule(20, userId, customerId);
     return this.fetchAndCache(userId, customerId);
+    
   }
 
   async refresh(): Promise<CachedApptSummary[]> {
@@ -226,6 +229,13 @@ export class AppointmentsCacheService {
       this.schedInFlight = firstValueFrom(this.http.get<ScheduleItem[]>(url))
         .then(items => {
           console.log('[ApptCache] schedule fetched', items?.length ?? 0);
+          
+          // Process items to add progressPercentage
+          const processedItems = (items ?? []).map(item => ({
+            ...item,
+            progressPercentage: this.calculateProgressPercentage(item)
+          }));
+          
           const payload: SchedCachePayload = {
             version: 1,
             fetchedAt: Date.now(),
@@ -233,7 +243,7 @@ export class AppointmentsCacheService {
             userId,
             role: this.auth.getUserRole ? this.auth.getUserRole() : null,
             days,
-            items: items ?? [],
+            items: processedItems,
           };
           this.schedMem = payload;
           this.saveScheduleToLS(payload);
@@ -269,4 +279,13 @@ export class AppointmentsCacheService {
     const url = `${this.API_BASE}/appointment-participants/${appointmentId}`;
     return firstValueFrom(this.http.get<any[]>(url));
   }
+
+  private calculateProgressPercentage(item: ScheduleItem): number {
+    if (!item.booked || !item.capacity) {
+      return 0;
+    }
+    const progress = (item.booked / item.capacity) * 100;
+    return progress > 100 ? 100 : progress; // Ensure the progress doesn't exceed 100%
+  }
+
 }

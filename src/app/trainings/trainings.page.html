@@ -170,7 +170,7 @@
             <div class="progress-bar">
               <div
                 class="progress"
-                [style.width]="calculateProgress(appointment) + '%'"
+                [style.width]="appointment.progressPercentage + '%'"
                 [ngStyle]="{
                   'background': selectedFilterAllFav === 'shalom' ? 'linear-gradient(90deg, rgb(255, 131, 102) 0%, rgb(255, 48, 0) 100%)' : 'linear-gradient(-90deg, #59c7cd 0%, #00eaf5 100%)'
                 }"
