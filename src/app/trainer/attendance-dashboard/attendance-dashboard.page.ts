@@ -53,7 +53,7 @@ export class AttendanceDashboardPage implements OnInit {
     default:
       return '';
   }
-}
+  }
 
   constructor(
     private http: HttpClient,

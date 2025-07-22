@@ -26,6 +26,7 @@ export interface ScheduleItem extends CachedApptSummary {
   trainerEmail?: string | null;
   isUserBooked?: boolean;
   progressPercentage?: number; // Add this line
+  current_participants?: string[]; // Array of participant names
 }
 
 interface AppointmentsCachePayload {

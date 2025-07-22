@@ -36,6 +36,7 @@ interface TrainingCard {
   isSuccess?: boolean;
   songsCount: number;
   participantsLoaded?: boolean;
+  showParticipants?: boolean; // Add this line
   progressPercentage?: number;
 }
 
@@ -80,6 +81,7 @@ export class TrainingsPage implements OnInit {
   scheduleItems: ScheduleItem[] = [];
   scheduleByDate: Record<string, ScheduleItem[]> = {};
 
+  readonly isAdminOrTrainer: boolean;
 
   //#region Variables
   @ViewChild('popup') popup!: ElementRef;
@@ -192,6 +194,7 @@ export class TrainingsPage implements OnInit {
       this.customerID = this.authService.getCustomerID();
       this.userFavLocation = this.authService.getUserFavLocation();    
       this.userRole = this.authService.getUserRole();
+      this.isAdminOrTrainer = ['administrator', 'team'].includes(this.userRole ?? '');
       this.authService.fetchPackageCustomerId(this.customerID).subscribe({
         error: (error) => {
           console.error("Error fetching package id", error);
@@ -366,7 +369,7 @@ export class TrainingsPage implements OnInit {
       title: { name: s.serviceName },
       booked: s.booked ?? 0,
       total_participants: s.capacity ?? (s.booked ?? 0),
-      current_participants: [],
+      current_participants: s.current_participants ?? [],
       isUserBooked: !!s.isUserBooked,
       isTrainer: !!s.isTrainer,
       favorite: favoriteTrainings.includes(s.appointmentId), // This now properly checks localStorage
@@ -463,7 +466,17 @@ export class TrainingsPage implements OnInit {
     const selectedTab: 'all' | 'shalom' | 'favorites' = typeof event === 'string' ? event : event.detail.value;
     
     this.selectedFilterAllFav = selectedTab;
-    
+    if (this.isAdminOrTrainer) {
+      // הצג את כל האימונים מכל ה‑provider‑ים
+      const allSchedule = this.scheduleItems;           // כבר מכיל את 169 + 643
+      this.combinedList      = this.mapScheduleToTrainingCards(allSchedule);
+      this.unfilteredList    = [...this.combinedList];
+      console.log("combinedList:", this.combinedList);
+      this.extractAvailableDaysFromFilteredData(allSchedule);
+      this.updateFilteredAppointments();
+      return;                                           // דילוג על הלוגיקה הרגילה של הטאבים
+    }
+
     if (selectedTab === 'favorites') {
       const favoriteIds = this.getFavoriteTrainings();
       this.filteredAppointments = this.unfilteredList.filter(appointment => 
@@ -715,28 +728,45 @@ export class TrainingsPage implements OnInit {
     return 'over';                       // >100% (safety / overbook)
   }
 
-  // Method to show the popup
-  async showParticipantsPopup(appt: TrainingCard) {
-    this.activeAppointment = appt;
-    this.isPopupVisible = true;
-
-    if (!appt.current_participants?.length && !appt.participantsLoaded) {
-      appt.participantsLoaded = true; // flag to prevent כפול
-      try {
-        const parts = await this.apptCache.loadParticipants(appt.appointmentId);
-        // parts: [{name,email,...}]
-        appt.current_participants = parts.map(p => p.name || p.email || 'משתתף');
-      } catch (err) {
-        console.error('participants load failed', err);
-        appt.current_participants = [];
+  // Replace the existing popup methods with these:
+  toggleParticipantsPopup(appointment: TrainingCard) {
+    // Close all other popups first
+    this.filteredAppointments.forEach(appt => {
+      if (appt.id !== appointment.id) {
+        appt.showParticipants = false;
       }
+    });
+    
+    // Toggle current popup
+    appointment.showParticipants = !appointment.showParticipants;
+  }
+
+  getProviderClass(providerId: number | string): string {
+    // ממירים תמיד למספר כדי שההשוואה תהיה עקבית
+    switch (+providerId) {
+      case 169:
+        return 'provider-ben-yehuda';
+      case 643:
+        return 'provider-hayarkon';
+      default:
+        return '';
     }
   }
 
-  // Method to hide the popup
-  hideParticipantsPopup() {
-    this.activeAppointment = null;
-    this.isPopupVisible = false;
+
+  hideParticipantsPopup(appointment: TrainingCard) {
+    appointment.showParticipants = false;
+  }
+
+  // Add this method to close popups when clicking outside
+  @HostListener('document:click', ['$event'])
+  handleOutsideClickForPopups(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.participants-container')) {
+      this.filteredAppointments.forEach(appt => {
+        appt.showParticipants = false;
+      });
+    }
   }
 
   // Function to add user to standby list

@@ -14,7 +14,7 @@ import { UpcomingAppointment } from '../Models/UpcomingAppointment';
 import { ProfileService } from '../services/profile.service';
 import { Pagination } from 'swiper/modules'
 import { Observable } from 'rxjs';
-import {trigger, style, transition, animate} from '@angular/animations';
+import {trigger, style, transition, animate, state} from '@angular/animations';
 import { ManagePackagesComponent } from '../manage-packages/manage-packages.component';
 import { OnboardingService } from '../services/onboarding.service';
 import { JoyrideService } from 'ngx-joyride';
@@ -30,13 +30,29 @@ register();
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  animations: [
-    trigger('fadeOutAnimation', [
-      transition('fadeIn => fadeOut', [
-        animate('300ms ease-in', style({opacity: 0, transform: 'scale(0.8)'})),
-      ]),
-    ]),
-  ],
+animations: [
+  trigger('fadeOutAnimation', [
+    // מצב רגיל (נראה)
+    state('fadeIn',  style({ opacity: 1, transform: 'scale(1)' })),
+
+    // מצב מוסתר – נשאר אחרי ההנפשה
+    state('fadeOut', style({ 
+      opacity: 0,
+      transform: 'scale(0.8)',
+      pointerEvents: 'none',   // שלא ילחצו בטעות
+      height: 0,
+      margin: 0,
+      padding: 0,
+    })),
+
+    // מעבר החוצה
+    transition('fadeIn => fadeOut', animate('300ms ease-in')),
+
+    // אם צריך להחזיר על כשלון
+    transition('fadeOut => fadeIn', animate('300ms ease-out')),
+  ]),
+],
+
 })
 
 export class HomePage implements OnInit {

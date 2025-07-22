@@ -4,7 +4,7 @@
   <div class="content-container">
     <div class="sticky-header">
       <!-- Header Tabs for "All" and "Favorites" -->
-      <div class="header-tabs">
+      <div class="header-tabs" *ngIf="!isAdminOrTrainer">
         <ion-segment mode="md" [(ngModel)]="selectedFilterAllFav" class="segment-tab" (ionChange)="filterFavAll($event)">
           <ion-segment-button
             value="all"
@@ -123,32 +123,50 @@
       </ion-list>
       
       <!--Appointments Section-->
-      <div *ngFor="let appointment of filteredAppointments" class="card" 
-      [ngClass]="{
-        'card--shalom': selectedFilterAllFav === 'shalom',
-        'card--other': selectedFilterAllFav != 'shalom'
+      <div *ngFor="let appointment of filteredAppointments"
+          class="card"
+          [ngClass]="{
+            'card--shalom': appointment.providerId === 643, 
+            'card--other' : appointment.providerId === 169  
           }">
          <div class="card-header">
           <div class="time-date">
           {{ appointment.start_time | date: 'HH:mm' }}
           </div>
-            <div class="icons-header">
-              <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
-              <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
-            </div>
+                <span 
+                  class="provider-tag"
+                  [ngClass]="getProviderClass(appointment.providerId)">
+                  {{ appointment.providerId === 169 
+                      ? 'בן יהודה' 
+                      : appointment.providerId === 643 
+                          ? 'הירקון' 
+                          : appointment.providerId }}
+                </span>
+          <div class="icons-header">
+            <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
+            <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
+          </div>
           </div>         
         
           <div class="training-title-and-participants">
           <h3 class="training-title">{{ appointment.title.name }}</h3>
                     
-            
-        <div class="participants-container" [ngClass]="capacityState(appointment)">
-          <div class="participants" (mouseenter)="showParticipantsPopup(appointment)" (mouseleave)="hideParticipantsPopup()">
+          
+
+          <!-- Replace the entire participants section -->
+          <div class="participants-container" [ngClass]="capacityState(appointment)">
+            <div class="participants" 
+                (click)="toggleParticipantsPopup(appointment)">
               {{ appointment.booked }}/{{ appointment.total_participants }}
-              <!--<ion-icon name="people-outline"></ion-icon>-->
-    
-              <!-- Wikipedia-like popup for participant names -->
-              <div class="participant-popup" *ngIf="isPopupVisible && activeAppointment === appointment">
+              
+              <!-- Use click-based popup instead of hover -->
+              <div class="participant-popup" 
+                  *ngIf="appointment.showParticipants"
+                  (click)="$event.stopPropagation()">
+                <div class="popup-header">
+                  <span>משתתפות</span>
+                  <ion-icon name="close" (click)="hideParticipantsPopup(appointment)"></ion-icon>
+                </div>
                 <ul>
                   <li *ngFor="let participant of appointment.current_participants">
                     {{ participant }}
@@ -172,14 +190,16 @@
                 class="progress"
                 [style.width]="appointment.progressPercentage + '%'"
                 [ngStyle]="{
-                  'background': selectedFilterAllFav === 'shalom' ? 'linear-gradient(90deg, rgb(255, 131, 102) 0%, rgb(255, 48, 0) 100%)' : 'linear-gradient(-90deg, #59c7cd 0%, #00eaf5 100%)'
+                  'background': appointment.providerId === 643
+                      ? 'linear-gradient(90deg, #ff8366 0%, #ff3000 100%)'
+                      : 'linear-gradient(-90deg, #59c7cd 0%, #00eaf5 100%)'
                 }"
               ></div>
             </div>
           </div>
         </div>
 
-        <div class="card-footer">
+        <div class="card-footer" *ngIf="!isAdminOrTrainer">
           <!-- Check if user is already booked -->
           <ng-container *ngIf="appointment.isUserBooked">
             <button class="btn btn-enrolled action-button" disabled>
