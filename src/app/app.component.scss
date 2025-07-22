@@ -26,6 +26,13 @@
     font-size: 18px;
     color: #333;
   }
+
+  /* Android-specific overrides */
+.android {
+    --ion-safe-area-top: 0px; /* Start at 0 for Android, updated dynamically via Java */
+    --ion-safe-area-bottom: 0px;
+}
+
   
   .dialog-content p {
     margin-bottom: 20px;

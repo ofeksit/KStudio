@@ -478,12 +478,17 @@ export class TrainingsPage implements OnInit {
     }
 
     if (selectedTab === 'favorites') {
-      const favoriteIds = this.getFavoriteTrainings();
-      this.filteredAppointments = this.unfilteredList.filter(appointment => 
-        favoriteIds.includes(appointment.id)
-      );
-      this.extractAvailableDaysFromCache();
-      return;
+        // 1️⃣ בונים רשימה מכל האימונים הקיימים בזיכרון
+        const allCards = this.mapScheduleToTrainingCards(this.scheduleItems);
+        this.combinedList = allCards;
+        this.unfilteredList = [...allCards];
+        // 2️⃣ שליפה
+        const favoriteIds = this.getFavoriteTrainings();
+        this.filteredAppointments = allCards.filter(a => favoriteIds.includes(a.id));
+        // 3️⃣ עדכון תאריכים + UI
+        this.extractAvailableDaysFromFilteredData(this.scheduleItems);
+        this.updateFilteredAppointments();
+        return;
     }
 
     // Set loading state
@@ -550,7 +555,9 @@ export class TrainingsPage implements OnInit {
 
   //Updates list according the conditions
   updateFilteredAppointments() {
-  let tempAppointments = [...this.unfilteredList];
+let tempAppointments = this.selectedFilterAllFav === 'favorites'
+  ? [...this.combinedList]
+  : [...this.unfilteredList];
 
   if (this.selectedDay) {
     tempAppointments = tempAppointments.filter(appointment =>

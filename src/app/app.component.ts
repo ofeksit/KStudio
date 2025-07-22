@@ -7,6 +7,27 @@ import { register } from 'swiper/element/bundle';
 import { HttpClient } from '@angular/common/http';
 import { AppointmentsCacheService } from './services/appointments-cache.service';
 import { take } from 'rxjs';
+import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
+import { StatusBar, Style } from '@capacitor/status-bar';
+
+const enable = async () => {
+  await EdgeToEdge.enable();
+};
+
+const disable = async () => {
+  await EdgeToEdge.disable();
+};
+
+const getInsets = async () => {
+  const result = await EdgeToEdge.getInsets();
+  console.log('Insets:', result);
+};
+
+const setBackgroundColor = async () => {
+  await EdgeToEdge.setBackgroundColor({ color: '#000000ff' });
+  await StatusBar.setStyle({ style: Style.Light });
+};
+
 
 
 
@@ -39,6 +60,7 @@ export class AppComponent implements OnInit {
   }
 
   async initializeApp() {
+    
     await this.platform.ready();
 
     this.authService.userReady$.pipe(take(1)).subscribe(() => {

@@ -60,7 +60,7 @@ export class AppointmentsCacheService {
   private readonly STORAGE_KEY = 'kstudio.apptCache.v1';          // upcoming (user+trainer)
   private readonly SCHED_KEY   = 'kstudio.trainingsSchedule.v1';  // full schedule
 
-  private readonly HARD_TTL_MS = 10 * 60 * 1000; // 10m
+  private readonly HARD_TTL_MS = 2 * 60 * 1000; // 10m
   private readonly SOFT_TTL_MS =  2 * 60 * 1000; // 2m
 
   /* upcoming (user+trainer) */

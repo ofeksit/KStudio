@@ -485,17 +485,19 @@ ion-tab-button {
 }
 
           .provider-tag {
-            font-size: 0.75rem;
             font-weight: 500;
-            padding: 2px 6px;
             border-radius: 6px;
             white-space: nowrap;
             flex-shrink: 0;
             min-width: auto;
             text-align: center;
-            line-height: 1.2;
             color: white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 14px;
+            line-height: 15px;
+            display: inline;
             
             // Default provider tag styling
             background: linear-gradient(135deg, #00cbbf 0%, #048b83 100%);

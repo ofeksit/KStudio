@@ -3,6 +3,9 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
+    "EdgeToEdge": {
+      "backgroundColor": "#ffffff"
+    }
   },
   "cordova": {
     "preferences": {

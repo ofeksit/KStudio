@@ -101,6 +101,12 @@ button {
     will-change: transform;
   }
   
+  /* Android-specific overrides */
+.android {
+    --ion-safe-area-top: 0px; /* Start at 0 for Android, updated dynamically via Java */
+    --ion-safe-area-bottom: 0px;
+}
+
   ion-content::part(scroll) {
     transform: translateZ(0);
     backface-visibility: hidden;

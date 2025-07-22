@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="io.kstudio.os" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>KStudio</name>
-    <description>Offical KStudio App.</description>
-    <author email="ofek@sitnonn.com" href="https://sitnonn.com">Sitbonn LTD</author>
+    <description>האפליקציה הרשמית של KStudio!</description>
+    <author email="ofek@sitbonn.com" href="https://sitbonn.com">Sitbonn LTD</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
@@ -16,6 +16,7 @@
     <preference name="SplashMaintainAspectRatio" value="true" />
     <preference name="FadeSplashScreenDuration" value="300" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
+    <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
     <platform name="android">

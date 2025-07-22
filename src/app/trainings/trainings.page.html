@@ -130,18 +130,21 @@
             'card--other' : appointment.providerId === 169  
           }">
          <div class="card-header">
-          <div class="time-date">
-          {{ appointment.start_time | date: 'HH:mm' }}
+          <div class="chips">
+            <div class="time-date">
+            {{ appointment.start_time | date: 'HH:mm' }}
+            </div>
+            <span 
+            class="provider-tag"
+            *ngIf="isAdminOrTrainer"
+            [ngClass]="getProviderClass(appointment.providerId)">
+            {{ appointment.providerId === 169 
+                ? 'בן יהודה' 
+                : appointment.providerId === 643 
+                    ? 'הירקון' 
+                    : appointment.providerId }}
+          </span>
           </div>
-                <span 
-                  class="provider-tag"
-                  [ngClass]="getProviderClass(appointment.providerId)">
-                  {{ appointment.providerId === 169 
-                      ? 'בן יהודה' 
-                      : appointment.providerId === 643 
-                          ? 'הירקון' 
-                          : appointment.providerId }}
-                </span>
           <div class="icons-header">
             <ion-icon name="heart-outline" (click)="toggleFavorite(appointment)" [class.favorite]="appointment.favorite"></ion-icon>
             <ion-icon name="play-circle-outline" (click)="openMusicModal(appointment)"></ion-icon>
