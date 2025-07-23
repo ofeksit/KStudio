@@ -3,22 +3,15 @@
   "appName": "KStudio",
   "webDir": "www",
   "plugins": {
-    "EdgeToEdge": {
-      "backgroundColor": "#000"
-    }
-  },
-  "cordova": {
-    "preferences": {
-      "ScrollEnabled": "false",
-      "BackupWebStorage": "none",
-      "SplashMaintainAspectRatio": "true",
-      "FadeSplashScreenDuration": "300",
-      "SplashShowOnlyFirstTime": "false",
-      "SplashScreen": "screen",
-      "SplashScreenDelay": "3000"
-    }
-  },
+    "StatusBar": {
+      "overlaysWebView": false,          // <— key line!
+      "style": "DARK",                   // optional
+      "backgroundColor": "#ffffff"       // optional
+    },   
+    "EdgeToEdge": { "backgroundColor": "#000000" }
+  },  
   "android": {
+    "adjustMarginsForEdgeToEdge": "auto",
     "buildType": "debug"
   }
 }
